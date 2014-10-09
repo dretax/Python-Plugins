@@ -99,7 +99,7 @@ class BannedPeople:
                     Player.MessageFrom(systemname, "Found " + cc + " players with similar names. Use more correct name !")
                     return None
                 elif cc == 0:
-                    Player.MessageFrom(systemname, "Player " + Nickname + "[/color] not found")
+                    Player.MessageFrom(systemname, "Player " + Nickname + " not found")
                     return None
 
     def On_Command(self, cmd):
@@ -117,7 +117,7 @@ class BannedPeople:
 
                     else:
                         ini = self.BannedPeopleIni()
-                        #Be sure to check later here for the admin mod and owner rights, so owner can ban an admin maybe?!
+                        #todo: Be sure to check later here for the admin mod and owner rights, so owner can ban an admin maybe?!
                         if playerr.Admin:
                             Player.MessageFrom(sysname, "You cannot ban admins!")
                             return
@@ -145,7 +145,7 @@ class BannedPeople:
                         elif checking == "false" or checking == None:
                             playerr.MessageFrom(sysname, "Admin, who banned you: " + Player.Name)
 
-                        #Make sure to add a kick reason arg crap here
+                        #todo: Make sure to add a kick reason arg crap here
                         playerr.Kick(bannedreason)
                 else:
                     Player.MessageFrom(sysname, "Specify a Name!")
