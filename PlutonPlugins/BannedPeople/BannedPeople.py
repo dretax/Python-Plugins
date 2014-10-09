@@ -105,49 +105,50 @@ class BannedPeople:
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
-        if cmd.cmd == "banip":
-            ini = self.BannedPeopleConfig()
-            sysname = ini.GetSetting("Main", "Name")
-            bannedreason = ini.GetSetting("Main", "BannedDrop")
-            if len(args) > 0:
-                playerr = self.CheckV(Player, args)
-                if playerr == None:
-                    Player.MessageFrom(sysname, "No Player found with that name!")
+        if Player.Admin:
+            if cmd.cmd == "banip":
+                ini = self.BannedPeopleConfig()
+                sysname = ini.GetSetting("Main", "Name")
+                bannedreason = ini.GetSetting("Main", "BannedDrop")
+                if len(args) > 0:
+                    playerr = self.CheckV(Player, args)
+                    if playerr == None:
+                        Player.MessageFrom(sysname, "No Player found with that name!")
 
+                    else:
+                        ini = self.BannedPeopleIni()
+                        #Be sure to check later here for the admin mod and owner rights, so owner can ban an admin maybe?!
+                        if playerr.Admin:
+                            Player.MessageFrom(sysname, "You cannot ban admins!")
+                            return
+
+                        id = playerr.SteamID
+                        ip = playerr.IP
+                        name = playerr.Name
+                        for pl in Server.ActivePlayers:
+                            if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
+
+                        ini.AddSetting("Ips", ip, "1")
+                        ini.AddSetting("Ids", id, "1")
+                        ini.AddSetting("NameIps", name, ip)
+                        ini.AddSetting("NameIds", name, id)
+                        ini.AddSetting("AdminWhoBanned", name, Player.Name)
+                        ini.Save()
+                        Player.Message("You banned " + name)
+                        Player.Message("Player's IP: " + ip)
+                        Player.Message("Player's ID: " + id)
+                        playerr.Message("You were banned from the server")
+                        checking = DataStore.Get("BanIp", Player.SteamID)
+                        if checking == "true":
+                            playerr.MessageFrom(sysname, "Admin, who banned you: UNKNOWN - Admin in Casing mode")
+
+                        elif checking == "false" or checking == None:
+                            playerr.MessageFrom(sysname, "Admin, who banned you: " + Player.Name)
+
+                        #Make sure to add a kick reason arg crap here
+                        playerr.Kick(bannedreason)
                 else:
-                    ini = self.BannedPeopleIni()
-                    #Be sure to check later here for the admin mod and owner rights, so owner can ban an admin maybe?!
-                    if playerr.Admin:
-                        Player.MessageFrom(sysname, "You cannot ban admins!")
-                        return
-
-                    id = playerr.SteamID
-                    ip = playerr.IP
-                    name = playerr.Name
-                    for pl in Server.ActivePlayers:
-                        if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
-
-                    ini.AddSetting("Ips", ip, "1")
-                    ini.AddSetting("Ids", id, "1")
-                    ini.AddSetting("NameIps", name, ip)
-                    ini.AddSetting("NameIds", name, id)
-                    ini.AddSetting("AdminWhoBanned", name, Player.Name)
-                    ini.Save()
-                    Player.Message("You banned " + name)
-                    Player.Message("Player's IP: " + ip)
-                    Player.Message("Player's ID: " + id)
-                    playerr.Message("You were banned from the server")
-                    checking = DataStore.Get("BanIp", Player.SteamID)
-                    if checking == "true":
-                        playerr.MessageFrom(sysname, "Admin, who banned you: UNKNOWN - Admin in Casing mode")
-
-                    elif checking == "false" or checking == None:
-                        playerr.MessageFrom(sysname, "Admin, who banned you: " + Player.Name)
-
-                    #Make sure to add a kick reason arg crap here
-                    playerr.Kick(bannedreason)
-            else:
-                Player.MessageFrom(sysname, "Specify a Name!")
+                    Player.MessageFrom(sysname, "Specify a Name!")
         elif cmd.cmd == "unbanip":
             if Player.Admin:
                 ini = self.BannedPeopleConfig()
