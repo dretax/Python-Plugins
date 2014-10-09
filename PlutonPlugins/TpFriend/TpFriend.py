@@ -148,6 +148,7 @@ class TpFriend:
                     DataStore.Add("tpfriendpending", playerfromm.SteamID, None)
                     DataStore.Add("tpfriendpending2", Player.SteamID, None)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
+                    playerfromm.Teleport(Player.X, Player.Y, Player.Z)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
