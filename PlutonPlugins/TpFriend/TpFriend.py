@@ -116,7 +116,7 @@ class TpFriend:
                     def2 = (cooldown / 1000) / 60
                     done = round(next2, 2)
                     done2 = round(def2, 2)
-                    Player.MessageFrom(systemname, "Time Remaining: " + done + "/" + done2)
+                    Player.MessageFrom(systemname, "Time Remaining: " + str(done) + "/" + str(done2))
         elif cmd.cmd == "tpaccept":
             pending = DataStore.Get("tpfriendpending2", Player.SteamID)
             config = self.TpFriendConfig()
