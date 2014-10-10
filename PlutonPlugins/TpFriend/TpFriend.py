@@ -87,7 +87,7 @@ class TpFriend:
                 cooldown = int(cd)
                 # checkn = config.GetSetting("Settings", "safetpcheck")
                 #stuff = config.GetSetting("Settings", "timeoutr")
-                time = int(DataStore.Get("tpfriendcooldown", Player.SteamID))
+                time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
                 if time is None or (systick - time) < 0 or math.isnan(systick - time):
@@ -112,10 +112,8 @@ class TpFriend:
                     DataStore.Add("tpfriendpending2", playertor.SteamID, Player.SteamID)
                 else:
                     Player.MessageFrom(systemname, "You have to wait before teleporting again!")
-                    next2 = (calc / 1000) / 60
-                    def2 = (cooldown / 1000) / 60
-                    done = round(next2, 2)
-                    done2 = round(def2, 2)
+                    done = round((calc / 1000) / 60, 2)
+                    done2 = round((cooldown / 1000) / 60, 2)
                     Player.MessageFrom(systemname, "Time Remaining: " + str(done) + "/" + str(done2))
         elif cmd.cmd == "tpaccept":
             pending = DataStore.Get("tpfriendpending2", Player.SteamID)
