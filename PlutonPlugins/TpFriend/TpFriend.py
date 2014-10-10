@@ -68,7 +68,6 @@ class TpFriend:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 Player.MessageFrom(systemname, "Teleport Usage:")
-                Player.MessageFrom(systemname, "This will teleport you to another player.")
                 Player.MessageFrom(systemname, "\"/tpa [PlayerName]\" to request a teleport.")
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
