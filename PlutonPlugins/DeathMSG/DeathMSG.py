@@ -23,14 +23,13 @@ class DeathMSG:
             loc.Save()
         return Plugin.GetIni("TpFriendConfig")
 
-    def On_PlayerDied(PlayerDeathEvent):
-        #Test
+    def On_PlayerDied(self, PlayerDeathEvent):
         Server.BroadcastFrom("DeathMSG", str(PlayerDeathEvent.Attacker.Name + " | " + PlayerDeathEvent.Victim.Name + " | " + PlayerDeathEvent.DamageType  + " | " + PlayerDeathEvent.DamageAmount))
         if PlayerDeathEvent.Attacker is not None and PlayerDeathEvent.Victim is not None and PlayerDeathEvent.Attacker != PlayerDeathEvent.Victim:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
             dmgmsg = ini.GetSetting("Settings", "KillMessage")
-            attacker = PlayerDeathEvent.Attacker
+            attacker = PlayerDeathEvent.Attacker.ToPlayer()
             victim = PlayerDeathEvent.Victim
             vloc = victim.Location
             aloc = attacker.Location
