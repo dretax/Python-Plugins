@@ -145,8 +145,8 @@ class TpFriend:
                     playerfromm.MessageFrom(systemname, "Teleported!")
                     DataStore.Add("tpfriendautoban", playerfromm.SteamID, "using")
 
-                    DataStore.Add("tpfriendpending", playerfromm.SteamID, None)
-                    DataStore.Add("tpfriendpending2", Player.SteamID, None)
+                    DataStore.Remove("tpfriendpending", playerfromm.SteamID)
+                    DataStore.Remove("tpfriendpending2", Player.SteamID)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
                     playerfromm.Teleport(Player.Location)
 
@@ -169,9 +169,9 @@ class TpFriend:
             if pending is not None:
                 playerfromm = Server.Find(pending)
                 if playerfromm is not None:
-                    DataStore.Add("tpfriendpending", pending, None)
+                    DataStore.Remove("tpfriendpending", pending)
                     DataStore.Add("tpfriendcooldown", pending, 7)
-                    DataStore.Add("tpfriendpending2", Player.SteamID, None)
+                    DataStore.Remove("tpfriendpending2", Player.SteamID)
                     Player.MessageFrom(systemname, "Request denied!")
                     playerfromm.MessageFrom(systemname, "Your request was denied!")
             else:
