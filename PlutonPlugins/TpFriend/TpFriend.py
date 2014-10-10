@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -91,7 +91,7 @@ class TpFriend:
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
                 if time is None or (systick - time) < 0 or math.isnan(systick - time):
-                    DataStore.Add("tpfriendcooldown", Player.SteamID, systick)
+                    DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
 
                 calc = systick - time
                 if calc >= cooldown or time == 7:
