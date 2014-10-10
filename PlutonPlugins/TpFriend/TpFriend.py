@@ -5,7 +5,7 @@ import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-from System import *
+import System
 import math
 
 """
@@ -24,14 +24,14 @@ class TpFriend:
     # Method provided by Spoock. Converted to Python by DreTaX
     def CheckV(self, Player, args):
         ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Main", "Name")
+        systemname = ini.GetSetting("Settings", "sysname")
         Nickname = ""
         for i in xrange(-1, len(args)):
             i += 1
             Nickname += args[i] + " "
             Nickname = Nickname.Substring(0, len(Nickname) - 1)
             target = self.GetPlayerName(Nickname)
-            if target != None:
+            if target is not None:
                 return target
 
             else:
@@ -77,7 +77,7 @@ class TpFriend:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 playertor = self.CheckV(Player, args)
-                if playertor == None:
+                if playertor is None:
                     # Player.Message("Player " + playertor + " not found!")
                     return
                 if playertor == Player:
@@ -89,12 +89,14 @@ class TpFriend:
                 # checkn = config.GetSetting("Settings", "safetpcheck")
                 #stuff = config.GetSetting("Settings", "timeoutr")
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
+                systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
-                calc = System.Environment.TickCount - time
-                if time == None or calc < 0 or math.isnan(calc):
-                    time = DataStore.Add("tpfriendcooldown", Player.SteamID, System.Environment.TickCount)
+                if time is None or (systick - time) < 0 or math.isnan(systick - time):
+                    time = DataStore.Add("tpfriendcooldown", Player.SteamID, systick)
+
+                calc = systick - time
                 if calc >= cooldown or time == 7:
-                    if usedtp == None:
+                    if usedtp is None:
                         DataStore.Add("tpfriendusedtp", Player.SteamID, 0)
                         usedtp = 0
                     maxtpnumber = int(maxuses)
@@ -105,8 +107,7 @@ class TpFriend:
                             return
 
                     DataStore.Add("tpfriendcooldown", Player.SteamID, System.Environment.TickCount)
-                    playertor.MessageFrom(systemname,
-                                          "Teleport request from " + Player.Name + " to accept write /tpaccept")
+                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to accept write /tpaccept")
                     Player.MessageFrom(systemname, "Teleport request sent to " + playertor.Name)
                     DataStore.Add("tpfriendpending", Player.SteamID, playertor.SteamID)
                     DataStore.Add("tpfriendpending2", playertor.SteamID, Player.SteamID)
@@ -121,9 +122,9 @@ class TpFriend:
             pending = DataStore.Get("tpfriendpending2", Player.SteamID)
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
-            if pending != None:
-                playerfromm = Server.Find(pending)
-                if playerfromm != None:
+            if pending is not None:
+                playerfromm = Server.FindPlayer(pending)
+                if playerfromm is not None:
                     maxuses = config.GetSetting("Settings", "Maxuses")
                     # checkn = config.GetSetting("Settings", "safetpcheck")
                     usedtp = DataStore.Get("tpfriendusedtp", pending)
@@ -142,13 +143,12 @@ class TpFriend:
                         playerfromm.MessageFrom(systemname, "You have unlimited requests remaining!")
 
                     playerfromm.MessageFrom(systemname, "Teleported!")
-                    playerfromm.SafeTeleportTo(Player.Location)
                     DataStore.Add("tpfriendautoban", playerfromm.SteamID, "using")
 
                     DataStore.Add("tpfriendpending", playerfromm.SteamID, None)
                     DataStore.Add("tpfriendpending2", Player.SteamID, None)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
-                    playerfromm.Teleport(Player.X, Player.Y, Player.Z)
+                    playerfromm.Teleport(Player.Location)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
@@ -166,9 +166,9 @@ class TpFriend:
             pending = DataStore.Get("tpfriendpending2", Player.SteamID)
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
-            if pending != None:
+            if pending is not None:
                 playerfromm = Server.Find(pending)
-                if playerfromm != None:
+                if playerfromm is not None:
                     DataStore.Add("tpfriendpending", pending, None)
                     DataStore.Add("tpfriendcooldown", pending, 7)
                     DataStore.Add("tpfriendpending2", Player.SteamID, None)
@@ -182,7 +182,7 @@ class TpFriend:
             maxuses = config.GetSetting("Settings", "Maxuses")
             if int(maxuses) > 0:
                 uses = DataStore.Get("tpfriendusedtp", Player.Name)
-                if uses == None:
+                if uses is None:
                     uses = 0
 
                 Player.MessageFrom(systemname, "Teleport requests used " + str(uses) + " / " + str(maxuses))
