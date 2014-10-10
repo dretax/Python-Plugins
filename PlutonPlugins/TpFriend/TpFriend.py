@@ -154,7 +154,7 @@ class TpFriend:
                     Player.MessageFrom(systemname, "Player isn't online!")
 
             else:
-                Player.MessageFrom(systemname, "Your request was timed out, or you don't have any.")
+                Player.MessageFrom(systemname, "Your request timed out, or you don't have any.")
             # Uncommenting the delay, adding It later only.
             """if tpdelayy > 0:
             playerfromm.MessageFrom(systemname, "Teleporting you in: " + tpdelayy + " second(s)");
