@@ -87,11 +87,11 @@ class TpFriend:
                 cooldown = int(cd)
                 # checkn = config.GetSetting("Settings", "safetpcheck")
                 #stuff = config.GetSetting("Settings", "timeoutr")
-                time = DataStore.Get("tpfriendcooldown", Player.SteamID)
+                time = int(DataStore.Get("tpfriendcooldown", Player.SteamID))
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
                 if time is None or (systick - time) < 0 or math.isnan(systick - time):
-                    time = DataStore.Add("tpfriendcooldown", Player.SteamID, systick)
+                    DataStore.Add("tpfriendcooldown", Player.SteamID, systick)
 
                 calc = systick - time
                 if calc >= cooldown or time == 7:
