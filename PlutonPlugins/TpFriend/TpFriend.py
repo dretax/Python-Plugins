@@ -6,6 +6,7 @@ import clr
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import System
+from System import *
 import math
 
 """
@@ -14,6 +15,33 @@ import math
 
 
 class TpFriend:
+
+    """
+        Timers
+    """
+
+    def AutoKillCallback(self, timer):
+        Server.Broadcast("I guess this timer is running, isnt it?")
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
+        autokill = timer.Args
+        PlayerFrom = Server.FindPlayer(autokill["PlayerR"])
+        PlayerTo = Server.FindPlayer(autokill["PlayerT"])
+        if PlayerFrom is None or PlayerTo is None:
+            Plugin.KillParallelTimer("AutoKill")
+            Server.Broadcast("Did it run fully?!!")
+            return
+        DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
+        DataStore.Add("tpfriendcooldown", PlayerFrom.SteamID, 7)
+        DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
+        PlayerFrom.MessageFrom(systemname, "Teleport request timed out.")
+        PlayerTo.MessageFrom(systemname, "Teleport request timed out.")
+        timer.Kill()
+
+    """
+        Methods
+    """
+
     def GetPlayerName(self, namee):
         name = namee.lower()
         for pl in Server.ActivePlayers:
@@ -30,7 +58,7 @@ class TpFriend:
             i += 1
             Nickname += args[i] + " "
             Nickname = Nickname.Substring(0, len(Nickname) - 1)
-            target = self.GetPlayerName(Nickname)
+            target = Server.FindPlayer(Nickname)
             if target is not None:
                 return target
 
@@ -45,7 +73,7 @@ class TpFriend:
                         cc += 1
 
                 if cc == 1:
-                    target = self.GetPlayerName(found)
+                    target = Server.FindPlayer(found)
                     return target
                 elif cc > 1:
                     Player.MessageFrom(systemname, "Found " + cc + " players with similar names. Use more correct name !")
@@ -86,10 +114,15 @@ class TpFriend:
                 cd = config.GetSetting("Settings", "cooldown")
                 cooldown = int(cd)
                 # checkn = config.GetSetting("Settings", "safetpcheck")
-                #stuff = config.GetSetting("Settings", "timeoutr")
+                stuff = config.GetSetting("Settings", "timeoutr")
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
+                pending = DataStore.Get("tpfriendpending2", playertor.SteamID)
+                if pending is not None:
+                    Player.MessageFrom(systemname, "This player is already pending a request.")
+                    Player.MessageFrom(systemname, "Try again later, or tell the player to deny his current request.")
+
                 if time is None or (systick - time) < 0 or math.isnan(systick - time):
                     DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
 
@@ -106,10 +139,17 @@ class TpFriend:
                             return
 
                     DataStore.Add("tpfriendcooldown", Player.SteamID, System.Environment.TickCount)
-                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to accept write /tpaccept")
+                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to accept type /tpaccept")
+                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to deny type /tpdeny")
                     Player.MessageFrom(systemname, "Teleport request sent to " + playertor.Name)
                     DataStore.Add("tpfriendpending", Player.SteamID, playertor.SteamID)
                     DataStore.Add("tpfriendpending2", playertor.SteamID, Player.SteamID)
+                    autokill = Plugin.CreateDict()
+                    autokill["PlayerR"] = Player.Name
+                    autokill["PlayerT"] = playertor.Name
+                    launchcalc = int(stuff * 1000)
+                    Plugin.CreateParallelTimer("AutoKill", launchcalc, autokill).Start()
+
                 else:
                     Player.MessageFrom(systemname, "You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
@@ -146,6 +186,7 @@ class TpFriend:
                     DataStore.Remove("tpfriendpending2", Player.SteamID)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
                     playerfromm.Teleport(Player.Location)
+                    playerfromm.GroundTeleport(Player.Location)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
