@@ -50,13 +50,13 @@ class TpFriend:
         return None
 
     # Method provided by Spoock. Converted to Python by DreTaX
-    def CheckV(self, Player, args):
+    """def CheckV(self, Player, args):
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         Nickname = ""
         for i in xrange(-1, len(args)):
             i += 1
-            Nickname += args[i] + " "
+            Nickname = Nickname + args[i] + " "
             Nickname = Nickname.Substring(0, len(Nickname) - 1)
             target = Server.FindPlayer(Nickname)
             if target is not None:
@@ -80,7 +80,31 @@ class TpFriend:
                     return None
                 elif cc == 0:
                     Player.MessageFrom(systemname, "Player " + Nickname + " not found")
-                    return None
+                    return None"""
+
+    # method by Illuminati
+    def CheckV(self, Player, args):
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
+        p = Server.FindPlayer(String.Join(" ", args))
+        if p is not None:
+            return p
+
+        count = 0
+        for pl in Server.ActivePlayers:
+            for namePart in args:
+                if namePart in pl.Name:
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, String.Format("Couldn't find {0}!", String.Join(" ", args)))
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
+            return None
 
     def TpFriendConfig(self):
         if not Plugin.IniExists("TpFriendConfig"):
@@ -185,8 +209,8 @@ class TpFriend:
                     DataStore.Remove("tpfriendpending", playerfromm.SteamID)
                     DataStore.Remove("tpfriendpending2", Player.SteamID)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
-                    playerfromm.Teleport(Player.Location)
                     playerfromm.GroundTeleport(Player.Location)
+                    playerfromm.Teleport(Player.Location)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
