@@ -82,6 +82,12 @@ class TpFriend:
                     Player.MessageFrom(systemname, "Player " + Nickname + " not found")
                     return None"""
 
+    def TpFriendConfig(self):
+        if not Plugin.IniExists("TpFriendConfig"):
+            loc = Plugin.CreateIni("TpFriendConfig")
+            loc.Save()
+        return Plugin.GetIni("TpFriendConfig")
+
     # method by Illuminati
     def CheckV(self, Player, args):
         ini = self.TpFriendConfig()
@@ -106,15 +112,9 @@ class TpFriend:
             Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
             return None
 
-    def TpFriendConfig(self):
-        if not Plugin.IniExists("TpFriendConfig"):
-            loc = Plugin.CreateIni("TpFriendConfig")
-            loc.Save()
-        return Plugin.GetIni("TpFriendConfig")
-
     def On_Command(self, cmd):
         Player = cmd.User
-        args = str(cmd.args)
+        args = cmd.args
         if cmd.cmd == "tpa":
             if len(args) == 0:
                 config = self.TpFriendConfig()
