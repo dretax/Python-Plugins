@@ -25,7 +25,7 @@ class DeathMSG:
             loc.AddSetting("Settings", "BledMsg", "victim bled out. He was killed by: killer")
             loc.AddSetting("Settings", "DrownedMsg", "victim Drowned")
             loc.AddSetting("Settings", "ColdMsg", "victim Caught Cold, and died.")
-            loc.AddSetting("Settings", "XyzMsg", "victim died by unknown type called Generic?!")
+            loc.AddSetting("Settings", "XyzMsg", "victim suicided....")
             loc.AddSetting("Settings", "KillMessage", "victim was killed by killer | Damage Caused: dmg | Distance: dist | Killed with: weapon")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
@@ -39,63 +39,66 @@ class DeathMSG:
         return False
 
     def On_PlayerDied(self, PlayerDeathEvent):
-        attacker = PlayerDeathEvent.Attacker.ToPlayer()
-        if PlayerDeathEvent.Victim is not None and attacker.displayName == PlayerDeathEvent.Victim.Name:
+        if PlayerDeathEvent.Attacker.ToPlayer().displayName is None:
+            return
+
+        attacker = PlayerDeathEvent.Attacker
+        victim = PlayerDeathEvent.Victim
+        attackername = str(attacker.displayName)
+        victimname = str(victim.Name)
+        weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
+        if attackername == victimname:
             ini = self.DeathMSGConfig()
-            NaturalDies = int(ini.GetSetting("Settings", "NaturalDies"))
+            NaturalDies = ini.GetSetting("Settings", "NaturalDies")
             sysname = ini.GetSetting("Settings", "SysName")
-            if NaturalDies == 1:
-                victim = PlayerDeathEvent.Victim
+            if int(NaturalDies) == 1:
                 type = str(PlayerDeathEvent.DamageType)
                 if self.IsNatural(type):
                     ntrmsg = ini.GetSetting("Settings", "NaturalMsg")
-                    ntrmsg = ntrmsg.replace("victim", victim.Name)
+                    ntrmsg = ntrmsg.replace("victim", victimname)
                     ntrmsg = ntrmsg.replace("type", type)
                     Server.BroadcastFrom(sysname, ntrmsg)
                 elif type == "Generic":
                     cmsg = ini.GetSetting("Settings", "XyzMsg")
-                    cmsg = cmsg.replace("victim", victim.Name)
+                    cmsg = cmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, cmsg)
                 elif type == "Suicide":
                     smsg = ini.GetSetting("Settings", "SuicideMsg")
-                    smsg = smsg.replace("victim", victim.Name)
+                    smsg = smsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, smsg)
                 elif type == "Fall":
                     fmsg = ini.GetSetting("Settings", "FallMsg")
-                    fmsg = fmsg.replace("victim", victim.Name)
+                    fmsg = fmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, fmsg)
                 elif type == "Drowned":
                     dmsg = ini.GetSetting("Settings", "DrownedMsg")
-                    dmsg = dmsg.replace("victim", victim.Name)
+                    dmsg = dmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, dmsg)
                 elif type == "Cold":
                     cmsg = ini.GetSetting("Settings", "ColdMsg")
-                    cmsg = cmsg.replace("victim", victim.Name)
+                    cmsg = cmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, cmsg)
-
-        if PlayerDeathEvent.Victim is not None and attacker.displayName != PlayerDeathEvent.Victim.Name:
+        elif attackername != victimname:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
             dmgmsg = ini.GetSetting("Settings", "KillMessage")
-            victim = PlayerDeathEvent.Victim
             type = str(PlayerDeathEvent.DamageType)
             if type == "Bullet" or type == "Slash":
-                weapon = PlayerDeathEvent._info.Weapon.info.displayName
                 #bodypart = PlayerDeathEvent._info.HitPart
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
                 damage = PlayerDeathEvent.DamageAmount
-                dmgmsg = dmgmsg.replace("killer", attacker.displayName)
-                dmgmsg = dmgmsg.replace("victim", victim.Name)
+                dmgmsg = dmgmsg.replace("killer", attackername)
+                dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("dist", str(dist))
-                dmgmsg = dmgmsg.replace("weapon", str(weapon))
+                dmgmsg = dmgmsg.replace("weapon", weapon)
                 #TODO: Write a list of the body part numbers.
                 #dmgmsg = dmgmsg.replace("bpart", str(bodypart))
                 Server.BroadcastFrom(sysname, dmgmsg)
-            elif type == "Bleeding":
+            if type == "Bleeding":
                 bmsg = ini.GetSetting("Settings", "BledMsg")
-                bmsg = bmsg.replace("victim", victim.Name)
-                bmsg = bmsg.replace("killer", attacker.displayName)
+                bmsg = bmsg.replace("victim", victimname)
+                bmsg = bmsg.replace("killer", attackername)
                 Server.BroadcastFrom(sysname, bmsg)
