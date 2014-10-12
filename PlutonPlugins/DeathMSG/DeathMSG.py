@@ -46,7 +46,6 @@ class DeathMSG:
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.displayName)
         victimname = str(victim.Name)
-        weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
         if attackername == victimname:
             ini = self.DeathMSGConfig()
             NaturalDies = ini.GetSetting("Settings", "NaturalDies")
@@ -83,6 +82,7 @@ class DeathMSG:
             sysname = ini.GetSetting("Settings", "SysName")
             dmgmsg = ini.GetSetting("Settings", "KillMessage")
             type = str(PlayerDeathEvent.DamageType)
+            weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
             if type == "Bullet" or type == "Slash":
                 #bodypart = PlayerDeathEvent._info.HitPart
                 vloc = victim.Location
