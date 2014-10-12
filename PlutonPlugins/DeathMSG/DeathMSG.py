@@ -39,7 +39,7 @@ class DeathMSG:
         return False
 
     def On_PlayerDied(self, PlayerDeathEvent):
-        if PlayerDeathEvent.Attacker.ToPlayer().displayName is None:
+        if PlayerDeathEvent.Attacker.displayName is None:
             return
 
         attacker = PlayerDeathEvent.Attacker
