@@ -90,7 +90,7 @@ class TpFriend:
 
     def On_Command(self, cmd):
         Player = cmd.User
-        args = cmd.args
+        args = str(cmd.args)
         if cmd.cmd == "tpa":
             if len(args) == 0:
                 config = self.TpFriendConfig()
