@@ -103,3 +103,20 @@ class AdminCommands:
             if pl is not None:
                 pl.GroundTeleport(Player.Location)
                 pl.Teleport(Player.Location)
+        elif cmd.cmd == "god":
+            if not Player.Admin:
+                Player.Message("You aren't an admin!")
+                return
+            if args[0] == "on":
+                DataStore.Add("godmode", Player.SteamID, 1)
+                Player.Message("God mode on.")
+            elif args[0] == "off":
+                DataStore.Add("godmode", Player.SteamID, 0)
+                Player.Message("God mode off.")
+
+
+    def On_PlayerAttacked(self, PlayerHurtEvent):
+         if PlayerHurtEvent.Attacker.ToPlayer().displayName is not None:
+                get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
+                if get is not None and get == 1:
+                    PlayerHurtEvent.DamageAmount  = 0
