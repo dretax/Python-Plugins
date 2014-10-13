@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -23,6 +23,7 @@ class DeathMSG:
             loc.AddSetting("Settings", "NaturalMsg", "victim died because of (a) type")
             loc.AddSetting("Settings", "FallMsg", "victim died because he fell off from something")
             loc.AddSetting("Settings", "BledMsg", "victim bled out. He was killed by: killer")
+            loc.AddSetting("Settings", "BledMsg2", "victim bled out.")
             loc.AddSetting("Settings", "DrownedMsg", "victim Drowned")
             loc.AddSetting("Settings", "ColdMsg", "victim Caught Cold, and died.")
             loc.AddSetting("Settings", "XyzMsg", "victim suicided....")
@@ -77,6 +78,10 @@ class DeathMSG:
                     cmsg = ini.GetSetting("Settings", "ColdMsg")
                     cmsg = cmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, cmsg)
+                elif type == "Bleeding":
+                    bmsg = ini.GetSetting("Settings", "BledMsg2")
+                    bmsg = bmsg.replace("victim", victimname)
+                    Server.BroadcastFrom(sysname, bmsg)
         elif attackername != victimname:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
@@ -97,7 +102,7 @@ class DeathMSG:
                 #TODO: Write a list of the body part numbers.
                 #dmgmsg = dmgmsg.replace("bpart", str(bodypart))
                 Server.BroadcastFrom(sysname, dmgmsg)
-            if type == "Bleeding":
+            elif type == "Bleeding":
                 bmsg = ini.GetSetting("Settings", "BledMsg")
                 bmsg = bmsg.replace("victim", victimname)
                 bmsg = bmsg.replace("killer", attackername)
