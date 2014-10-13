@@ -19,7 +19,9 @@ class AdminCommands:
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
             loc = Plugin.CreateIni("AdminCmdConfig")
-            loc.AddSetting("Help", "KitNames", "starter, admin, builder")
+            loc.AddSetting("Help", "AKitNames", "starter, admin, builder")
+            loc.AddSetting("Help", "PKitNames", "starter")
+            loc.AddSetting("Settings", "EnableKits", "0")
             loc.AddSetting("Settings", "Time", "2400000")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
@@ -52,9 +54,13 @@ class AdminCommands:
         args = cmd.args
         ini = self.AdminCmdConfig()
         if cmd.cmd == "kit":
+            enablekits = int(ini.GetSetting("Settings", "EnableKits"))
+            kitsl = ini.GetSetting("Settings", "AKitNames")
+            if enablekits == 0:
+                return
             if Player.Admin:
                 if len(args) == 0:
-                    Player.Message("Available kits: starter, admin, builder")
+                    Player.Message(kitsl)
                     return
                 if Server.LoadOuts.ContainsKey(args[0]):
                     loadout = Server.LoadOuts[args[0]]
