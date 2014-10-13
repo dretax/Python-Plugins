@@ -119,6 +119,9 @@ class AdminCommands:
             elif args[0] == "off":
                 DataStore.Add("godmode", Player.SteamID, 0)
                 Player.Message("God mode off.")
+            else:
+                Player.Message("Usage: /god on")
+                Player.Message("Usage: /god off")
 
 
     def On_PlayerAttacked(self, PlayerHurtEvent):
