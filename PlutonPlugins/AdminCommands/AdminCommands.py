@@ -68,20 +68,25 @@ class AdminCommands:
                     Player.Message("Available kits: starter")
                     return
                 cooldown = int(ini.GetSetting("Settings", "Time"))
-                systick = System.Environment.TickCount
-                time = DataStore.Get("startercooldown", Player.SteamID)
-                if time is None or (systick - time) < 0 or math.isnan(systick - time):
-                    DataStore.Add("startercooldown", Player.SteamID, 7)
-                calc = systick - time
-                if calc >= cooldown or time == 7:
+                if cooldown > 0:
+                    systick = System.Environment.TickCount
+                    time = DataStore.Get("startercooldown", Player.SteamID)
+                    if time is None or (systick - time) < 0 or math.isnan(systick - time):
+                        DataStore.Add("startercooldown", Player.SteamID, 7)
+                    calc = systick - time
+                    if calc >= cooldown or time == 7:
+                        loadout = Server.LoadOuts["starter"]
+                        loadout.ToInv(Player.Inventory)
+                        DataStore.Add("startercooldown", Player.SteamID, System.Environment.TickCount)
+                    else:
+                        Player.Message("You have to wait before using this again!")
+                        done = round((calc / 1000) / 60, 2)
+                        done2 = round((cooldown / 1000) / 60, 2)
+                        Player.Message("Time Remaining: " + str(done) + "/" + str(done2) + " minutes")
+                else:
                     loadout = Server.LoadOuts["starter"]
                     loadout.ToInv(Player.Inventory)
-                    DataStore.Add("startercooldown", Player.SteamID, System.Environment.TickCount)
-                else:
-                    Player.Message("You have to wait before using this again!")
-                    done = round((calc / 1000) / 60, 2)
-                    done2 = round((cooldown / 1000) / 60, 2)
-                    Player.Message("Time Remaining: " + str(done) + "/" + str(done2) + " minutes")
+
         elif cmd.cmd == "tpto":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
