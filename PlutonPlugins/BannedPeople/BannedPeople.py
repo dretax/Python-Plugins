@@ -2,7 +2,6 @@ __author__ = 'DreTaX'
 __version__ = '1.0'
 
 import clr
-from System import *
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
@@ -17,9 +16,6 @@ class BannedPeople:
         Methods
     """
 
-    #def On_PluginInit(self):
-        #Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
-
     def BannedPeopleConfig(self):
         if not Plugin.IniExists("BannedPeopleConfig"):
             ini = Plugin.CreateIni("BannedPeopleConfig")
@@ -33,6 +29,9 @@ class BannedPeople:
             ini = Plugin.CreateIni("BannedPeople")
             ini.Save()
         return Plugin.GetIni("BannedPeople")
+
+    def On_PluginInit(self):
+        self.BannedPeopleConfig()
 
 
     def argsToText(self, args):
@@ -70,7 +69,7 @@ class BannedPeople:
         return None
 
     # Method provided by Spoock. Converted to Python by DreTaX
-    def CheckV(self, Player, args):
+    """def CheckV(self, Player, args):
         ini = self.BannedPeopleConfig()
         systemname = ini.GetSetting("Main", "Name")
         Nickname = ""
@@ -100,7 +99,30 @@ class BannedPeople:
                     return None
                 elif cc == 0:
                     Player.MessageFrom(systemname, "Player " + Nickname + " not found")
-                    return None
+                    return None"""
+    # method by Illuminati
+    def CheckV(self, Player, args):
+        ini = self.BannedPeopleConfig()
+        systemname = ini.GetSetting("Main", "Name")
+        p = Server.FindPlayer(String.Join(" ", args))
+        if p is not None:
+            return p
+
+        count = 0
+        for pl in Server.ActivePlayers:
+            for namePart in args:
+                if namePart in pl.Name:
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, String.Format("Couldn't find {0}!", String.Join(" ", args)))
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
+            return None
 
     def On_Command(self, cmd):
         Player = cmd.User
