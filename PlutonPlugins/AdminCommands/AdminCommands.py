@@ -77,6 +77,6 @@ class AdminCommands:
 
 
     def On_PlayerAttacked(self, PlayerHurtEvent):
-            get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
-            if get is not None and get == 1:
-                PlayerHurtEvent.info.damageAmount = 0
+        get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
+        if get is not None and get == 1:
+             PlayerHurtEvent.info.damageAmount = 0
