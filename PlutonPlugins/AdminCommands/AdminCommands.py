@@ -113,19 +113,16 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
-            if args[0] == "on":
+            if not DataStore.ContainsKey("godmode", Player.SteamID):
                 DataStore.Add("godmode", Player.SteamID, 1)
                 Player.Message("God mode on.")
-            elif args[0] == "off":
+            else:
                 DataStore.Add("godmode", Player.SteamID, 0)
                 Player.Message("God mode off.")
-            else:
-                Player.Message("Usage: /god on")
-                Player.Message("Usage: /god off")
 
 
     def On_PlayerAttacked(self, PlayerHurtEvent):
-         if PlayerHurtEvent.Attacker.ToPlayer().displayName is not None:
+         if PlayerHurtEvent.Attacker.ToPlayer() is not None:
                 get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
                 if get is not None and get == 1:
                     PlayerHurtEvent.DamageAmount  = 0
