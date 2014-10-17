@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -29,7 +29,6 @@ class IllegalName:
             loc.Save()
         return Plugin.GetIni("IllegalNameConfig")
 
-
     def On_PlayerConnected(self, Player):
         name = str(Player.Name)
         n = len(name)
@@ -39,6 +38,9 @@ class IllegalName:
         reason = ini.GetSetting("options", "DisconnectReason")
         reason2 = ini.GetSetting("options", "DisconnectReason2")
         reason3 = ini.GetSetting("options", "DisconnectReason3")
+        asciie = int(ini.GetSetting("options", "CheckForAscii"))
+        asciiparse = int(ini.GetSetting("options", "KickOnUnsureAsciiParse"))
+        asciireason = ini.GetSetting("options", "AsciiReason")
         space = ini.GetSetting("options", "Spaces")
         listnames = illini.EnumSection("IllegalNames")
         counted = len(listnames)
@@ -58,10 +60,34 @@ class IllegalName:
                 a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
                 if not a:
                     Player.Kick(reason3)
+                    return
+                if asciie == 1:
+                    try:
+                        name.decode('ascii')
+                        Player.Kick(asciireason)
+                    except UnicodeDecodeError:
+                        # No ASCII Characters were found.
+                        return
+                    else:
+                        # Name might contain ASCII Chars
+                        if asciiparse == 1:
+                            Player.Kick(asciireason)
             else:
                 a = re.match('^[a-zA-Z0-9_ !+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason2)
+                    return
+                if asciie == 1:
+                    try:
+                        name.decode('ascii')
+                        Player.Kick(asciireason)
+                    except UnicodeDecodeError:
+                        # No ASCII Characters were found.
+                        return
+                    else:
+                        # Name might contain ASCII Chars
+                        if asciiparse == 1:
+                            Player.Kick(asciireason)
         elif f == 2:
             if n <= 1:
                 Player.Kick(reason2)
@@ -70,7 +96,31 @@ class IllegalName:
                 a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason3)
+                    return
+                if asciie == 1:
+                    try:
+                        name.decode('ascii')
+                        Player.Kick(asciireason)
+                    except UnicodeDecodeError:
+                        # No ASCII Characters were found.
+                        return
+                    else:
+                        # Name might contain ASCII Chars
+                        if asciiparse == 1:
+                            Player.Kick(asciireason)
             else:
                 a = re.match('^[a-zA-Z0-9_ !+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason2)
+                    return
+                if asciie == 1:
+                    try:
+                        name.decode('ascii')
+                        Player.Kick(asciireason)
+                    except UnicodeDecodeError:
+                        # No ASCII Characters were found.
+                        return
+                    else:
+                        # Name might contain ASCII Chars
+                        if asciiparse == 1:
+                            Player.Kick(asciireason)
