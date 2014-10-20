@@ -36,7 +36,7 @@ class TpFriend:
         PlayerTo.MessageFrom(systemname, "Teleport request timed out.")
         timer.Kill()
 
-    def TpDelay(self, timer):
+    def TpDelayCallback(self, timer):
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         tpdelaytp = timer.Args
