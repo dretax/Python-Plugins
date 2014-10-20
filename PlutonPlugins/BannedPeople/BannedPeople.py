@@ -68,38 +68,6 @@ class BannedPeople:
                 return pl
         return None
 
-    # Method provided by Spoock. Converted to Python by DreTaX
-    """def CheckV(self, Player, args):
-        ini = self.BannedPeopleConfig()
-        systemname = ini.GetSetting("Main", "Name")
-        Nickname = ""
-        for i in xrange(-1, len(args)):
-            i += 1
-            Nickname += args[i] + " "
-            Nickname = Nickname.Substring(0, len(Nickname) - 1)
-            target = self.GetPlayerName(Nickname)
-            if target != None:
-                return target
-
-            else:
-                cc = 0
-                found = None
-                for all in Server.ActivePlayers:
-                    name = all.Name.lower()
-                    check = args[0].lower()
-                    if check in name:
-                        found = all.Name
-                        cc += 1
-
-                if cc == 1:
-                    target = self.GetPlayerName(found)
-                    return target
-                elif cc > 1:
-                    Player.MessageFrom(systemname, "Found " + cc + " players with similar names. Use more correct name !")
-                    return None
-                elif cc == 0:
-                    Player.MessageFrom(systemname, "Player " + Nickname + " not found")
-                    return None"""
     # method by Illuminati
     def CheckV(self, Player, args):
         ini = self.BannedPeopleConfig()
@@ -139,8 +107,7 @@ class BannedPeople:
 
                     else:
                         ini = self.BannedPeopleIni()
-                        #todo: Be sure to check later here for the admin mod and owner rights, so owner can ban an admin maybe?!
-                        if playerr.Admin:
+                        if playerr.Admin and Player.Moderator:
                             Player.MessageFrom(sysname, "You cannot ban admins!")
                             return
 
