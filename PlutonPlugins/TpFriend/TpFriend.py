@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -21,15 +21,13 @@ class TpFriend:
     """
 
     def AutoKillCallback(self, timer):
-        Server.Broadcast("I guess this timer is running, isnt it?")
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         autokill = timer.Args
         PlayerFrom = Server.FindPlayer(autokill["PlayerR"])
         PlayerTo = Server.FindPlayer(autokill["PlayerT"])
         if PlayerFrom is None or PlayerTo is None:
-            Plugin.KillParallelTimer("AutoKill")
-            Server.Broadcast("Did it run fully?!!")
+            timer.Kill()
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Add("tpfriendcooldown", PlayerFrom.SteamID, 7)
@@ -38,50 +36,26 @@ class TpFriend:
         PlayerTo.MessageFrom(systemname, "Teleport request timed out.")
         timer.Kill()
 
+    def TpDelay(self, timer):
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
+        tpdelaytp = timer.Args
+        PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
+        PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
+        if PlayerFrom is None or PlayerTo is None:
+            timer.Kill()
+            return
+        DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
+        DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
+        PlayerFrom.GroundTeleport(PlayerTo.Location)
+        PlayerFrom.Teleport(PlayerTo.Location)
+        PlayerFrom.MessageFrom(systemname, "Teleported!")
+        PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
+        timer.Kill()
+
     """
         Methods
     """
-
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
-        return None
-
-    # Method provided by Spoock. Converted to Python by DreTaX
-    """def CheckV(self, Player, args):
-        ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
-        Nickname = ""
-        for i in xrange(-1, len(args)):
-            i += 1
-            Nickname = Nickname + args[i] + " "
-            Nickname = Nickname.Substring(0, len(Nickname) - 1)
-            target = Server.FindPlayer(Nickname)
-            if target is not None:
-                return target
-
-            else:
-                cc = 0
-                found = None
-                for all in Server.ActivePlayers:
-                    name = all.Name.lower()
-                    check = args[0].lower()
-                    if check in name:
-                        found = all.Name
-                        cc += 1
-
-                if cc == 1:
-                    target = Server.FindPlayer(found)
-                    return target
-                elif cc > 1:
-                    Player.MessageFrom(systemname, "Found " + cc + " players with similar names. Use more correct name !")
-                    return None
-                elif cc == 0:
-                    Player.MessageFrom(systemname, "Player " + Nickname + " not found")
-                    return None"""
-
     def TpFriendConfig(self):
         if not Plugin.IniExists("TpFriendConfig"):
             loc = Plugin.CreateIni("TpFriendConfig")
@@ -193,8 +167,7 @@ class TpFriend:
                     playertpuse = int(usedtp)
                     cd = config.GetSetting("Settings", "cooldown")
                     # cooldown = int(cd)
-                    #tpdelay = config.GetSetting("Settings", "tpdelay")
-                    #tpdelayy = int(tpdelay)
+                    tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                     if maxtpnumber > 0:
                         uses = playertpuse + 1
                         DataStore.Add("tpfriendusedtp", pending, uses)
@@ -209,21 +182,24 @@ class TpFriend:
                     DataStore.Remove("tpfriendpending", playerfromm.SteamID)
                     DataStore.Remove("tpfriendpending2", Player.SteamID)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
-                    playerfromm.GroundTeleport(Player.Location)
-                    playerfromm.Teleport(Player.Location)
+                    if tpdelay > 0:
+                        tpdelaytp = Plugin.CreateDict()
+                        tpdelaytp["PlayerR"] = playerfromm.Name
+                        tpdelaytp["PlayerT"] = Player.Name
+                        launchcalc = tpdelay * 1000
+                        Plugin.CreateParallelTimer("TpDelay", launchcalc, tpdelaytp).Start()
+                        playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
+                    else:
+                        playerfromm.GroundTeleport(Player.Location)
+                        playerfromm.Teleport(Player.Location)
+                        playerfromm.MessageFrom(systemname, "Teleported!")
+                        Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
 
             else:
                 Player.MessageFrom(systemname, "Your request timed out, or you don't have any.")
-            # Uncommenting the delay, adding It later only.
-            """if tpdelayy > 0:
-            playerfromm.MessageFrom(systemname, "Teleporting you in: " + tpdelayy + " second(s)");
-            var jobParams = [];
-            jobParams.push(String(Player.SteamID));
-            jobParams.push(String(playerfromm.SteamID));
-            BZTJ.addJob('tpfirst', tpdelay, iJSON.stringify(jobParams));"""  # else
         elif cmd.cmd == "tpdeny":
             pending = DataStore.Get("tpfriendpending2", Player.SteamID)
             config = self.TpFriendConfig()
