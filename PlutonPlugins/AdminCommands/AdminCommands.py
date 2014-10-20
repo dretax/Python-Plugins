@@ -79,4 +79,4 @@ class AdminCommands:
     def On_PlayerAttacked(self, PlayerHurtEvent):
         get = int(DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID))
         if get is not None and get == 1:
-             PlayerHurtEvent._info.damageAmount = 0
+             PlayerHurtEvent._info.damageAmount = float(0)
