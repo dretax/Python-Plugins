@@ -64,8 +64,9 @@ class IdIdentifier:
                     return
                 dt = str(System.DateTime.Now)
                 ini.AddSetting("Reports", pl.SteamID, "--" + dt + "--")
-                ini.AddSetting("Reports", pl.SteamID, args[1] + " player's name: " + pl.Name + " Report By: " + Player.Name)
-                ini.AddSetting("Reports", pl.SteamID, "--" + dt + "--")
+                ini.AddSetting("Reports", pl.SteamID,"Player's name: " + pl.Name + " Report By: " + Player.Name)
+                ini.AddSetting("Reports", pl.SteamID, args[1])
+                ini.AddSetting("Reports", pl.SteamID, "------END-----")
                 ini.Save()
                 Player.MessageFrom(systemname, "Report Submitted!")
                 for admin in Server.ActivePlayers:
