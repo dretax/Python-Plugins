@@ -42,7 +42,7 @@ class IdIdentifier:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + args + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
@@ -101,7 +101,7 @@ class IdIdentifier:
                 Player.Message("User name required!")
             elif len(args) > 0:
                 playerr = self.CheckV(Player, args)
-                if playerr == None:
+                if playerr is None:
                     return
                 Player.Message("UID of " + playerr.Name + " is:" + playerr.SteamID)
         elif cmd.cmd == "playerlist":
