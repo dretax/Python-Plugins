@@ -99,14 +99,21 @@ class IdIdentifier:
         elif cmd.cmd == "uid":
             if len(args) == 0:
                 Player.Message("User name required!")
-            elif len(args) == 1:
-                if Player.Admin:
-                    playerr = self.CheckV(Player, args)
-                    if playerr == None:
-                        return
-                    Player.Message("UID of " + playerr.Name + " is:" + playerr.SteamID)
+            elif len(args) > 0:
+                playerr = self.CheckV(Player, args)
+                if playerr == None:
+                    return
+                Player.Message("UID of " + playerr.Name + " is:" + playerr.SteamID)
         elif cmd.cmd == "playerlist":
             all = ""
+            i = 0
+            Player.Message("Online Players: " + str(Server.ActivePlayers.Count))
             for pl in Server.ActivePlayers:
-                all = all + str(pl.Name) + ", "
+                i += 1
+                if i <= 30:
+                    all = all + str(pl.Name) + ", "
+                else:
+                    Player.Message(all)
+                    all = all.replace(all, "")
+                    all = all + str(pl.Name + ", ")
             Player.Message(all)
