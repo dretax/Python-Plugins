@@ -23,7 +23,7 @@ class IdIdentifier:
 
     # method by Illuminati
     def CheckV(self, Player, args):
-        systemname = "IdIdentifier"
+        systemname = "[Report System]"
         p = Server.FindPlayer(String.Join(" ", args))
         if p is not None:
             return p
@@ -66,3 +66,8 @@ class IdIdentifier:
                 ini.AddSetting("Reports", pl.SteamID, args[1] + " player's name: " + pl.Name + " Report By: " + Player.Name)
                 ini.AddSetting("Reports", pl.SteamID, "--" + dt + "--")
                 ini.Save()
+                Player.Message("Report Submitted!")
+                for admin in Server.ActivePlayers:
+                    if admin.Admin:
+                        admin.MessageFrom("[Report System]", "Complaint From Player: " + Player.Name + " of " + pl.Name)
+                        admin.MessageFrom("[Report System]", "Reason: " + args[1])
