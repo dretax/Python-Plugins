@@ -69,5 +69,5 @@ class IdIdentifier:
                 Player.Message("Report Submitted!")
                 for admin in Server.ActivePlayers:
                     if admin.Admin:
-                        admin.MessageFrom("[Report System]", "Complaint From Player: " + Player.Name + " of " + pl.Name)
+                        admin.MessageFrom("[Report System]", "Complaint From Player: " + Player.Name + " about " + pl.Name)
                         admin.MessageFrom("[Report System]", "Reason: " + args[1])
