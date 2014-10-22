@@ -47,15 +47,16 @@ class IdIdentifier:
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
+        systemname = "[Report System]"
         if cmd.cmd == "report":
             ini = self.Reports()
             if len(args) == 0:
-                Player.Message("Usage: /report username, Reason to report.")
-                Player.Message("Comma after name is required.")
+                Player.MessageFrom(systemname, "Usage: /report username, Reason to report.")
+                Player.MessageFrom(systemname, "Comma after name is required.")
             elif len(args) == 1:
                 if "," not in args:
-                    Player.Message("Usage: /report username, Reason to report")
-                    Player.Message("Comma after name is required.")
+                    Player.MessageFrom(systemname, "Usage: /report username, Reason to report")
+                    Player.MessageFrom(systemname, "Comma after name is required.")
                     return
                 args = args.split(",", 1)
                 pl = self.CheckV(Player, args[0])
@@ -66,8 +67,8 @@ class IdIdentifier:
                 ini.AddSetting("Reports", pl.SteamID, args[1] + " player's name: " + pl.Name + " Report By: " + Player.Name)
                 ini.AddSetting("Reports", pl.SteamID, "--" + dt + "--")
                 ini.Save()
-                Player.Message("Report Submitted!")
+                Player.MessageFrom(systemname, "Report Submitted!")
                 for admin in Server.ActivePlayers:
                     if admin.Admin:
-                        admin.MessageFrom("[Report System]", "Complaint From Player: " + Player.Name + " about " + pl.Name)
-                        admin.MessageFrom("[Report System]", "Reason: " + args[1])
+                        admin.MessageFrom(systemname, "Complaint From Player: " + Player.Name + " about " + pl.Name)
+                        admin.MessageFrom(systemname, "Reason: " + args[1])
