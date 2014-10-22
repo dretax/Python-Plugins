@@ -27,6 +27,29 @@ class IdIdentifier:
             ini.Save()
         return Plugin.GetIni("ManualBan")
 
+    # method by Illuminati
+    def CheckV(self, Player, args):
+        systemname = "IdIdentifier"
+        p = Server.FindPlayer(String.Join(" ", args))
+        if p is not None:
+            return p
+
+        count = 0
+        for pl in Server.ActivePlayers:
+            for namePart in args:
+                if namePart in pl.Name:
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, "Couldn't find " + args + "!")
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            return None
+
     def On_PlayerConnected(self, Player):
         sid = Player.SteamID
         banini = self.ManualBan()
@@ -73,6 +96,15 @@ class IdIdentifier:
                     ini.AddSetting("Banned", id, "1")
                     ini.Save()
                     Player.Message("Id of Player (" + id + ") was banned.")
+        elif cmd.cmd == "uid":
+            if len(args) == 0:
+                Player.Message("User name required!")
+            elif len(args) == 1:
+                if Player.Admin:
+                    playerr = self.CheckV(Player, args)
+                    if playerr == None:
+                        return
+                    Player.Message("UID of " + playerr.Name + " is:" + playerr.SteamID)
         elif cmd.cmd == "playerlist":
             all = ""
             for pl in Server.ActivePlayers:
