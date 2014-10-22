@@ -63,7 +63,7 @@ class IdIdentifier:
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
-        if cmd == "offban":
+        if cmd.cmd == "offban":
             ini = self.ManualBan()
             if len(args) == 0:
                 Player.Message("Specify an ID")
@@ -73,7 +73,7 @@ class IdIdentifier:
                     ini.AddSetting("Banned", id, "1")
                     ini.Save()
                     Player.Message("Id of Player (" + id + ") was banned.")
-        elif cmd == "playerlist":
+        elif cmd.cmd == "playerlist":
             all = ""
             for pl in Server.ActivePlayers:
                 all = all + str(pl.Name) + ", "
