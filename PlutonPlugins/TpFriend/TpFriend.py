@@ -98,7 +98,7 @@ class TpFriend:
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
                 Player.MessageFrom(systemname, "\"/tpcount\" to see how many requests you have remaining.")
-            elif len(args) == 1:
+            elif len(args) > 0:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 playertor = self.CheckV(Player, args)
