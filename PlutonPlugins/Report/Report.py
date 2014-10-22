@@ -13,7 +13,7 @@ from System import *
 """
 
 
-class IdIdentifier:
+class Report:
 
     def Reports(self):
         if not Plugin.IniExists("Reports"):
@@ -50,7 +50,7 @@ class IdIdentifier:
             systemname = "[Report System]"
             Player = ChatEvent.User
             # Avoid null players.
-            bpl = DataStore.Get("Reports", Player.SteamID).split(":")
+            bpl = str(DataStore.Get("Reports", Player.SteamID)).split(":")
             dt = str(System.DateTime.Now)
             ini = self.Reports()
             ini.AddSetting("Reports", bpl[0], "--" + dt + "--")
