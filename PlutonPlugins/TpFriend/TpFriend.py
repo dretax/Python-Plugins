@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -29,6 +29,9 @@ class TpFriend:
         if PlayerFrom is None or PlayerTo is None:
             timer.Kill()
             return
+        if not DataStore.ContainsKey("tpfriendpending", PlayerFrom.SteamID) or not DataStore.ContainsKey("tpfriendpending2", PlayerTo.SteamID):
+            timer.Kill()
+            return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Add("tpfriendcooldown", PlayerFrom.SteamID, 7)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
@@ -39,6 +42,7 @@ class TpFriend:
     def TpDelayCallback(self, timer):
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
+        tpsec = int(ini.GetSetting("Settings", "tpsec"))
         tpdelaytp = timer.Args
         PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
         PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
@@ -51,6 +55,19 @@ class TpFriend:
         PlayerFrom.Teleport(PlayerTo.Location)
         PlayerFrom.MessageFrom(systemname, "Teleported!")
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
+        if tpsec > 0:
+            Plugin.CreateParallelTimer("TpSafeTy", tpsec * 1000, tpdelaytp).Start()
+        timer.Kill()
+
+    def TpSafeTyCallback(self, timer):
+        tpdelaytp = timer.Args
+        PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
+        PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
+        if PlayerFrom is None or PlayerTo is None:
+            timer.Kill()
+            return
+        PlayerFrom.Teleport(PlayerTo.Location)
+        PlayerFrom.Message("Teleported you to the positions for safety reasons again.")
         timer.Kill()
 
     """
@@ -98,6 +115,7 @@ class TpFriend:
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
                 Player.MessageFrom(systemname, "\"/tpcount\" to see how many requests you have remaining.")
+                Player.Message(str(DataStore.ContainsKey("tpfriendpending", Player.SteamID)))
             elif len(args) > 0:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
@@ -112,7 +130,7 @@ class TpFriend:
                 cd = config.GetSetting("Settings", "cooldown")
                 cooldown = int(cd)
                 # checkn = config.GetSetting("Settings", "safetpcheck")
-                stuff = config.GetSetting("Settings", "timeoutr")
+                stuff = int(config.GetSetting("Settings", "timeoutr"))
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
@@ -120,6 +138,7 @@ class TpFriend:
                 if pending is not None:
                     Player.MessageFrom(systemname, "This player is already pending a request.")
                     Player.MessageFrom(systemname, "Try again later, or tell the player to deny his current request.")
+                    return
 
                 if time is None or (systick - time) < 0 or math.isnan(systick - time):
                     DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
@@ -145,7 +164,7 @@ class TpFriend:
                     autokill = Plugin.CreateDict()
                     autokill["PlayerR"] = Player.Name
                     autokill["PlayerT"] = playertor.Name
-                    launchcalc = int(stuff * 1000)
+                    launchcalc = stuff * 1000
                     Plugin.CreateParallelTimer("AutoKill", launchcalc, autokill).Start()
 
                 else:
@@ -161,11 +180,11 @@ class TpFriend:
                 playerfromm = Server.FindPlayer(pending)
                 if playerfromm is not None:
                     maxuses = config.GetSetting("Settings", "Maxuses")
-                    # checkn = config.GetSetting("Settings", "safetpcheck")
+                    tpsec = int(config.GetSetting("Settings", "tpsec"))
                     usedtp = DataStore.Get("tpfriendusedtp", pending)
                     maxtpnumber = int(maxuses)
                     playertpuse = int(usedtp)
-                    cd = config.GetSetting("Settings", "cooldown")
+                    #cd = config.GetSetting("Settings", "cooldown")
                     # cooldown = int(cd)
                     tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                     if maxtpnumber > 0:
@@ -175,8 +194,6 @@ class TpFriend:
 
                     else:
                         playerfromm.MessageFrom(systemname, "You have unlimited requests remaining!")
-
-                    playerfromm.MessageFrom(systemname, "Teleported!")
                     DataStore.Add("tpfriendautoban", playerfromm.SteamID, "using")
 
                     DataStore.Remove("tpfriendpending", playerfromm.SteamID)
@@ -194,6 +211,11 @@ class TpFriend:
                         playerfromm.Teleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
+                        tpdelaytp = Plugin.CreateDict()
+                        tpdelaytp["PlayerR"] = playerfromm.Name
+                        tpdelaytp["PlayerT"] = Player.Name
+                        if tpsec > 0:
+                            Plugin.CreateParallelTimer("TpSafeTy", tpsec * 1000, tpdelaytp).Start()
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
@@ -205,12 +227,12 @@ class TpFriend:
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
             if pending is not None:
-                playerfromm = Server.Find(pending)
+                playerfromm = Server.FindPlayer(pending)
+                DataStore.Remove("tpfriendpending", playerfromm.SteamID)
+                DataStore.Add("tpfriendcooldown", playerfromm.SteamID, 7)
+                DataStore.Remove("tpfriendpending2", Player.SteamID)
+                Player.MessageFrom(systemname, "Request denied!")
                 if playerfromm is not None:
-                    DataStore.Remove("tpfriendpending", pending)
-                    DataStore.Add("tpfriendcooldown", pending, 7)
-                    DataStore.Remove("tpfriendpending2", Player.SteamID)
-                    Player.MessageFrom(systemname, "Request denied!")
                     playerfromm.MessageFrom(systemname, "Your request was denied!")
             else:
                 Player.MessageFrom(systemname, "No request to deny.")
