@@ -36,7 +36,7 @@ class Report:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + args + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
@@ -53,10 +53,8 @@ class Report:
             bpl = str(DataStore.Get("Reports", Player.SteamID)).split(":")
             dt = str(System.DateTime.Now)
             ini = self.Reports()
-            ini.AddSetting("Reports", bpl[0], "--" + dt + "--")
-            ini.AddSetting("Reports", bpl[0],"Player's name: " + bpl[1] + " Report By: " + Player.Name)
-            ini.AddSetting("Reports", bpl[0], reason)
-            ini.AddSetting("Reports", bpl[0], "------END-----")
+            ini.AddSetting(bpl[0], dt + " | Reported: " + bpl[1] + " | Report By: " + Player.Name)
+            ini.AddSetting(bpl[0], dt + " | Reason: " + reason)
             ini.Save()
             Player.MessageFrom(systemname, "Report Submitted!")
             for admin in Server.ActivePlayers:
