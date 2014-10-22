@@ -116,4 +116,5 @@ class IdIdentifier:
                     Player.Message(all)
                     all = all.replace(all, "")
                     all = all + str(pl.Name + ", ")
+                    i = 1
             Player.Message(all)
