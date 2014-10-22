@@ -227,7 +227,7 @@ class TpFriend:
             else:
                 Player.MessageFrom(systemname, "You have unlimited requests remaining!")
         elif cmd.cmd == "tpresettime":
-            if Player.Moderator:
+            if Player.Admin:
                 DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
                 Player.Message("Time for you, Reset!")
             else:
