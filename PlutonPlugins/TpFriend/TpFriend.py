@@ -51,7 +51,6 @@ class TpFriend:
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
-        PlayerFrom.GroundTeleport(PlayerTo.Location)
         PlayerFrom.Teleport(PlayerTo.Location)
         PlayerFrom.MessageFrom(systemname, "Teleported!")
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
@@ -207,7 +206,6 @@ class TpFriend:
                         Plugin.CreateParallelTimer("TpDelay", launchcalc, tpdelaytp).Start()
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
-                        playerfromm.GroundTeleport(Player.Location)
                         playerfromm.Teleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
