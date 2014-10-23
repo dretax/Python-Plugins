@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
 
@@ -19,6 +19,11 @@ class TpFriend:
     """
         Timers
     """
+
+    def On_PlayerConnected(self, Player):
+        usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
+        if usedtp is None:
+            DataStore.Add("tpfriendusedtp", Player.SteamID, 0)
 
     def AutoKillCallback(self, timer):
         ini = self.TpFriendConfig()
@@ -51,7 +56,7 @@ class TpFriend:
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
-        PlayerFrom.Teleport(PlayerTo.Location)
+        PlayerFrom.GroundTeleport(PlayerTo.Location)
         PlayerFrom.MessageFrom(systemname, "Teleported!")
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         if tpsec > 0:
@@ -206,7 +211,7 @@ class TpFriend:
                         Plugin.CreateParallelTimer("TpDelay", launchcalc, tpdelaytp).Start()
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
-                        playerfromm.Teleport(Player.Location)
+                        playerfromm.GroundTeleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
                         tpdelaytp = Plugin.CreateDict()
