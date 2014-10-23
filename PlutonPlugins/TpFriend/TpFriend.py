@@ -70,7 +70,7 @@ class TpFriend:
         if PlayerFrom is None or PlayerTo is None:
             timer.Kill()
             return
-        PlayerFrom.Teleport(PlayerTo.Location)
+        PlayerFrom.GroundTeleport(PlayerTo.Location)
         PlayerFrom.Message("Teleported you to the positions for safety reasons again.")
         timer.Kill()
 
