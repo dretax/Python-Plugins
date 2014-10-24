@@ -77,6 +77,11 @@ class TpFriend:
     """
         Methods
     """
+    def On_PluginInit(self):
+        DataStore.Flush("tpfriendpending")
+        DataStore.Flush("tpfriendpending2")
+        DataStore.Flush("tpfriendautoban")
+
     def TpFriendConfig(self):
         if not Plugin.IniExists("TpFriendConfig"):
             loc = Plugin.CreateIni("TpFriendConfig")
@@ -255,5 +260,11 @@ class TpFriend:
             if Player.Admin:
                 DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
                 Player.Message("Time for you, Reset!")
+            else:
+                Player.Message("You aren't an admin!")
+        elif cmd.cmd == "flushcount":
+            if Player.Admin:
+                DataStore.Flush("tpfriendusedtp")
+                Player.Message("Done!")
             else:
                 Player.Message("You aren't an admin!")
