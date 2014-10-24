@@ -33,6 +33,8 @@ class TpFriend:
         PlayerTo = Server.FindPlayer(autokill["PlayerT"])
         if PlayerFrom is None or PlayerTo is None:
             timer.Kill()
+            DataStore.Remove("tpfriendpending", autokill["PlayerR"])
+            DataStore.Remove("tpfriendpending2", autokill["PlayerT"])
             return
         if not DataStore.ContainsKey("tpfriendpending", PlayerFrom.SteamID) or not DataStore.ContainsKey("tpfriendpending2", PlayerTo.SteamID):
             timer.Kill()
@@ -53,6 +55,8 @@ class TpFriend:
         PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
         if PlayerFrom is None or PlayerTo is None:
             timer.Kill()
+            DataStore.Remove("tpfriendpending", tpdelaytp["PlayerR"])
+            DataStore.Remove("tpfriendpending2", tpdelaytp["PlayerT"])
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
@@ -171,8 +175,8 @@ class TpFriend:
                     DataStore.Add("tpfriendpending", Player.SteamID, playertor.SteamID)
                     DataStore.Add("tpfriendpending2", playertor.SteamID, Player.SteamID)
                     autokill = Plugin.CreateDict()
-                    autokill["PlayerR"] = Player.Name
-                    autokill["PlayerT"] = playertor.Name
+                    autokill["PlayerR"] = Player.SteamID
+                    autokill["PlayerT"] = playertor.SteamID
                     launchcalc = stuff * 1000
                     Plugin.CreateParallelTimer("AutoKill", launchcalc, autokill).Start()
 
@@ -210,18 +214,19 @@ class TpFriend:
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
                     if tpdelay > 0:
                         tpdelaytp = Plugin.CreateDict()
-                        tpdelaytp["PlayerR"] = playerfromm.Name
-                        tpdelaytp["PlayerT"] = Player.Name
+                        tpdelaytp["PlayerR"] = playerfromm.SteamID
+                        tpdelaytp["PlayerT"] = Player.SteamID
                         launchcalc = tpdelay * 1000
                         Plugin.CreateParallelTimer("TpDelay", launchcalc, tpdelaytp).Start()
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
                         playerfromm.GroundTeleport(Player.Location)
+                        playerfromm.GroundTeleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
                         tpdelaytp = Plugin.CreateDict()
-                        tpdelaytp["PlayerR"] = playerfromm.Name
-                        tpdelaytp["PlayerT"] = Player.Name
+                        tpdelaytp["PlayerR"] = playerfromm.SteamID
+                        tpdelaytp["PlayerT"] = Player.SteamID
                         if tpsec > 0:
                             Plugin.CreateParallelTimer("TpSafeTy", tpsec * 1000, tpdelaytp).Start()
 
