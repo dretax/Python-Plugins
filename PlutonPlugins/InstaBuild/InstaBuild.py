@@ -22,7 +22,7 @@ class InstaBuild:
     def On_FrameDeployed(self, ev):
         ini = self.InstaBuild()
         get = int(ini.GetSetting("Settings", "EnableforPublic"))
-        buildingblock = ev.buildingBlock
+        buildingblock = ev.BuildingPart.buildingBlock
         if get == 1:
             buildingblock.health = buildingblock.MaxHealth()
         else:
