@@ -70,6 +70,7 @@ class IllegalName:
                 Player.Kick(reason2)
                 return
             name = re.sub(' +',' ', name)
+            name = re.sub('[\t]+','', name)
         if asciie == 1:
             newname = self.CutName(name)
             name = newname
