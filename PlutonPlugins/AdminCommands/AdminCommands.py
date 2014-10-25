@@ -1,12 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.3a'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
-import math
+from System import *
 
 """
     Class
@@ -84,3 +83,8 @@ class AdminCommands:
         get = int(DataStore.Get("godmode", PlayerTakeDmgEvent.Victim.SteamID))
         if get is not None and get == 1:
             PlayerTakeDmgEvent.Amount = 0
+
+    def On_PlayerTakeRadiation(self, PlayerTakeRadsEvent):
+        get = int(DataStore.Get("godmode", PlayerTakeRadsEvent.Victim.SteamID))
+        if get is not None and get == 1:
+            PlayerTakeRadsEvent.Amount = 0
