@@ -1,11 +1,10 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4a'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
 from System import *
 import math
 
@@ -34,6 +33,7 @@ class TpFriend:
         if PlayerFrom is None or PlayerTo is None:
             timer.Kill()
             DataStore.Remove("tpfriendpending", autokill["PlayerR"])
+            DataStore.Add("tpfriendcooldown", autokill["PlayerR"], 7)
             DataStore.Remove("tpfriendpending2", autokill["PlayerT"])
             return
         if not DataStore.ContainsKey("tpfriendpending", PlayerFrom.SteamID) or not DataStore.ContainsKey("tpfriendpending2", PlayerTo.SteamID):
@@ -76,6 +76,7 @@ class TpFriend:
         if PlayerFrom is None:
             timer.Kill()
             return
+        PlayerFrom.basePlayer.supressSnapshots = True
         PlayerFrom.basePlayer.UpdateNetworkGroup()
         PlayerFrom.basePlayer.UpdatePlayerCollider(True, False)
         PlayerFrom.basePlayer.SendFullSnapshot()
@@ -133,7 +134,6 @@ class TpFriend:
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
                 Player.MessageFrom(systemname, "\"/tpcount\" to see how many requests you have remaining.")
-                Player.Message(str(DataStore.ContainsKey("tpfriendpending", Player.SteamID)))
             elif len(args) > 0:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
