@@ -19,16 +19,17 @@ class InstaBuild:
             ini.Save()
         return Plugin.GetIni("InstaBuild")
 
-    def On_FrameDeployed(self, BuildingPart):
+    def On_FrameDeployed(self, ev):
         ini = self.InstaBuild()
         get = int(ini.GetSetting("Settings", "EnableforPublic"))
+        buildingblock = ev.buildingBlock
         if get == 1:
-            BuildingPart.health = BuildingPart.MaxHealth()
+            buildingblock.health = buildingblock.MaxHealth()
         else:
-            Player = BuildingPart.Builder
+            Player = ev.Desployer
             dsget = DataStore.ContainsKey("InstaBuild", Player.SteamID)
             if Player.Admin and dsget is True:
-                BuildingPart.health = BuildingPart.MaxHealth()
+                buildingblock.health = buildingblock.MaxHealth()
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -47,5 +48,5 @@ class InstaBuild:
                     DataStore.Remove("InstaBuild", Player.SteamID)
                     Player.Message("You quit InstaBuild mode.")
                 else:
-                    DataStore.Add("InstaBuild", Player.SteamID)
+                    DataStore.Add("InstaBuild", Player.SteamID, "1")
                     Player.Message("You enabled InstaBuild mode.")
