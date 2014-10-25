@@ -61,6 +61,7 @@ class TpFriend:
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
         PlayerFrom.GroundTeleport(PlayerTo.Location)
+        PlayerFrom.Teleport(PlayerTo.Location)
         PlayerFrom.MessageFrom(systemname, "Teleported!")
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         if tpsec > 0:
@@ -68,14 +69,18 @@ class TpFriend:
         timer.Kill()
 
     def TpSafeTyCallback(self, timer):
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
         tpdelaytp = timer.Args
         PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
-        PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
-        if PlayerFrom is None or PlayerTo is None:
+        if PlayerFrom is None:
             timer.Kill()
             return
-        PlayerFrom.GroundTeleport(PlayerTo.Location)
-        PlayerFrom.Message("Teleported you to the positions for safety reasons again.")
+        PlayerFrom.basePlayer.UpdateNetworkGroup()
+        PlayerFrom.basePlayer.UpdatePlayerCollider(True, False)
+        PlayerFrom.basePlayer.SendFullSnapshot()
+        PlayerFrom.basePlayer.inventory.SendSnapshot()
+        PlayerFrom.MessageFrom(systemname, "Updated You.")
         timer.Kill()
 
     """
@@ -134,15 +139,13 @@ class TpFriend:
                 systemname = config.GetSetting("Settings", "sysname")
                 playertor = self.CheckV(Player, args)
                 if playertor is None:
-                    # Player.Message("Player " + playertor + " not found!")
                     return
-                if playertor == Player:
+                if playertor.Name == Player.Name:
                     Player.MessageFrom(systemname, "Cannot teleport to yourself!")
                     return
                 maxuses = config.GetSetting("Settings", "Maxuses")
                 cd = config.GetSetting("Settings", "cooldown")
                 cooldown = int(cd)
-                # checkn = config.GetSetting("Settings", "safetpcheck")
                 stuff = int(config.GetSetting("Settings", "timeoutr"))
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
@@ -197,8 +200,6 @@ class TpFriend:
                     usedtp = DataStore.Get("tpfriendusedtp", pending)
                     maxtpnumber = int(maxuses)
                     playertpuse = int(usedtp)
-                    #cd = config.GetSetting("Settings", "cooldown")
-                    # cooldown = int(cd)
                     tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                     if maxtpnumber > 0:
                         uses = playertpuse + 1
@@ -221,7 +222,7 @@ class TpFriend:
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
                         playerfromm.GroundTeleport(Player.Location)
-                        playerfromm.GroundTeleport(Player.Location)
+                        playerfromm.Teleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
                         tpdelaytp = Plugin.CreateDict()
