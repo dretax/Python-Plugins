@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -29,18 +29,26 @@ class IllegalName:
             loc.Save()
         return Plugin.GetIni("IllegalNameConfig")
 
-    def On_PlayerConnected(self, Player):
-        name = str(Player.Name)
+    def CutName(self, string):
+        try:
+            name = string.encode('UTF-8')
+            name = name.decode('UTF-8', 'strict')
+            name = re.sub(r'[^\x00-\x7F]+','', name)
+            return name
+        except:
+            return False
+
+    def On_ClientAuth(self, AuthEvent):
+        Player = AuthEvent.con
+        name = str(AuthEvent.Name)
         n = len(name)
         ini = self.IllegalNameConfig()
+        asciie = int(ini.GetSetting("options", "CheckForAscii"))
         illini = self.getIllegal()
         f = int(ini.GetSetting("options", "protection1"))
         reason = ini.GetSetting("options", "DisconnectReason")
         reason2 = ini.GetSetting("options", "DisconnectReason2")
         reason3 = ini.GetSetting("options", "DisconnectReason3")
-        asciie = int(ini.GetSetting("options", "CheckForAscii"))
-        asciiparse = int(ini.GetSetting("options", "KickOnUnsureAsciiParse"))
-        asciireason = ini.GetSetting("options", "AsciiReason")
         space = ini.GetSetting("options", "Spaces")
         listnames = illini.EnumSection("IllegalNames")
         counted = len(listnames)
@@ -61,66 +69,33 @@ class IllegalName:
                 if not a:
                     Player.Kick(reason3)
                     return
-                if asciie == 1:
-                    try:
-                        name.decode('ascii')
-                        Player.Kick(asciireason)
-                    except UnicodeDecodeError:
-                        # No ASCII Characters were found.
-                        return
-                    else:
-                        # Name might contain ASCII Chars
-                        if asciiparse == 1:
-                            Player.Kick(asciireason)
             else:
-                a = re.match('^[a-zA-Z0-9_ !+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason2)
                     return
-                if asciie == 1:
-                    try:
-                        name.decode('ascii')
-                        Player.Kick(asciireason)
-                    except UnicodeDecodeError:
-                        # No ASCII Characters were found.
-                        return
-                    else:
-                        # Name might contain ASCII Chars
-                        if asciiparse == 1:
-                            Player.Kick(asciireason)
+                AuthEvent.con.username = re.sub(' +',' ', name)
+                name = re.sub(' +',' ', name)
         elif f == 2:
             if n <= 1:
                 Player.Kick(reason2)
         elif f == 3:
-            if (space == 0):
+            if space == 0:
                 a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason3)
                     return
-                if asciie == 1:
-                    try:
-                        name.decode('ascii')
-                        Player.Kick(asciireason)
-                    except UnicodeDecodeError:
-                        # No ASCII Characters were found.
-                        return
-                    else:
-                        # Name might contain ASCII Chars
-                        if asciiparse == 1:
-                            Player.Kick(asciireason)
             else:
-                a = re.match('^[a-zA-Z0-9_ !+?%éáűőúöüó()<>/\@#,.\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
                 if not a or n <= 1:
                     Player.Kick(reason2)
                     return
-                if asciie == 1:
-                    try:
-                        name.decode('ascii')
-                        Player.Kick(asciireason)
-                    except UnicodeDecodeError:
-                        # No ASCII Characters were found.
-                        return
-                    else:
-                        # Name might contain ASCII Chars
-                        if asciiparse == 1:
-                            Player.Kick(asciireason)
+                AuthEvent.con.username = re.sub(' +',' ', name)
+                name = re.sub(' +',' ', name)
+        if asciie == 1:
+            asciireason = ini.GetSetting("options", "AsciiReason")
+            newname = self.CutName(name)
+            if newname is False:
+                Player.Kick(asciireason)
+                return
+            AuthEvent.con.username = newname
