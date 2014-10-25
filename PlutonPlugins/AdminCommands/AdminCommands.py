@@ -75,16 +75,16 @@ class AdminCommands:
 
 
     def On_PlayerAttacked(self, PlayerHurtEvent):
-        get = int(DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID))
+        get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
         if get is not None and get == 1:
              PlayerHurtEvent._info.damageAmount = 0
 
     def On_PlayerTakeDamage(self, PlayerTakeDmgEvent):
-        get = int(DataStore.Get("godmode", PlayerTakeDmgEvent.Victim.SteamID))
+        get = DataStore.Get("godmode", PlayerTakeDmgEvent.Victim.SteamID)
         if get is not None and get == 1:
             PlayerTakeDmgEvent.Amount = 0
 
     def On_PlayerTakeRadiation(self, PlayerTakeRadsEvent):
-        get = int(DataStore.Get("godmode", PlayerTakeRadsEvent.Victim.SteamID))
+        get = DataStore.Get("godmode", PlayerTakeRadsEvent.Victim.SteamID)
         if get is not None and get == 1:
             PlayerTakeRadsEvent.Amount = 0
