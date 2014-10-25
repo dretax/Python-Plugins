@@ -26,7 +26,7 @@ class InstaBuild:
         if get == 1:
             buildingblock.health = buildingblock.MaxHealth()
         else:
-            Player = ev.Desployer
+            Player = ev.Deployer
             dsget = DataStore.ContainsKey("InstaBuild", Player.SteamID)
             if Player.Admin and dsget is True:
                 buildingblock.health = buildingblock.MaxHealth()
