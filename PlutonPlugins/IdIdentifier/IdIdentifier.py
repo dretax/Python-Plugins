@@ -27,17 +27,23 @@ class IdIdentifier:
             ini.Save()
         return Plugin.GetIni("ManualBan")
 
-    # method by Illuminati
+    def GetPlayerName(self, namee):
+        name = namee.lower()
+        for pl in Server.ActivePlayers:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
     def CheckV(self, Player, args):
         systemname = "IdIdentifier"
-        p = Server.FindPlayer(String.Join(" ", args))
+        p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
 
         count = 0
         for pl in Server.ActivePlayers:
             for namePart in args:
-                if namePart in pl.Name:
+                if namePart.lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
