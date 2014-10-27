@@ -21,12 +21,13 @@ class InstaBuild:
 
     def On_FrameDeployed(self, ev):
         ini = self.InstaBuild()
+        Player = ev.Deployer
         get = int(ini.GetSetting("Settings", "EnableforPublic"))
         buildingblock = ev.BuildingPart.buildingBlock
         if get == 1:
-            buildingblock.health = buildingblock.MaxHealth()
+            buildingblock.StopBeingAFrame()
+            buildingblock.Health = buildingblock.MaxHealth()
         else:
-            Player = ev.Deployer
             dsget = DataStore.ContainsKey("InstaBuild", Player.SteamID)
             if Player.Admin and dsget is True:
                 buildingblock.health = buildingblock.MaxHealth()
