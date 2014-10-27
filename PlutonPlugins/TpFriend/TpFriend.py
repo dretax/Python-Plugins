@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4a'
+__version__ = '1.5'
 
 import clr
 
@@ -99,11 +99,17 @@ class TpFriend:
             loc.Save()
         return Plugin.GetIni("TpFriendConfig")
 
-    # method by Illuminati
+    def GetPlayerName(self, namee):
+        name = namee.lower()
+        for pl in Server.ActivePlayers:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
     def CheckV(self, Player, args):
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
-        p = Server.FindPlayer(String.Join(" ", args))
+        p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
 
@@ -115,12 +121,12 @@ class TpFriend:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, String.Format("Couldn't find {0}!", String.Join(" ", args)))
+            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
+            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     def On_Command(self, cmd):
