@@ -68,11 +68,10 @@ class BannedPeople:
                 return pl
         return None
 
-    # method by Illuminati
     def CheckV(self, Player, args):
         ini = self.BannedPeopleConfig()
         systemname = ini.GetSetting("Main", "Name")
-        p = Server.FindPlayer(String.Join(" ", args))
+        p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
 
@@ -84,12 +83,12 @@ class BannedPeople:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, String.Format("Couldn't find {0}!", String.Join(" ", args)))
+            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
+            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     def On_Command(self, cmd):
@@ -103,7 +102,7 @@ class BannedPeople:
                 if len(args) > 0:
                     playerr = self.CheckV(Player, args)
                     if playerr == None:
-                        Player.MessageFrom(sysname, "No Player found with that name!")
+                        return
 
                     else:
                         ini = self.BannedPeopleIni()
