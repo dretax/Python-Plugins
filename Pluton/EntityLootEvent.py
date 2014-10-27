@@ -7,17 +7,9 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-import Player
-import _info
+import Entity
+class EntityLootEvent:
+    Target = Entity
 
-class PlayerHurtEvent:
-    _info = _info
-    Victim = Player
-    DamageAmount = None
-    DamageType = None
-    Attacker = None
-    Weapon = None
-
-
-    def PlayerHurtEvent(Player, HitInfo):
-       return
+    def EntityLootEvent(PlayerLoot, PlayerLooter, LootedEntity):
+        return

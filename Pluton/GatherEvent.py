@@ -7,17 +7,19 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-import Player
+import Entity
 import _info
-
-class PlayerHurtEvent:
+class GatherEvent:
     _info = _info
-    Victim = Player
+
+    def GatherEvent(BaseResource, HitInfo):
+        return
+
     DamageAmount = None
     DamageType = None
-    Attacker = None
+    Health = None
+    Prefab = None
+    Proficiency = None
+    Gatherer = None
+    Stage = None
     Weapon = None
-
-
-    def PlayerHurtEvent(Player, HitInfo):
-       return

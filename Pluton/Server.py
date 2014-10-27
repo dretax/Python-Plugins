@@ -7,56 +7,57 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
+
 class Server:
-        Players = None
-        OfflinePlayers = None
-        LoadOuts = None
-        server_message_name = "Pluton"
-        blueprints = None
-        ActivePlayers = None
-        SleepingPlayers = None
+    Players = None
+    OfflinePlayers = None
+    LoadOuts = None
+    server_message_name = "Pluton"
+    blueprints = None
+    ActivePlayers = None
+    SleepingPlayers = None
 
-        def Broadcast(StringMessage):
-            return
+    def Broadcast(StringMessage):
+        return
 
-        def BroadcastFrom(StringName, StringMessage):
-            return
+    def BroadcastFrom(StringName, StringMessage):
+        return
 
-        def BroadcastNotice(StringMessage):
-            return
-
-
-        def FindPlayer(StringName):
-            return
+    def BroadcastNotice(StringMessage):
+        return
 
 
-        def FindPlayer(UlongSteamID):
-            return
+    def FindPlayer(StringName):
+        return
 
 
-        def GetPlayer(BasePlayer):
-            return
+    def FindPlayer(UlongSteamID):
+        return
 
-        def GetServer(self):
-            return
 
-        def CraftingTimeScale(self):
-            return
+    def GetPlayer(BasePlayer):
+        return
 
-        def ReloadBlueprints(self):
-            return
+    def GetServer(self):
+        return
 
-        def LoadLoadouts(self):
-            return
+    def CraftingTimeScale(self):
+        return
 
-        def LoadOfflinePlayers(self):
-            return
+    def ReloadBlueprints(self):
+        return
 
-        def Save(self):
-            return
+    def LoadLoadouts(self):
+        return
 
-        def SendCommand(StringCommand, BooleanWantsReply = True):
-            return
+    def LoadOfflinePlayers(self):
+        return
 
-        def OnShutdown(self):
-            return
+    def Save(self):
+        return
+
+    def SendCommand(StringCommand, BooleanWantsReply=True):
+        return
+
+    def OnShutdown(self):
+        return

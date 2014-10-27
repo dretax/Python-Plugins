@@ -7,7 +7,7 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class Player:
+class Attacker:
 
     def Find(nameOrSteamidOrIP):
         return

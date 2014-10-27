@@ -6,18 +6,10 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
-import Player
-import _info
-
-class PlayerHurtEvent:
-    _info = _info
-    Victim = Player
-    DamageAmount = None
-    DamageType = None
-    Attacker = None
-    Weapon = None
-
-
-    def PlayerHurtEvent(Player, HitInfo):
-       return
+import BaseCorpse
+import Entity
+class CorpseInitEvent:
+    Corpse = BaseCorpse
+    Parent = Entity
+    def CorpseInitEvent(BaseCorpse, BaseEntity):
+        return

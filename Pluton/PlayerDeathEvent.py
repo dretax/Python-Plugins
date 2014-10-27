@@ -8,8 +8,10 @@ __version__ = '1.0'
 """
 
 import Player
+import _info
 
 class PlayerDeathEvent:
+    _info = _info
     Victim = Player
     DamageAmount = None
     DamageType = None
