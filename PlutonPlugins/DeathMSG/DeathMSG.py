@@ -15,7 +15,7 @@ from System import *
 
 
 class DeathMSG:
-    BodyParts = {'2801294865': 'Head', '3847415609': 'Hand', '2881065196': 'Body', '3847102050': 'Legs', '2868606315': 'Legs'}
+    BodyParts = {'2801294865': 'Head', '3847415609': 'Hand', '2881065196': 'Body', '3847102050': 'Legs', '2868606315': 'Foot'}
 
     def DeathMSGConfig(self):
         if not Plugin.IniExists("DeathMSGConfig"):
