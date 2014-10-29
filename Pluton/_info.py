@@ -7,7 +7,7 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class HitInfo:
+class _info:
     def GetHashCode(self):
         return
 
