@@ -6,6 +6,8 @@ import clr
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import math
+import System
+from System import *
 
 """
     Class
@@ -20,6 +22,7 @@ class DeathMSG:
             loc = Plugin.CreateIni("DeathMSGConfig")
             loc.AddSetting("Settings", "SysName", "Equinox DeathMSG")
             loc.AddSetting("Settings", "NaturalDies", "1")
+            loc.AddSetting("Settings", "KillLog", "1")
             loc.AddSetting("Settings", "SuicideMsg", "victim suicided...")
             loc.AddSetting("Settings", "NaturalMsg", "victim died because of (a) type")
             loc.AddSetting("Settings", "FallMsg", "victim died because he fell off from something")
@@ -101,7 +104,10 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("weapon", weapon)
                 dmgmsg = dmgmsg.replace("bodypart", self.BodyParts[bodypart])
+                KillLog = ini.GetSetting("Settings", "KillLog")
                 Server.BroadcastFrom(sysname, dmgmsg)
+                if int(KillLog) == 1:
+                    Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Bleeding":
                 bmsg = ini.GetSetting("Settings", "BledMsg")
                 bmsg = bmsg.replace("victim", victimname)
