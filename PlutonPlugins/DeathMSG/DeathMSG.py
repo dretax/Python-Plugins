@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
 
@@ -13,6 +13,7 @@ import math
 
 
 class DeathMSG:
+    BodyParts = {'2801294865': 'Head', '3847415609': 'Hand', '2881065196': 'Body', '3847102050': 'Legs', '2868606315': 'Legs'}
 
     def DeathMSGConfig(self):
         if not Plugin.IniExists("DeathMSGConfig"):
@@ -27,7 +28,7 @@ class DeathMSG:
             loc.AddSetting("Settings", "DrownedMsg", "victim Drowned")
             loc.AddSetting("Settings", "ColdMsg", "victim Caught Cold, and died.")
             loc.AddSetting("Settings", "XyzMsg", "victim suicided....")
-            loc.AddSetting("Settings", "KillMessage", "victim was killed by killer | Damage Caused: dmg | Distance: dist | Killed with: weapon")
+            loc.AddSetting("Settings", "KillMessage", "victim was killed by killer | Damage: dmg | Distance: dist | With: weapon | Part: bodypart")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -89,7 +90,7 @@ class DeathMSG:
             type = str(PlayerDeathEvent.DamageType)
             weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
             if type == "Bullet" or type == "Slash":
-                #bodypart = PlayerDeathEvent._info.HitPart
+                bodypart = str(PlayerDeathEvent._info.HitPart)
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
@@ -99,8 +100,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("weapon", weapon)
-                #TODO: Write a list of the body part numbers.
-                #dmgmsg = dmgmsg.replace("bpart", str(bodypart))
+                dmgmsg = dmgmsg.replace("bodypart", self.BodyParts[bodypart])
                 Server.BroadcastFrom(sysname, dmgmsg)
             elif type == "Bleeding":
                 bmsg = ini.GetSetting("Settings", "BledMsg")
