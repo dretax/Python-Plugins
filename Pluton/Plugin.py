@@ -6,7 +6,7 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
+import Ini
 class Plugin:
     def Invoke(func, obj):
         """
@@ -38,8 +38,7 @@ class Plugin:
         return
 
     def GetIni(StringPath):
-        return self.IniParser()
-
+        return Ini
     def IniExists(StringPath):
 
         return
