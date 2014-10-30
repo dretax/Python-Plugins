@@ -1,10 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
+import System
 from System import *
 
 """
@@ -67,7 +68,7 @@ class IdIdentifier:
         location = str(Player.Location)
         dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if (ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None):
+        if ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None:
             ini.SetSetting("Track", sid, name)
             ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
