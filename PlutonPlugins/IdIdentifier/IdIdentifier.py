@@ -34,6 +34,12 @@ class IdIdentifier:
                 return pl
         return None
 
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        V3.0
+    """
     def CheckV(self, Player, args):
         systemname = "IdIdentifier"
         p = self.GetPlayerName(String.Join(" ", args))
