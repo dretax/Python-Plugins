@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5'
+__version__ = '1.5.1'
 
 import clr
 
@@ -106,9 +106,13 @@ class TpFriend:
                 return pl
         return None
 
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        V3.0
+    """
     def CheckV(self, Player, args):
-        ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
+        systemname = "IdIdentifier"
         p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
@@ -116,7 +120,7 @@ class TpFriend:
         count = 0
         for pl in Server.ActivePlayers:
             for namePart in args:
-                if namePart in pl.Name:
+                if namePart.lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
