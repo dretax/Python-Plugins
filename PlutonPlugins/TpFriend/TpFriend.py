@@ -46,6 +46,7 @@ class TpFriend:
         PlayerFrom.MessageFrom(systemname, "Teleport request timed out.")
         PlayerTo.MessageFrom(systemname, "Teleport request timed out.")
         timer.Kill()
+        return
 
     def TpDelayCallback(self, timer):
         ini = self.TpFriendConfig()
@@ -68,6 +69,7 @@ class TpFriend:
         if tpsec > 0:
             Plugin.CreateParallelTimer("TpSafeTy", tpsec * 1000, tpdelaytp).Start()
         timer.Kill()
+        return
 
     def TpSafeTyCallback(self, timer):
         ini = self.TpFriendConfig()
@@ -84,6 +86,7 @@ class TpFriend:
         PlayerFrom.basePlayer.inventory.SendSnapshot()
         PlayerFrom.MessageFrom(systemname, "Updated You.")
         timer.Kill()
+        return
 
     """
         Methods
