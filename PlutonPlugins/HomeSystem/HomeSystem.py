@@ -195,8 +195,7 @@ class HomeSystem:
 
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
-                            loc = Vector3(Vector3(check[0], check[1], check[2]))
-                            Player.GroundTeleport(loc)
+                            Player.GroundTeleport(float(check[0]), float(check[1]), float(check[2]))
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             Player.MessageFrom(homesystemname, "Teleported to home!")
                             #BZHJ.addJob('mytestt', checkn, iJSON.stringify(jobParams));
@@ -205,6 +204,7 @@ class HomeSystem:
                             HomeSystem = Plugin.CreateDict()
                             HomeSystem["Player"] = Player.SteamID
                             HomeSystem["Location"] = str(Player.Location)
+                            Player.Message(str(Player.Location))
                             HomeSystem["HomeLocation"] = check
                             Plugin.CreateParallelTimer("HomeDelay", tpdelay * 1000, HomeSystem).Start()
                             Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
