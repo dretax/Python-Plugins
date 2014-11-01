@@ -136,6 +136,14 @@ class HomeSystem:
                 return True
             return False
 
+    def isNoneOrEmptyOrBlankString(self, String):
+        if String:
+            if not String.strip():
+                return True
+            else:
+                return False
+        return False
+
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
@@ -395,7 +403,8 @@ class HomeSystem:
                 for i in xrange(-1, leng):
                     i += 1
                     if i < leng:
-                        Player.MessageFrom(homesystemname, "Homes: " + homes[i])
+                        if not self.isNoneOrEmptyOrBlankString(homes[i]):
+                            Player.MessageFrom(homesystemname, "Homes: " + homes[i])
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
 
