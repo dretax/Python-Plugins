@@ -32,15 +32,14 @@ class HomeSystem:
         if Player is None:
             return
         PL = self.Replace(HomeSystem["Location"])
-        Loc = Vector3(PL[0], PL[1], PL[2])
+        Loc = Vector3(float(PL[0]), float(PL[1]), float(PL[2]))
         HLoc = self.Replace(HomeSystem["HomeLocation"])
-        Home = Vector3(HLoc[0], HLoc[1], HLoc[2])
         movec = config.GetSetting("Settings", "movecheck")
         if movec == 1:
             if Loc != Player.Location:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
-        Player.GroundTeleport(Home)
+        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]), float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
