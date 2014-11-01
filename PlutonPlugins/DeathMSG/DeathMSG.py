@@ -93,7 +93,10 @@ class DeathMSG:
             type = str(PlayerDeathEvent.DamageType)
             weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
             if type == "Bullet" or type == "Slash":
-                bodypart = str(PlayerDeathEvent._info.HitPart)
+                if type == "Bullet":
+                    bodypart = str(PlayerDeathEvent._info.HitPart)
+                else:
+                    bodypart = "Body"
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
