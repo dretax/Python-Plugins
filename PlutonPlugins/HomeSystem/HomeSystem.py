@@ -403,8 +403,9 @@ class HomeSystem:
                 for i in xrange(-1, leng):
                     i += 1
                     if i < leng:
-                        if not self.isNoneOrEmptyOrBlankString(homes[i]):
-                            Player.MessageFrom(homesystemname, "Homes: " + homes[i])
+                        if self.isNoneOrEmptyOrBlankString(homes[i]):
+                            continue
+                        Player.MessageFrom(homesystemname, "Homes: " + homes[i])
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
 
