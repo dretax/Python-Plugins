@@ -1,3 +1,5 @@
+import re
+
 __author__ = 'DreTaX'
 __version__ = '1.5'
 
@@ -31,9 +33,13 @@ class HomeSystem:
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
             return
-        PL = self.Replace(HomeSystem["Location"])
+        PL = HomeSystem["Location"]
+        PL = re.sub('[)\(]', '', PL)
+        PL = PL.split(',')
         Loc = Vector3(float(PL[0]), float(PL[1]), float(PL[2]))
-        HLoc = self.Replace(HomeSystem["HomeLocation"])
+        HLoc = HomeSystem["HomeLocation"]
+        HLoc = re.sub('[)\(]', '', HLoc)
+        HLoc = HLoc.split(',')
         movec = config.GetSetting("Settings", "movecheck")
         if movec == 1:
             if Loc != Player.Location:
@@ -55,8 +61,10 @@ class HomeSystem:
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
             return
-        HLoc = self.Replace(HomeSystem["HomeLocation"])
-        Home = Vector3(HLoc[0], HLoc[1], HLoc[2])
+        HLoc = HomeSystem["HomeLocation"]
+        HLoc = re.sub('[)\(]', '', HLoc)
+        HLoc = HLoc.split(',')
+        Home = Vector3(float(HLoc[0]), float(HLoc[1]), float(HLoc[2]))
         Player.Teleport(Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
 
@@ -88,11 +96,6 @@ class HomeSystem:
             loc = Plugin.CreateIni("DefaultLoc")
             loc.Save()
         return Plugin.GetIni("DefaultLoc")
-
-    def Replace(self, String):
-        c = String.replace("(", "")
-        c = c.replace(")", "")
-        return c.split(",")
 
     def HomeOf(self, Player, Home):
         ini = self.Homes()
@@ -203,7 +206,6 @@ class HomeSystem:
                             HomeSystem = Plugin.CreateDict()
                             HomeSystem["Player"] = Player.SteamID
                             HomeSystem["Location"] = str(Player.Location)
-                            Player.Message(str(Player.Location))
                             HomeSystem["HomeLocation"] = check
                             Plugin.CreateParallelTimer("HomeDelay", tpdelay * 1000, HomeSystem).Start()
                             Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
