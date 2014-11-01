@@ -394,7 +394,8 @@ class HomeSystem:
                 leng = len(homes)
                 for i in xrange(-1, leng):
                     i += 1
-                    Player.MessageFrom(homesystemname, "Homes: " + homes[i])
+                    if i < leng:
+                        Player.MessageFrom(homesystemname, "Homes: " + homes[i])
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
 
