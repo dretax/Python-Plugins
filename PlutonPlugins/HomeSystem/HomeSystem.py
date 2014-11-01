@@ -1,8 +1,69 @@
 __author__ = 'DreTaX'
+__version__ = '1.5'
 
+import clr
+
+clr.AddReferenceByPartialName("Pluton")
+clr.AddReferenceByPartialName("UnityEngine")
+import Pluton
+import UnityEngine
+from UnityEngine import Vector3
 import math
+import System
+from System import *
 
+
+"""
+    Class
+"""
 class HomeSystem:
+
+    """
+        Timer
+    """
+
+    def HomeDelayCallback(self, timer):
+        timer.Kill()
+        config = self.HomeConfig()
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        safetp = config.GetSetting("Settings", "safetpcheck")
+        HomeSystem = timer.Args
+        Player = Server.FindPlayer(HomeSystem["Player"])
+        if Player is None:
+            return
+        PL = self.Replace(HomeSystem["Location"])
+        Loc = Vector3(PL[0], PL[1], PL[2])
+        HLoc = self.Replace(HomeSystem["HomeLocation"])
+        Home = Vector3(HLoc[0], HLoc[1], HLoc[2])
+        movec = config.GetSetting("Settings", "movecheck")
+        if movec == 1:
+            if Loc != Player.Location:
+                Player.MessageFrom(homesystemname, "You moved before teleporting!")
+                return
+        Player.GroundTeleport(Home)
+        if safetp > 0:
+            Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
+        Player.MessageFrom(homesystemname, "Teleported to Home!")
+        return
+
+
+
+    def HomeSafeTyCallback(self, timer):
+        timer.Kill()
+        config = self.HomeConfig()
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        HomeSystem = timer.Args
+        Player = Server.FindPlayer(HomeSystem["Player"])
+        if Player is None:
+            return
+        HLoc = self.Replace(HomeSystem["HomeLocation"])
+        Home = Vector3(HLoc[0], HLoc[1], HLoc[2])
+        Player.Teleport(Home)
+        Player.MessageFrom(homesystemname, "Teleported Again!")
+
+    """
+        Methods
+    """
 
     def Homes(self):
         if not Plugin.IniExists("Homes"):
@@ -28,6 +89,11 @@ class HomeSystem:
             loc = Plugin.CreateIni("DefaultLoc")
             loc.Save()
         return Plugin.GetIni("DefaultLoc")
+
+    def Replace(self, String):
+        c = String.replace("(", "")
+        c = c.replace(")", "")
+        return c.split(",")
 
     def HomeOf(self, Player, Home):
         ini = self.Homes()
@@ -66,7 +132,7 @@ class HomeSystem:
         checkdist = ini.EnumSection(id)
         for home in checkdist:
             homes = ini.GetSetting(id, home)
-            if (homes and homes is not None):
+            if homes is not None:
                 return True
             return False
 
@@ -100,10 +166,12 @@ class HomeSystem:
                     Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
                 else:
                     cooldown = config.GetSetting("Settings", "Cooldown")
+                    if DataStore.Get("home_cooldown", id) is None:
+                        DataStore.Add("home_cooldown", id, 7)
                     time = DataStore.Get("home_cooldown", id)
                     tpdelay = config.GetSetting("Settings", "tpdelay")
                     systick = System.Environment.TickCount
-                    if time is None or (systick - time) < 0 or math.isnan(systick - time) or math.isnan(time):
+                    if (systick - time) < 0 or math.isnan(systick - time) or math.isnan(time):
                         DataStore.Add("home_cooldown", id, 7)
 
                     calc = systick - time
@@ -119,13 +187,17 @@ class HomeSystem:
 
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
-                            Player.TeleportTo(check[0], check[1], check[2])
+                            Player.GroundTeleport(check[0], check[1], check[2])
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             Player.MessageFrom(homesystemname, "Teleported to home!")
                             #BZHJ.addJob('mytestt', checkn, iJSON.stringify(jobParams));
                         else:
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
-                            #BZHJ.addJob('delay', tpdelay, iJSON.stringify(jobParams));
+                            HomeSystem = Plugin.CreateDict()
+                            HomeSystem["Player"] = Player.SteamID
+                            HomeSystem["Location"] = str(Player.Location)
+                            HomeSystem["HomeLocation"] = check
+                            Plugin.CreateParallelTimer("HomeDelay", tpdelay * 1000, HomeSystem).Start()
                             Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
                     else:
                         Player.MessageFrom(homesystemname, "You have to wait before teleporting again!")
@@ -147,22 +219,14 @@ class HomeSystem:
                 id = Player.SteamID
                 maxh = config.GetSetting("Settings", "Maxhomes")
                 checkforit = config.GetSetting("Settings", "DistanceCheck")
-                checkwall = config.GetSetting("Settings", "CheckCloseWall")
+                #checkwall = config.GetSetting("Settings", "CheckCloseWall")
                 if not self.CheckIfEmpty(id):
                     if checkforit == 1:
                         checkdist = ini.EnumSection("HomeNames")
-                        counted = checkdist.Length
+                        counted = len(checkdist)
                         i = 0
                         maxdist = config.GetSetting("Settings", "Distance")
                         maxdist = int(maxdist)
-                        if checkwall == 1:
-                            for entity in World.Entities:
-                                if entity.Name == "MetalWall" or entity.Name == "WoodWall":
-                                    loc = Util.CreateVector(entity.X, entity.Y, entity.Z)
-                                    distance = Util.GetVectorsDistance(loc, Player.Location)
-                                    if distance <= 1.50:
-                                        Player.MessageFrom(homesystemname, "You can't set home near walls!")
-                                        return
                         if counted > 0 and checkdist:
                             for idof in checkdist:
                                 i += 1
@@ -170,7 +234,7 @@ class HomeSystem:
                                 if homes:
                                     homes = homes.replace(",", "")
                                     check = self.HomeOfID(idof, homes)
-                                    vector = Util.CreateVector(check[0], check[1], check[2])
+                                    vector = Vector3(check[0], check[1], check[2])
                                     dist = Util.GetVectorsDistance(vector, Player.Location)
                                     if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
                                         Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
@@ -178,7 +242,7 @@ class HomeSystem:
                                     if i == counted:
                                         homes = ini.GetSetting("HomeNames", id)
                                         n = homes + "" + home + ","
-                                        ini.AddSetting(id, home, Player.Location.toString())
+                                        ini.AddSetting(id, home, str(Player.Location))
                                         ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                                         ini.Save()
                                         Player.MessageFrom(homesystemname, "Home Saved")
@@ -187,25 +251,17 @@ class HomeSystem:
                                     ini.DeleteSetting("HomeNames", idof)
                                     ini.Save()
                         else:
-                            homes = ini.GetSetting("HomeNames", id);
-                            n = homes + "" + home + ",";
-                            ini.AddSetting(id, home, Player.Location.toString())
+                            homes = ini.GetSetting("HomeNames", id)
+                            n = homes + "" + home + ","
+                            ini.AddSetting(id, home, str(Player.Location))
                             ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                             ini.Save()
                             Player.MessageFrom(homesystemname, "Home Saved")
                             return
                     else:
-                        if checkwall == 1:
-                            for entity in World.Entities:
-                                if entity.Name == "MetalWall" or entity.Name == "WoodWall":
-                                    loc = Util.CreateVector(entity.X, entity.Y, entity.Z)
-                                    distance = Util.GetVectorsDistance(loc, Player.Location)
-                                    if distance <= 1.50:
-                                        Player.MessageFrom(homesystemname, "You can't set home near walls!")
-                                        return
                         homes = ini.GetSetting("HomeNames", id)
                         n = homes + "" + home + ","
-                        ini.AddSetting(id, home, Player.Location.toString())
+                        ini.AddSetting(id, home, str(Player.Location))
                         ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                         ini.Save()
                         Player.MessageFrom(homesystemname, "Home Saved")
@@ -221,30 +277,22 @@ class HomeSystem:
                     else:
                         if checkforit == 1:
                             checkdist = ini.EnumSection("HomeNames")
-                            counted = checkdist.Length
+                            counted = len(checkdist)
                             i = 0
                             maxdist = config.GetSetting("Settings", "Distance")
                             maxdist = int(maxdist)
-                            if checkwall == 1:
-                                for entity in World.Entities:
-                                    if entity.Name == "MetalWall" or entity.Name == "WoodWall":
-                                        loc = Util.CreateVector(entity.X, entity.Y, entity.Z)
-                                        distance = Util.GetVectorsDistance(loc, Player.Location)
-                                        if distance <= 1.50:
-                                            Player.MessageFrom(homesystemname, "You can't set home near walls!")
-                                            return
                             if counted > 0:
                                 for idof in checkdist:
                                     i += 1
                                     homes = ini.GetSetting("HomeNames", idof)
                                     if homes:
                                         splitit = homes.split(',')
-                                        if splitit.length >= 2:
+                                        if len(splitit) >= 2:
                                             inter = 0
                                             for nn in xrange(inter, len(splitit)):
                                                 inter += 1
                                                 check = self.HomeOfID(idof, splitit[inter])
-                                                vector = Util.CreateVector(check[0], check[1], check[2])
+                                                vector = Vector3(check[0], check[1], check[2])
                                                 dist = Util.GetVectorsDistance(vector, Player.Location)
                                                 if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
                                                     Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
@@ -252,7 +300,7 @@ class HomeSystem:
                                                 if i == counted:
                                                     homes = ini.GetSetting("HomeNames", id)
                                                     n = homes + "" + home + ","
-                                                    ini.AddSetting(id, home, Player.Location.toString())
+                                                    ini.AddSetting(id, home, str(Player.Location))
                                                     ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                                                     ini.Save()
                                                     Player.MessageFrom(homesystemname, "Home Saved")
@@ -260,7 +308,7 @@ class HomeSystem:
                                         else:
                                             homes = homes.replace(",", "")
                                             check =self.HomeOfID(idof, homes)
-                                            vector = Util.CreateVector(check[0], check[1], check[2])
+                                            vector = Vector3(check[0], check[1], check[2])
                                             dist = Util.GetVectorsDistance(vector, Player.Location)
                                             if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
                                                 Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
@@ -268,7 +316,7 @@ class HomeSystem:
                                             if i == counted:
                                                 homes = ini.GetSetting("HomeNames", id)
                                                 n = homes + "" + home + ","
-                                                ini.AddSetting(id, home, Player.Location.toString())
+                                                ini.AddSetting(id, home, str(Player.Location))
                                                 ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                                                 ini.Save()
                                                 Player.MessageFrom(homesystemname, "Home Saved")
@@ -278,22 +326,14 @@ class HomeSystem:
                             else:
                                 homes = ini.GetSetting("HomeNames", id)
                                 n = homes + "" + home + ","
-                                ini.AddSetting(id, home, Player.Location.toString())
+                                ini.AddSetting(id, home, str(Player.Location))
                                 ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                                 ini.Save()
                                 Player.MessageFrom(homesystemname, "Home Saved")
                         else:
-                            if checkwall == 1:
-                                for entity in World.Entities:
-                                    if entity.Name == "MetalWall" or entity.Name == "WoodWall":
-                                        loc = Util.CreateVector(entity.X, entity.Y, entity.Z)
-                                        distance = Util.GetVectorsDistance(loc, Player.Location)
-                                        if distance <= 1.50:
-                                            Player.MessageFrom(homesystemname, "You can't set home near walls!")
-                                            return
                             homes = ini.GetSetting("HomeNames", id)
                             n = homes + "" + home + ","
-                            ini.AddSetting(id, home, Player.Location.toString())
+                            ini.AddSetting(id, home, str(Player.Location))
                             ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
                             ini.Save()
                             Player.MessageFrom(homesystemname, "Home Saved")
@@ -307,12 +347,12 @@ class HomeSystem:
                 if check is None:
                     Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
                     return
-                ini = self.Homes();
+                ini = self.Homes()
                 ini.AddSetting("DefaultHome", id, home)
-                ini.Save();
+                ini.Save()
                 Player.MessageFrom(homesystemname, "Default Home Set!")
             else:
-                config = self.HomeConfig();
+                config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
 
@@ -420,7 +460,7 @@ class HomeSystem:
                 nameof = ini.GetSetting(id, playerid)
                 Player.MessageFrom(homesystemname, "Whitelisted: " + nameof)
 
-    def On_EntityDeployed(Player, Entity):
+    """def On_EntityDeployed(Player, Entity):
         config = self.HomeConfig()
         antihack = config.GetSetting("Settings", "Antihack")
         homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -441,4 +481,4 @@ class HomeSystem:
                     Player.MessageFrom(homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
                     Entity.Destroy()
                     inventory.AddItem("Cloth", 40)
-                    inventory.AddItem("Metal Fragments", 100)
+                    inventory.AddItem("Metal Fragments", 100)"""
