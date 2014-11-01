@@ -26,29 +26,28 @@ class TpFriend:
             DataStore.Add("tpfriendusedtp", Player.SteamID, 0)
 
     def AutoKillCallback(self, timer):
+        timer.Kill()
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         autokill = timer.Args
         PlayerFrom = Server.FindPlayer(autokill["PlayerR"])
         PlayerTo = Server.FindPlayer(autokill["PlayerT"])
         if PlayerFrom is None or PlayerTo is None:
-            timer.Kill()
             DataStore.Remove("tpfriendpending", autokill["PlayerR"])
             DataStore.Add("tpfriendcooldown", autokill["PlayerR"], 7)
             DataStore.Remove("tpfriendpending2", autokill["PlayerT"])
             return
         if not DataStore.ContainsKey("tpfriendpending", PlayerFrom.SteamID) or not DataStore.ContainsKey("tpfriendpending2", PlayerTo.SteamID):
-            timer.Kill()
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Add("tpfriendcooldown", PlayerFrom.SteamID, 7)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
         PlayerFrom.MessageFrom(systemname, "Teleport request timed out.")
         PlayerTo.MessageFrom(systemname, "Teleport request timed out.")
-        timer.Kill()
         return
 
     def TpDelayCallback(self, timer):
+        timer.Kill()
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         tpsec = int(ini.GetSetting("Settings", "tpsec"))
@@ -56,7 +55,6 @@ class TpFriend:
         PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
         PlayerTo = Server.FindPlayer(tpdelaytp["PlayerT"])
         if PlayerFrom is None or PlayerTo is None:
-            timer.Kill()
             DataStore.Remove("tpfriendpending", tpdelaytp["PlayerR"])
             DataStore.Remove("tpfriendpending2", tpdelaytp["PlayerT"])
             return
@@ -68,16 +66,15 @@ class TpFriend:
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         if tpsec > 0:
             Plugin.CreateParallelTimer("TpSafeTy", tpsec * 1000, tpdelaytp).Start()
-        timer.Kill()
         return
 
     def TpSafeTyCallback(self, timer):
+        timer.Kill()
         ini = self.TpFriendConfig()
         systemname = ini.GetSetting("Settings", "sysname")
         tpdelaytp = timer.Args
         PlayerFrom = Server.FindPlayer(tpdelaytp["PlayerR"])
         if PlayerFrom is None:
-            timer.Kill()
             return
         PlayerFrom.basePlayer.supressSnapshots = True
         PlayerFrom.basePlayer.UpdateNetworkGroup()
@@ -85,7 +82,6 @@ class TpFriend:
         PlayerFrom.basePlayer.SendFullSnapshot()
         PlayerFrom.basePlayer.inventory.SendSnapshot()
         PlayerFrom.MessageFrom(systemname, "Updated You.")
-        timer.Kill()
         return
 
     """
