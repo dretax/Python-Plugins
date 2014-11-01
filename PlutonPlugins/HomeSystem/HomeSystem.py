@@ -34,15 +34,14 @@ class HomeSystem:
         if Player is None:
             return
         PL = HomeSystem["Location"]
-        PL = re.sub('[)\(]', '', PL)
+        PL = re.sub('[)\(\[\'\]]', '', str(PL))
         PL = PL.split(',')
-        Loc = Vector3(float(PL[0]), float(PL[1]), float(PL[2]))
         HLoc = HomeSystem["HomeLocation"]
-        HLoc = re.sub('[)\(]', '', HLoc)
+        HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         movec = config.GetSetting("Settings", "movecheck")
         if movec == 1:
-            if Loc != Player.Location:
+            if float(PL[0]) != Player.X and float(PL[3]) != Player.Z:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]), float(HLoc[2]))
@@ -62,7 +61,7 @@ class HomeSystem:
         if Player is None:
             return
         HLoc = HomeSystem["HomeLocation"]
-        HLoc = re.sub('[)\(]', '', HLoc)
+        HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         Home = Vector3(float(HLoc[0]), float(HLoc[1]), float(HLoc[2]))
         Player.Teleport(Home)
@@ -187,14 +186,6 @@ class HomeSystem:
                     calc = systick - time
 
                     if calc >= cooldown or calc == 0:
-                        checkn = config.GetSetting("Settings", "safetpcheck")
-                        """jobParams = [];
-                        jobParams.push(String(id));
-                        jobParams.push(String(check[0]));
-                        jobParams.push(String(check[1]));
-                        jobParams.push(String(check[2]));
-                        jobParams.push(String(loc));"""
-
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
                             Player.GroundTeleport(float(check[0]), float(check[1]), float(check[2]))
