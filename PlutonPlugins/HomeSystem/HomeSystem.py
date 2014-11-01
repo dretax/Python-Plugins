@@ -195,7 +195,8 @@ class HomeSystem:
 
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
-                            Player.GroundTeleport(check[0], check[1], check[2])
+                            loc = Vector3(Vector3(check[0], check[1], check[2]))
+                            Player.GroundTeleport(loc)
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             Player.MessageFrom(homesystemname, "Teleported to home!")
                             #BZHJ.addJob('mytestt', checkn, iJSON.stringify(jobParams));
