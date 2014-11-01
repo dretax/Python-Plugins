@@ -34,14 +34,14 @@ class HomeSystem:
         if Player is None:
             return
         PL = HomeSystem["Location"]
-        PL = re.sub('[)\(\[\'\]]', '', str(PL))
-        PL = PL.split(',')
+        #PL = re.sub('[)\(\[\'\]]', '', str(PL))
+        #PL = PL.split(',')
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         movec = config.GetSetting("Settings", "movecheck")
         if movec == 1:
-            if float(PL[0]) != Player.X and float(PL[3]) != Player.Z:
+            if PL != Player.Location:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]), float(HLoc[2]))
@@ -196,7 +196,7 @@ class HomeSystem:
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             HomeSystem = Plugin.CreateDict()
                             HomeSystem["Player"] = Player.SteamID
-                            HomeSystem["Location"] = str(Player.Location)
+                            HomeSystem["Location"] = Player.Location
                             HomeSystem["HomeLocation"] = check
                             Plugin.CreateParallelTimer("HomeDelay", tpdelay * 1000, HomeSystem).Start()
                             Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
