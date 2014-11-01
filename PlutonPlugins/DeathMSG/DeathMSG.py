@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.5'
 
 import clr
 
