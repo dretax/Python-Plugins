@@ -158,6 +158,8 @@ class TpFriend:
                 cd = config.GetSetting("Settings", "cooldown")
                 cooldown = int(cd)
                 stuff = int(config.GetSetting("Settings", "timeoutr"))
+                if DataStore.Get("tpfriendcooldown", Player.SteamID) is None:
+                    DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
                 usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
@@ -167,8 +169,9 @@ class TpFriend:
                     Player.MessageFrom(systemname, "Try again later, or tell the player to deny his current request.")
                     return
 
-                if time is None or (systick - time) < 0 or math.isnan(systick - time):
+                if (systick - time) < 0 or math.isnan(systick - time):
                     DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
+                    time = 7
 
                 calc = systick - time
                 if calc >= cooldown or time == 7:
