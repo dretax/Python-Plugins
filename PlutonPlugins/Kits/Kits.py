@@ -49,9 +49,12 @@ class Kits:
                 cooldown = int(ini.GetSetting("PlayerKits", "Cooldown"))
                 if cooldown > 0:
                     systick = System.Environment.TickCount
-                    time = DataStore.Get("startercooldown", Player.SteamID)
-                    if time is None or (systick - time) < 0 or math.isnan(systick - time):
+                    if DataStore.Get("startercooldown", Player.SteamID) is None:
                         DataStore.Add("startercooldown", Player.SteamID, 7)
+                    time = DataStore.Get("startercooldown", Player.SteamID)
+                    if (systick - time) < 0 or math.isnan(systick - time):
+                        DataStore.Add("startercooldown", Player.SteamID, 7)
+                        time = 7
                     calc = systick - time
                     if calc >= cooldown or time == 7:
                         if Server.LoadOuts.ContainsKey(args[0]):
