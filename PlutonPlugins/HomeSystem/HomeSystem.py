@@ -26,7 +26,7 @@ class HomeSystem:
         timer.Kill()
         config = self.HomeConfig()
         homesystemname = config.GetSetting("Settings", "homesystemname")
-        safetp = config.GetSetting("Settings", "safetpcheck")
+        safetp = int(config.GetSetting("Settings", "safetpcheck"))
         HomeSystem = timer.Args
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
@@ -158,18 +158,18 @@ class HomeSystem:
             elif len(args) > 0:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
-                home = args[0]
+                home = str(args[0])
                 check = self.HomeOf(Player, home)
                 id = Player.SteamID
                 loc = Player.Location
                 if check is None:
                     Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
                 else:
-                    cooldown = config.GetSetting("Settings", "Cooldown")
+                    cooldown = int(config.GetSetting("Settings", "Cooldown"))
                     if DataStore.Get("home_cooldown", id) is None:
                         DataStore.Add("home_cooldown", id, 7)
                     time = DataStore.Get("home_cooldown", id)
-                    tpdelay = config.GetSetting("Settings", "tpdelay")
+                    tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                     systick = System.Environment.TickCount
                     if (systick - time) < 0 or math.isnan(systick - time) or math.isnan(time):
                         DataStore.Add("home_cooldown", id, 7)
@@ -391,8 +391,10 @@ class HomeSystem:
             id = Player.SteamID
             if ini.GetSetting("HomeNames", id) is not None:
                 homes = ini.GetSetting("HomeNames", id).split(',')
-                for h in homes:
-                    Player.MessageFrom(homesystemname, "Homes: " + homes[h])
+                leng = len(homes)
+                for i in xrange(-1, leng):
+                    i += 1
+                    Player.MessageFrom(homesystemname, "Homes: " + homes[i])
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
 
