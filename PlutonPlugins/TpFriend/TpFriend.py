@@ -124,7 +124,7 @@ class TpFriend:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + ''.join(str(args) for x in list) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
