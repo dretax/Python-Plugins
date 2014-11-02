@@ -108,10 +108,10 @@ class TpFriend:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.0
+        V3.1
     """
     def CheckV(self, Player, args):
-        systemname = "IdIdentifier"
+        systemname = "TpFriend"
         p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
@@ -124,7 +124,7 @@ class TpFriend:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + ''.join(str(args) for x in list) + "!")
             return None
         elif count == 1 and p is not None:
             return p
