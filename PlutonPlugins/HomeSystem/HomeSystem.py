@@ -86,7 +86,7 @@ class HomeSystem:
     def FriendOf(self, id, selfid):
         ini = self.Wl()
         check = ini.GetSetting(id, selfid)
-        if check is not None:
+        if check and check is not None:
             return True
         return False
 
@@ -142,7 +142,7 @@ class HomeSystem:
             if not String.strip():
                 return True
             else:
-                return True
+                return False
         return False
 
     def On_Command(self, cmd):
@@ -219,15 +219,14 @@ class HomeSystem:
                 ini = self.Homes()
                 id = Player.SteamID
                 maxh = config.GetSetting("Settings", "Maxhomes")
-                checkforit = config.GetSetting("Settings", "DistanceCheck")
+                checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
                 #checkwall = config.GetSetting("Settings", "CheckCloseWall")
                 if not self.CheckIfEmpty(id):
                     if checkforit == 1:
                         checkdist = ini.EnumSection("HomeNames")
                         counted = len(checkdist)
                         i = 0
-                        maxdist = config.GetSetting("Settings", "Distance")
-                        maxdist = int(maxdist)
+                        maxdist = int(config.GetSetting("Settings", "Distance"))
                         if counted > 0 and checkdist:
                             for idof in checkdist:
                                 i += 1
@@ -235,10 +234,10 @@ class HomeSystem:
                                 if homes:
                                     homes = homes.replace(",", "")
                                     check = self.HomeOfID(idof, homes)
-                                    vector = Vector3(check[0], check[1], check[2])
+                                    vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
                                     dist = Util.GetVectorsDistance(vector, Player.Location)
                                     if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                        Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
+                                        Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                         return
                                     if i == counted:
                                         homes = ini.GetSetting("HomeNames", id)
@@ -280,8 +279,7 @@ class HomeSystem:
                             checkdist = ini.EnumSection("HomeNames")
                             counted = len(checkdist)
                             i = 0
-                            maxdist = config.GetSetting("Settings", "Distance")
-                            maxdist = int(maxdist)
+                            maxdist = int(config.GetSetting("Settings", "Distance"))
                             if counted > 0:
                                 for idof in checkdist:
                                     i += 1
@@ -289,14 +287,13 @@ class HomeSystem:
                                     if homes:
                                         splitit = homes.split(',')
                                         if len(splitit) >= 2:
-                                            inter = 0
-                                            for nn in xrange(inter, len(splitit)):
-                                                inter += 1
-                                                check = self.HomeOfID(idof, splitit[inter])
-                                                vector = Vector3(check[0], check[1], check[2])
+                                            for nn in xrange(-1, len(splitit)):
+                                                nn += 1
+                                                check = self.HomeOfID(idof, splitit[nn])
+                                                vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
                                                 dist = Util.GetVectorsDistance(vector, Player.Location)
                                                 if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                                    Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
+                                                    Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                                     return
                                                 if i == counted:
                                                     homes = ini.GetSetting("HomeNames", id)
@@ -309,10 +306,10 @@ class HomeSystem:
                                         else:
                                             homes = homes.replace(",", "")
                                             check =self.HomeOfID(idof, homes)
-                                            vector = Vector3(check[0], check[1], check[2])
+                                            vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
                                             dist = Util.GetVectorsDistance(vector, Player.Location)
                                             if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                                Player.MessageFrom(homesystemname, "There is a home within: " + maxdist + "m!")
+                                                Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                                 return
                                             if i == counted:
                                                 homes = ini.GetSetting("HomeNames", id)
