@@ -94,7 +94,7 @@ class DeathMSG:
             weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
             if type == "Bullet" or type == "Slash":
                 if type == "Bullet":
-                    bodypart = str(PlayerDeathEvent._info.HitPart)
+                    bodypart = self.BodyParts[str(PlayerDeathEvent._info.HitPart)]
                 else:
                     bodypart = "Body"
                 vloc = victim.Location
@@ -106,7 +106,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("weapon", weapon)
-                dmgmsg = dmgmsg.replace("bodypart", self.BodyParts[bodypart])
+                dmgmsg = dmgmsg.replace("bodypart", bodypart)
                 KillLog = ini.GetSetting("Settings", "KillLog")
                 Server.BroadcastFrom(sysname, dmgmsg)
                 if int(KillLog) == 1:
