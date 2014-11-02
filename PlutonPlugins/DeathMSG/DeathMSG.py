@@ -56,7 +56,6 @@ class DeathMSG:
             loc.AddSetting("Settings", "Hunger", "victim died from starvation")
             loc.AddSetting("Settings", "Radiation", "victim died from radiation")
             loc.AddSetting("Settings", "Thirst", "victim died from dehydration")
-            loc.AddSetting("Settings", "NaturalMsg", "victim died because of (a) type")
             loc.AddSetting("Settings", "FallMsg", "victim died because he fell off from something")
             loc.AddSetting("Settings", "BledMsg", "victim bled out. He was killed by: killer")
             loc.AddSetting("Settings", "BledMsg2", "victim bled out.")
