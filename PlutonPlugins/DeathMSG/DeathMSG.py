@@ -15,7 +15,7 @@ from System import *
 
 
 class DeathMSG:
-    BodyParts = {'2801294865': 'Head', '3847415609': 'Hand', '2881065196': 'Body', '3847102050': 'Legs', '2868606315': 'Foot'}
+    BodyParts = {'2801294865': 'Head', '3847415609': 'Hand', '2881065196': 'Body', '3847102050': 'Legs', '2868606315': 'Foot', 'Body' : 'Body'}
 
     def DeathMSGConfig(self):
         if not Plugin.IniExists("DeathMSGConfig"):
@@ -92,11 +92,8 @@ class DeathMSG:
             dmgmsg = ini.GetSetting("Settings", "KillMessage")
             type = str(PlayerDeathEvent.DamageType)
             weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
-            if type == "Bullet" or type == "Slash":
-                if type == "Bullet":
-                    bodypart = self.BodyParts[str(PlayerDeathEvent._info.HitPart)]
-                else:
-                    bodypart = "Body"
+            if type == "Bullet":
+                bodypart = str(PlayerDeathEvent._info.HitPart)
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
@@ -106,7 +103,22 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("weapon", weapon)
-                dmgmsg = dmgmsg.replace("bodypart", bodypart)
+                dmgmsg = dmgmsg.replace("bodypart", self.BodyParts[bodypart])
+                KillLog = ini.GetSetting("Settings", "KillLog")
+                Server.BroadcastFrom(sysname, dmgmsg)
+                if int(KillLog) == 1:
+                    Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
+            elif type == "Slash":
+                vloc = victim.Location
+                aloc = attacker.transform.position
+                dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
+                damage = PlayerDeathEvent.DamageAmount
+                dmgmsg = dmgmsg.replace("killer", attackername)
+                dmgmsg = dmgmsg.replace("victim", victimname)
+                dmgmsg = dmgmsg.replace("dmg", str(damage))
+                dmgmsg = dmgmsg.replace("dist", str(dist))
+                dmgmsg = dmgmsg.replace("weapon", weapon)
+                dmgmsg = dmgmsg.replace("bodypart", "Body")
                 KillLog = ini.GetSetting("Settings", "KillLog")
                 Server.BroadcastFrom(sysname, dmgmsg)
                 if int(KillLog) == 1:
