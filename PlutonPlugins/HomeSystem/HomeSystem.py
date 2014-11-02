@@ -33,17 +33,17 @@ class HomeSystem:
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
             return
-        PL = HomeSystem["Location"]
+        #PL = HomeSystem["Location"]
         #PL = re.sub('[)\(\[\'\]]', '', str(PL))
         #PL = PL.split(',')
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
-        movec = config.GetSetting("Settings", "movecheck")
-        if movec == 1:
-            if PL != Player.Location:
+        #movec = config.GetSetting("Settings", "movecheck")
+        """if movec == 1:
+            if PL  Player.Location:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
-                return
+                return"""
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]), float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
@@ -142,7 +142,7 @@ class HomeSystem:
             if not String.strip():
                 return True
             else:
-                return False
+                return True
         return False
 
     def On_Command(self, cmd):
