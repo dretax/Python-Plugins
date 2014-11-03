@@ -137,7 +137,7 @@ class DeathMSG:
                 bodypart = str(PlayerDeathEvent.HitBone)
                 g = bodypart.split('/')
                 s = '/'.join(g[:2]), '/'.join(g[2:])
-                bpart = self.BParts.get(s[1], "UnKnown")
+                bpart = self.BodyParts.get(s[1], "UnKnown")
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
