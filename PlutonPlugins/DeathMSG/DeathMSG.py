@@ -1,13 +1,12 @@
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.7'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import math
 import System
-from System import *
+from System import DateTime
 
 """
     Class
@@ -15,32 +14,30 @@ from System import *
 
 
 class DeathMSG:
-    """
-        Brought to you by XCorrosionX and DreTaX
-    """
     BodyParts = {
-        '2801294865': 'Head',
-        '4040387367': 'Head',
-        '1607781229': 'Head',
-        '2910575312': 'Head',
-        '2341211393': 'Head',
-        '2881065196': 'Body',
-        '405856008': 'Body',
-        '497750834': 'Body',
-        '2107788330': 'Body',
-        '998083258': 'Body',
-        '1469249236': 'Body',
-        '3856158477': 'Body',
-        '487549081': 'Body',
-        '1819052778': 'Legs',
-        '3428008992': 'Legs',
-        '3847102050': 'Legs',
-        '2868606315': 'Foot',
-        '2590633211': 'Foot',
-        '1020274123': 'Foot',
-        '935136153': 'Hand',
-        '3847415609': 'Hand',
-        '1286581443': 'Hand'
+        'bucket_helmet': 'Bucket Helmet',
+        'burlap_gloves': 'Burlap Gloves',
+        'burlap_shirt': 'Burlap Shirt',
+        'burlap_shoes': 'Burlap Shoes',
+        'burlap_trousers': 'Burlap Pants',
+        'coffeecan_helmet': 'CoffeeCan Helmet',
+        'hazmat_boots': 'Hazmat Boots',
+        'hazmat_gloves': 'Hazmat Gloves',
+        'hazmat_helmet': 'Hazmat Helmet',
+        'hazmat_jacket': 'Hazmat Jacket',
+        'hazmat_pants': 'Hazmat Pants',
+        'jacket_snow': 'Snow Jacket',
+        'jacket_snow2': 'Snow Jacket',
+        'jacket_snow3': 'Snow Jacket',
+        'jacket_urban_red': 'Jacket',
+        'metal_facemask': 'Metal Mask',
+        'metal_plate_torso': 'Metal Plate',
+        'tshirt_green': 'T-Shirt',
+        'skin_head': 'Head',
+        'skin_legs': 'Legs',
+        'skin_torso': 'Body',
+        'skin_feet': 'Foot',
+        'skin_hands': 'Hands'
     }
 
     def DeathMSGConfig(self):
@@ -62,7 +59,8 @@ class DeathMSG:
             loc.AddSetting("Settings", "DrownedMsg", "victim Drowned")
             loc.AddSetting("Settings", "ColdMsg", "victim Caught Cold, and died.")
             loc.AddSetting("Settings", "XyzMsg", "victim suicided....")
-            loc.AddSetting("Settings", "KillMessage", "victim was killed by killer | Damage: dmg | Distance: dist | With: weapon | Part: bodypart")
+            loc.AddSetting("Settings", "Bullet", "killer shot through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Settings", "Slash", "killer slashed through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -132,11 +130,14 @@ class DeathMSG:
         elif attackername != victimname:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
-            dmgmsg = ini.GetSetting("Settings", "KillMessage")
             type = str(PlayerDeathEvent.DamageType)
             weapon = str(PlayerDeathEvent._info.Weapon.info.displayname)
             if type == "Bullet" or type == "Slash":
-                bodypart = str(PlayerDeathEvent._info.HitPart)
+                dmgmsg = ini.GetSetting("Settings", type)
+                bodypart = str(PlayerDeathEvent.HitBone)
+                g = bodypart.split('/')
+                s = '/'.join(g[:2]), '/'.join(g[2:])
+                bpart = self.BParts.get(s[1], "UnKnown")
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
@@ -146,7 +147,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("weapon", weapon)
-                dmgmsg = dmgmsg.replace("bodypart", self.BodyParts[bodypart])
+                dmgmsg = dmgmsg.replace("bodypart", bpart)
                 KillLog = ini.GetSetting("Settings", "KillLog")
                 Server.BroadcastFrom(sysname, dmgmsg)
                 if int(KillLog) == 1:
