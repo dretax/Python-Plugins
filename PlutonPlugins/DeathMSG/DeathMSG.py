@@ -76,19 +76,18 @@ class DeathMSG:
 
     def IsNatural(self, type):
         ini = self.DeathMSGConfig()
-        msg = ini.GetSetting("Settings", type)
         if type == "Bite":
-            return msg
+            return ini.GetSetting("Settings", type)
         elif type == "BluntTrauma":
-            return msg
+            return ini.GetSetting("Settings", type)
         elif type == "Heat":
-            return msg
+            return ini.GetSetting("Settings", type)
         elif type == "Hunger":
-            return msg
+            return ini.GetSetting("Settings", type)
         elif type == "Radiation":
-            return msg
+            return ini.GetSetting("Settings", type)
         elif type == "Thirst":
-            return msg
+            return ini.GetSetting("Settings", type)
         return None
 
     def On_PlayerDied(self, PlayerDeathEvent):
@@ -105,8 +104,9 @@ class DeathMSG:
             if int(NaturalDies) == 1:
                 sysname = ini.GetSetting("Settings", "SysName")
                 type = str(PlayerDeathEvent.DamageType)
-                if self.IsNatural(type) is not None:
-                    ntrmsg = ini.GetSetting("Settings", self.IsNatural(type))
+                natural = self.IsNatural(type)
+                if natural is not None:
+                    ntrmsg = ini.GetSetting("Settings", natural)
                     ntrmsg = ntrmsg.replace("victim", victimname)
                     Server.BroadcastFrom(sysname, ntrmsg)
                     return
