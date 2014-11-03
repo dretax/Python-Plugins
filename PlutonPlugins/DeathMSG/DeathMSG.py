@@ -14,6 +14,9 @@ from System import DateTime
 
 
 class DeathMSG:
+    """
+        Brought to you by XCorrosionX and DreTaX
+    """
     BodyParts = {
         'l_upperarm': 'Upper Arm',
         'r_upperarm': 'Upper Arm',
@@ -50,19 +53,19 @@ class DeathMSG:
             loc.AddSetting("Settings", "SysName", "Equinox DeathMSG")
             loc.AddSetting("Settings", "NaturalDies", "1")
             loc.AddSetting("Settings", "KillLog", "1")
-            loc.AddSetting("Settings", "SuicideMsg", "victim suicided...")
+            loc.AddSetting("Settings", "Suicide", "victim suicided...")
             loc.AddSetting("Settings", "Bite", "victim was Bitten to Death")
             loc.AddSetting("Settings", "BluntTrauma", "victim died from a Blunt Trauma")
             loc.AddSetting("Settings", "Heat", "victim died from heat")
             loc.AddSetting("Settings", "Hunger", "victim died from starvation")
             loc.AddSetting("Settings", "Radiation", "victim died from radiation")
             loc.AddSetting("Settings", "Thirst", "victim died from dehydration")
-            loc.AddSetting("Settings", "FallMsg", "victim died because he fell off from something")
+            loc.AddSetting("Settings", "Fall", "victim died because he fell off from something")
             loc.AddSetting("Settings", "BledMsg", "victim bled out. He was killed by: killer")
-            loc.AddSetting("Settings", "BledMsg2", "victim bled out.")
-            loc.AddSetting("Settings", "DrownedMsg", "victim Drowned")
-            loc.AddSetting("Settings", "ColdMsg", "victim Caught Cold, and died.")
-            loc.AddSetting("Settings", "XyzMsg", "victim suicided....")
+            loc.AddSetting("Settings", "Bleeding", "victim bled out.")
+            loc.AddSetting("Settings", "Drowned", "victim Drowned")
+            loc.AddSetting("Settings", "Cold", "victim Caught Cold, and died.")
+            loc.AddSetting("Settings", "Generic", "victim suicided....")
             loc.AddSetting("Settings", "Bullet", "killer shot through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
             loc.AddSetting("Settings", "Slash", "killer slashed through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
             loc.Save()
@@ -86,7 +89,7 @@ class DeathMSG:
             return msg
         elif type == "Thirst":
             return msg
-        return False
+        return None
 
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
@@ -99,38 +102,17 @@ class DeathMSG:
         if attackername == victimname:
             ini = self.DeathMSGConfig()
             NaturalDies = ini.GetSetting("Settings", "NaturalDies")
-            sysname = ini.GetSetting("Settings", "SysName")
             if int(NaturalDies) == 1:
+                sysname = ini.GetSetting("Settings", "SysName")
                 type = str(PlayerDeathEvent.DamageType)
-                if self.IsNatural(type) and self.IsNatural(type) is not False:
-                    ntrmsg = ini.GetSetting("Settings", "NaturalMsg")
+                if self.IsNatural(type) is not None:
+                    ntrmsg = ini.GetSetting("Settings", self.IsNatural(type))
                     ntrmsg = ntrmsg.replace("victim", victimname)
-                    #ntrmsg = ntrmsg.replace("type", type)
                     Server.BroadcastFrom(sysname, ntrmsg)
-                if type == "Generic":
-                    cmsg = ini.GetSetting("Settings", "XyzMsg")
-                    cmsg = cmsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, cmsg)
-                elif type == "Suicide":
-                    smsg = ini.GetSetting("Settings", "SuicideMsg")
-                    smsg = smsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, smsg)
-                elif type == "Fall":
-                    fmsg = ini.GetSetting("Settings", "FallMsg")
-                    fmsg = fmsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, fmsg)
-                elif type == "Drowned":
-                    dmsg = ini.GetSetting("Settings", "DrownedMsg")
-                    dmsg = dmsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, dmsg)
-                elif type == "Cold":
-                    cmsg = ini.GetSetting("Settings", "ColdMsg")
-                    cmsg = cmsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, cmsg)
-                elif type == "Bleeding":
-                    bmsg = ini.GetSetting("Settings", "BledMsg2")
-                    bmsg = bmsg.replace("victim", victimname)
-                    Server.BroadcastFrom(sysname, bmsg)
+                    return
+                msg = ini.GetSetting("Settings", type)
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(sysname, msg)
         elif attackername != victimname:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
