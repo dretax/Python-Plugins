@@ -15,29 +15,33 @@ from System import DateTime
 
 class DeathMSG:
     BodyParts = {
-        'bucket_helmet': 'Bucket Helmet',
-        'burlap_gloves': 'Burlap Gloves',
-        'burlap_shirt': 'Burlap Shirt',
-        'burlap_shoes': 'Burlap Shoes',
-        'burlap_trousers': 'Burlap Pants',
-        'coffeecan_helmet': 'CoffeeCan Helmet',
-        'hazmat_boots': 'Hazmat Boots',
-        'hazmat_gloves': 'Hazmat Gloves',
-        'hazmat_helmet': 'Hazmat Helmet',
-        'hazmat_jacket': 'Hazmat Jacket',
-        'hazmat_pants': 'Hazmat Pants',
-        'jacket_snow': 'Snow Jacket',
-        'jacket_snow2': 'Snow Jacket',
-        'jacket_snow3': 'Snow Jacket',
-        'jacket_urban_red': 'Jacket',
-        'metal_facemask': 'Metal Mask',
-        'metal_plate_torso': 'Metal Plate',
-        'tshirt_green': 'T-Shirt',
-        'skin_head': 'Head',
-        'skin_legs': 'Legs',
-        'skin_torso': 'Body',
-        'skin_feet': 'Foot',
-        'skin_hands': 'Hands'
+        'l_upperarm': 'Upper Arm',
+        'r_upperarm': 'Upper Arm',
+        'head': 'Head',
+        'l_knee': 'Knee',
+        'r_knee': 'Knee',
+        'spine1': 'Spine',
+        'spine2': 'Spine',
+        'spine3': 'Spine',
+        'spike4': 'Spine',
+        'l_hand': 'Hand',
+        'r_hand': 'Hand',
+        'r_hip': 'Hip',
+        'l_hip': 'Hip',
+        'l_eye': 'Eye',
+        'r_eye': 'Eye',
+        'l_toe': 'Toe',
+        'r_toe': 'Toe',
+        'pelvis': 'Pelvis',
+        'l_clavicle': 'Clavicle',
+        'r_clavicle': 'Clavicle',
+        'r_forearm': 'Fore Arm',
+        'l_forearm': 'Fore Arm',
+        'r_ulna': 'Ulna',
+        'l_ulna': 'Ulna',
+        'r_foot': 'Foot',
+        'l_foot': 'Foot',
+        'neck': 'Neck'
     }
 
     def DeathMSGConfig(self):
@@ -135,9 +139,9 @@ class DeathMSG:
             if type == "Bullet" or type == "Slash":
                 dmgmsg = ini.GetSetting("Settings", type)
                 bodypart = str(PlayerDeathEvent.HitBone)
-                g = bodypart.split('/')
-                s = '/'.join(g[:2]), '/'.join(g[2:])
-                bpart = self.BodyParts.get(s[1], "UnKnown")
+                bpart = self.BodyParts[bodypart]
+                if bpart is None:
+                    bpart = "UnKnown"
                 vloc = victim.Location
                 aloc = attacker.transform.position
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
