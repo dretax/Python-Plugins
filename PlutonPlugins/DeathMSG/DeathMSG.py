@@ -98,7 +98,7 @@ class DeathMSG:
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.displayName)
         victimname = str(victim.Name)
-        if attackername == victimname:
+        if attacker.userID == victim.GameID:
             ini = self.DeathMSGConfig()
             NaturalDies = ini.GetSetting("Settings", "NaturalDies")
             if int(NaturalDies) == 1:
@@ -113,7 +113,7 @@ class DeathMSG:
                 msg = ini.GetSetting("Settings", type)
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(sysname, msg)
-        elif attackername != victimname:
+        elif attacker.userID != victim.GameID:
             ini = self.DeathMSGConfig()
             sysname = ini.GetSetting("Settings", "SysName")
             type = str(PlayerDeathEvent.DamageType)
