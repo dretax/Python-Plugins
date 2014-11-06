@@ -14,6 +14,9 @@ from System import *
 
 class AdminCommands:
 
+    matrix = [
+     ["foot:csirke", 2, 3, 4], ]
+
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
             loc = Plugin.CreateIni("AdminCmdConfig")
@@ -69,22 +72,8 @@ class AdminCommands:
             if DataStore.Get("godmode", Player.SteamID) == 1:
                 DataStore.Remove("godmode", Player.SteamID)
                 Player.Message("God mode off.")
+                Player.basePlayer.metabolism.health.min = 0
             else:
                 DataStore.Add("godmode", Player.SteamID, 1)
                 Player.Message("God mode on.")
-
-
-    def On_PlayerAttacked(self, PlayerHurtEvent):
-        get = DataStore.Get("godmode", PlayerHurtEvent.Victim.SteamID)
-        if get is not None and get == 1:
-             PlayerHurtEvent._info.damageAmount = 0
-
-    def On_PlayerTakeDamage(self, PlayerTakeDmgEvent):
-        get = DataStore.Get("godmode", PlayerTakeDmgEvent.Victim.SteamID)
-        if get is not None and get == 1:
-            PlayerTakeDmgEvent.Amount = 0
-
-    def On_PlayerTakeRadiation(self, PlayerTakeRadsEvent):
-        get = DataStore.Get("godmode", PlayerTakeRadsEvent.Victim.SteamID)
-        if get is not None and get == 1:
-            PlayerTakeRadsEvent.Amount = 0
+                Player.basePlayer.metabolism.health.min = 100
