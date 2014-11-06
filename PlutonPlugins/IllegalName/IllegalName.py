@@ -31,6 +31,9 @@ class IllegalName:
 
     def CutName(self, string):
         name = re.sub(r'[^\x00-\x7F]+','', string)
+        if name.endswith(' '):
+            n = len(name)
+            name.replace(name[n-1], '')
         return name
 
     def Replace(self, Old, To, Text):
@@ -49,14 +52,15 @@ class IllegalName:
         if regex == 1:
             name = re.sub(' +',' ', name)
             name = re.sub('[\t]+','', name)
-            n = len(name)
             starts = name.startswith(' ')
             ends = name.endswith(' ')
             if starts is True:
                 name.replace(name[0], '')
             if ends is True:
-                name.replace(name[n], '')
+                n = len(name)
+                name.replace(name[n-1], '')
             a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
+            n = len(name)
             if not a or n <= 1:
                 name = re.sub('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', "", name)
         if asciie == 1:
