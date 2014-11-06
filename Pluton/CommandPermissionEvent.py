@@ -7,16 +7,12 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class Entity:
-    Location = None
-    Name = None
-    X = None
-    Y = None
-    Z = None
+class CommandPermissionEvent:
 
-    baseEntity = None
-    Prefab = None
-    PrefabID = None
+    blocked = False
+    chatCommand = None
 
-    def Kill(self):
+    def BlockCommand(StringReason):
         return
+
+    PluginName = None

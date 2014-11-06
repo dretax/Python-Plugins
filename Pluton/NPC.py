@@ -7,16 +7,17 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class Entity:
-    Location = None
-    Name = None
-    X = None
-    Y = None
-    Z = None
-
-    baseEntity = None
-    Prefab = None
-    PrefabID = None
+class NPC:
 
     def Kill(self):
         return
+
+    baseAnimal = None
+    ID = None
+    Health = None
+    Location = None
+    Name = None
+    Prefab = None
+    X = None
+    Y = None
+    Z = None
