@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.0b'
 
 import clr
 
@@ -38,13 +38,6 @@ class BannedPeople:
         text = String.Join(" ", args)
         return text
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
-        return None
-
     def GetPlayerUnBannedID(self, namee):
         name = namee.lower()
         ini = self.BannedPeopleIni()
@@ -68,6 +61,19 @@ class BannedPeople:
                 return pl
         return None
 
+    def GetPlayerName(self, namee):
+        name = namee.lower()
+        for pl in Server.ActivePlayers:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        V3.1
+    """
     def CheckV(self, Player, args):
         ini = self.BannedPeopleConfig()
         systemname = ini.GetSetting("Main", "Name")
@@ -78,12 +84,12 @@ class BannedPeople:
         count = 0
         for pl in Server.ActivePlayers:
             for namePart in args:
-                if namePart in pl.Name:
+                if namePart.lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
