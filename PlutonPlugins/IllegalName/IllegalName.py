@@ -35,9 +35,9 @@ class IllegalName:
         return Plugin.GetIni("IllegalNameConfig")
 
     def CutName(self, string):
-        name = codecs.utf_8_encode(string)
+        name = str(codecs.utf_8_encode(string))
         #name = string.encode('UTF-8')
-        name = codecs.utf_8_decode(name)
+        name = str(codecs.utf_8_decode(name))
         #name = name.decode('UTF-8', 'strict')
         name = re.sub(r'[^\x00-\x7F]+','', name)
         return name
