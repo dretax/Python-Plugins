@@ -34,14 +34,13 @@ class IllegalName:
         return name
 
     def On_ClientAuth(self, AuthEvent):
-        Player = AuthEvent.Connection
-        name = str(AuthEvent.Connection.username)
+        name = AuthEvent.Connection.username
         n = len(name)
         ini = self.IllegalNameConfig()
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
-        reason = ini.GetSetting("options", "DisconnectReason")
+        #reason = ini.GetSetting("options", "DisconnectReason")
         listnames = illini.EnumSection("IllegalNames")
         counted = len(listnames)
         i = 0
@@ -53,8 +52,7 @@ class IllegalName:
                 lowercheck = get.lower()
                 if counted >= i:
                     if lowercheck in lowername:
-                        Player.Kick(reason)
-                        return
+                        name.replace(get, '')
         if regex == 1:
             starts = name.startswith(' ')
             ends = name.endswith(' ')
@@ -70,4 +68,4 @@ class IllegalName:
         if asciie == 1:
             newname = self.CutName(name)
             name = newname
-        AuthEvent.con.username = name
+        AuthEvent.con.username = str(name)
