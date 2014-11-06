@@ -38,21 +38,18 @@ class IllegalName:
 
     def On_ClientAuth(self, AuthEvent):
         name = AuthEvent.Connection.username
-        n = len(name)
         ini = self.IllegalNameConfig()
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
         listnames = illini.EnumSection("IllegalNames")
-        counted = len(listnames)
-        i = 0
-        if counted > 0:
-            for checkn in listnames:
-                get = illini.GetSetting("IllegalNames", checkn)
-                i += 1
-                if counted >= i:
-                    name = self.Replace(get, '', name)
+        for checkn in listnames:
+            get = illini.GetSetting("IllegalNames", checkn)
+            name = self.Replace(get, '', name)
         if regex == 1:
+            name = re.sub(' +',' ', name)
+            name = re.sub('[\t]+','', name)
+            n = len(name)
             starts = name.startswith(' ')
             ends = name.endswith(' ')
             if starts is True:
@@ -62,8 +59,6 @@ class IllegalName:
             a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
             if not a or n <= 1:
                 name = re.sub('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', "", name)
-            name = re.sub(' +',' ', name)
-            name = re.sub('[\t]+','', name)
         if asciie == 1:
             newname = self.CutName(name)
             name = newname
