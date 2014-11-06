@@ -33,6 +33,9 @@ class IllegalName:
         name = re.sub(r'[^\x00-\x7F]+','', string)
         return name
 
+    def Replace(self, Old, To, Text):
+        return re.sub('(?i)'+re.escape(Old), lambda m: To, Text)
+
     def On_ClientAuth(self, AuthEvent):
         name = AuthEvent.Connection.username
         n = len(name)
@@ -40,7 +43,6 @@ class IllegalName:
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
-        #reason = ini.GetSetting("options", "DisconnectReason")
         listnames = illini.EnumSection("IllegalNames")
         counted = len(listnames)
         i = 0
@@ -48,11 +50,8 @@ class IllegalName:
             for checkn in listnames:
                 get = illini.GetSetting("IllegalNames", checkn)
                 i += 1
-                lowername = name.lower()
-                lowercheck = get.lower()
                 if counted >= i:
-                    if lowercheck in lowername:
-                        name.replace(get, '')
+                    name = self.Replace(get, '', name)
         if regex == 1:
             starts = name.startswith(' ')
             ends = name.endswith(' ')
