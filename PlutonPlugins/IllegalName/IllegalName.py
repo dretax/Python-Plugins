@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.0'
 
 import clr
 
@@ -44,7 +44,6 @@ class IllegalName:
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
         reason = ini.GetSetting("options", "DisconnectReason")
-        reason2 = ini.GetSetting("options", "DisconnectReason2")
         listnames = illini.EnumSection("IllegalNames")
         counted = len(listnames)
         i = 0
@@ -67,8 +66,7 @@ class IllegalName:
                 name.replace(name[n], '')
             a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
             if not a or n <= 1:
-                Player.Kick(reason2)
-                return
+                name = re.sub('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', "", name)
             name = re.sub(' +',' ', name)
             name = re.sub('[\t]+','', name)
         if asciie == 1:
