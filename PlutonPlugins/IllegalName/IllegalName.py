@@ -31,9 +31,6 @@ class IllegalName:
 
     def CutName(self, string):
         name = re.sub(r'[^\x00-\x7F]+','', string)
-        if name.endswith(' '):
-            n = len(name)
-            name.replace(name[n-1], '')
         return name
 
     def Replace(self, Old, To, Text):
