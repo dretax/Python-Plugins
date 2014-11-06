@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3a'
+__version__ = '1.4'
 
 import clr
 
@@ -23,27 +23,39 @@ class AdminCommands:
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
 
-    # method by Illuminati
+    def GetPlayerName(self, namee):
+        name = namee.lower()
+        for pl in Server.ActivePlayers:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        V3.1
+    """
     def CheckV(self, Player, args):
-        systemname = "Admin Commands"
-        p = Server.FindPlayer(String.Join(" ", args))
+        systemname = "TpFriend"
+        p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
 
         count = 0
         for pl in Server.ActivePlayers:
             for namePart in args:
-                if namePart in pl.Name:
+                if namePart.lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, String.Format("Couldn't find {0}!", String.Join(" ", args)))
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, String.Format("Found {0} player with similar name. Use more correct name!"))
+            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     def On_Command(self, cmd):
