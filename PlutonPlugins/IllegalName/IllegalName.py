@@ -1,3 +1,4 @@
+# coding=utf-8
 __author__ = 'DreTaX'
 __version__ = '1.0'
 
@@ -6,6 +7,10 @@ import clr
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import re
+import sys
+path = Util.GetPublicFolder()
+sys.path.append(path + "\\Plugins\\IllegalName")
+import codecs
 
 """
     Class
@@ -30,14 +35,16 @@ class IllegalName:
         return Plugin.GetIni("IllegalNameConfig")
 
     def CutName(self, string):
-        name = string.encode('UTF-8')
-        name = name.decode('UTF-8', 'strict')
+        name = codecs.utf_8_encode(string)
+        #name = string.encode('UTF-8')
+        name = codecs.utf_8_decode(name)
+        #name = name.decode('UTF-8', 'strict')
         name = re.sub(r'[^\x00-\x7F]+','', name)
         return name
 
     def On_ClientAuth(self, AuthEvent):
-        Player = AuthEvent.con
-        name = str(AuthEvent.Name)
+        Player = AuthEvent.Connection
+        name = str(AuthEvent.Connection.username)
         n = len(name)
         ini = self.IllegalNameConfig()
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
