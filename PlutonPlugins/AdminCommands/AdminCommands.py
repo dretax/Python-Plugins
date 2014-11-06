@@ -72,8 +72,8 @@ class AdminCommands:
             if DataStore.Get("godmode", Player.SteamID) == 1:
                 DataStore.Remove("godmode", Player.SteamID)
                 Player.Message("God mode off.")
-                Player.basePlayer.metabolism.health.min = 0
+                Player.basePlayer.metabolism.health.min = 0.0
             else:
                 DataStore.Add("godmode", Player.SteamID, 1)
                 Player.Message("God mode on.")
-                Player.basePlayer.metabolism.health.min = 100
+                Player.basePlayer.metabolism.health.min = 100.0
