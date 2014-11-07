@@ -8,6 +8,15 @@ import Pluton
 import System
 from System import DateTime
 
+import sys
+path = Util.GetPublicFolder()
+sys.path.append(path + "\\Plugins\\KoenradsLevelingSystem")
+LvL = True
+try:
+    import KoenradsLevelingSystem
+except ImportError:
+    LvL = False
+
 """
     Class
 """
@@ -90,6 +99,12 @@ class DeathMSG:
             return ini.GetSetting("Settings", type)
         return None
 
+    def getLvl(self, userID):
+        if not DataStore.ContainsKey("level", userID):
+            DataStore.Add("level", userID, 1)
+            return 1
+        return DataStore.Get("level", userID)
+
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
             return
@@ -98,6 +113,9 @@ class DeathMSG:
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.displayName)
         victimname = str(victim.Name)
+        if LvL:
+            attackername += "[" + str(self.getLvl(str(attacker.userID))) + "]"
+            victimname  += "[" + str(self.getLvl(str(victim.SteamID))) + "]"
         if attacker.userID == victim.GameID:
             ini = self.DeathMSGConfig()
             NaturalDies = ini.GetSetting("Settings", "NaturalDies")
