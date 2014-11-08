@@ -1,18 +1,36 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import re
+import sys
+path = Util.GetPublicFolder()
+sys.path.append(path + "\\Python\\Lib\\")
+Lib = True
+try:
+    import random
+except ImportError:
+    Lib = False
 """
     Class
 """
 
 
 class IllegalName:
+
+    RandNames = []
+
+    def GetRand(self):
+        for y in xrange(0, 550):
+            d = random.randrange(0, 550)
+            if d in self.RandNames:
+                continue
+            self.RandNames.append(d)
+            return d
 
     def getIllegal(self):
         if not Plugin.IniExists("IllegalNames"):
@@ -46,6 +64,9 @@ class IllegalName:
         for checkn in listnames:
             get = illini.GetSetting("IllegalNames", checkn)
             name = self.Replace(get, '', name)
+        if asciie == 1:
+            newname = self.CutName(name)
+            name = newname
         if regex == 1:
             name = re.sub(' +',' ', name)
             name = re.sub('[\t]+','', name)
@@ -57,10 +78,12 @@ class IllegalName:
                 n = len(name)
                 name.replace(name[n-1], '')
             a = re.match('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', name)
-            n = len(name)
-            if not a or n <= 1:
+            if not a:
                 name = re.sub('^[a-zA-Z0-9_!+?%éáűőúöüó()<>/\@#,.\\s\[\]-]+$', "", name)
-        if asciie == 1:
-            newname = self.CutName(name)
-            name = newname
+            n = len(name)
+            if n <= 1:
+                name = name + "Stranger"
+                if Lib:
+                    rand = self.GetRand()
+                    name = name + str(rand)
         AuthEvent.con.username = str(name)
