@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -38,7 +38,7 @@ class IdIdentifier:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.0
+        V3.1
     """
     def CheckV(self, Player, args):
         systemname = "IdIdentifier"
@@ -54,7 +54,7 @@ class IdIdentifier:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
@@ -74,14 +74,9 @@ class IdIdentifier:
         location = str(Player.Location)
         dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None:
-            ini.SetSetting("Track", sid, name)
-            ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
-            ini.Save()
-        else:
-            ini.AddSetting("Track", sid, name)
-            ini.AddSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
-            ini.Save()
+        ini.AddSetting("Track", sid, name)
+        ini.AddSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
+        ini.Save()
 
     def On_PlayerDisconnected(self, Player):
         name = Player.Name
@@ -89,10 +84,7 @@ class IdIdentifier:
         location = str(Player.Location)
         ini = self.PlayersIni()
         dt = str(System.DateTime.Now)
-        if ini.GetSetting("Track", name) is not None:
-            ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
-        else:
-            ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
+        ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
         ini.Save()
 
     def On_Command(self, cmd):
