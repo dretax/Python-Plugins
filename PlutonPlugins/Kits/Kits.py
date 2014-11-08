@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -7,7 +7,7 @@ clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import math
 import System
-from System import Environment
+from System import *
 import re
 
 """
