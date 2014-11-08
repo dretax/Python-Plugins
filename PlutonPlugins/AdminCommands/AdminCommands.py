@@ -37,7 +37,7 @@ class AdminCommands:
         V3.1
     """
     def CheckV(self, Player, args):
-        systemname = "TpFriend"
+        systemname = "AdminCommands"
         p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
