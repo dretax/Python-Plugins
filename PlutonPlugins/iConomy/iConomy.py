@@ -68,7 +68,7 @@ class iConomy:
         V3.1
     """
     def CheckV(self, Player, args):
-        systemname = "IdIdentifier"
+        systemname = "iConomy"
         p = self.GetPlayerName(String.Join(" ", args))
         if p is not None:
             return p
