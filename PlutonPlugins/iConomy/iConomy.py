@@ -11,13 +11,15 @@ from System import *
 """
     Class
 """
-__MoneyMark__ = None
-__KillPortion__ = None
-__DeathPortion__ = None
-__DefaultMoney__ = None
-__Sys__ = None
 
 class iConomy:
+
+    __MoneyMark__ = None
+    __KillPortion__ = None
+    __DeathPortion__ = None
+    __DefaultMoney__ = None
+    __Sys__ = None
+
     def iConomy(self):
         if not Plugin.IniExists("iConomy"):
             ini = Plugin.CreateIni("iConomy")
@@ -43,18 +45,18 @@ class iConomy:
     def HandleMoney(self, Aid, Vid):
         am = DataStore.Get("iConomy", Aid)
         vm = DataStore.Get("iConomy", Vid)
-        DataStore.Add("iConomy", Aid, am * __KillPortion__)
-        if vm * __DeathPortion__ < 0:
+        DataStore.Add("iConomy", Aid, am * self.__KillPortion__)
+        if vm * self.__DeathPortion__ < 0:
             DataStore.Add("iConomy", Vid, 0.0)
-            return str((am * __KillPortion__) - am) + ":0"
-        DataStore.Add("iConomy", Vid, vm * __DeathPortion__)
-        return str((am * __KillPortion__) - am) + ":" + str(vm - (vm * __DeathPortion__))
+            return str((am * self.__KillPortion__) - am) + ":0"
+        DataStore.Add("iConomy", Vid, vm * self.__DeathPortion__)
+        return str((am * self.__KillPortion__) - am) + ":" + str(vm - (vm * self.__DeathPortion__))
 
     def GiveMoney(self, id, amount, Player = None, FromPlayer = None):
         if Player is not None and FromPlayer is None:
-            Player.MessageFrom(__Sys__, "You magically found " + str(amount) + __MoneyMark__)
+            Player.MessageFrom(self.__Sys__, "You magically found " + str(amount) + self.__MoneyMark__)
         elif Player is not None and FromPlayer is not None:
-            Player.MessageFrom(__Sys__, "You got " + str(amount) + __MoneyMark__ + " from " + FromPlayer.Name)
+            Player.MessageFrom(self.__Sys__, "You got " + str(amount) + self.__MoneyMark__ + " from " + FromPlayer.Name)
         m = DataStore.Get("iConomy", id)
         DataStore.Add("iConomy", id, m + float(amount))
 
@@ -64,7 +66,7 @@ class iConomy:
         if c < 0:
             return "Player would have negative money. Cancelling."
         if Player is not None:
-            Player.MessageFrom(__Sys__, "You magically lost " + str(amount) + __MoneyMark__)
+            Player.MessageFrom(self.__Sys__, "You magically lost " + str(amount) + self.__MoneyMark__)
         DataStore.Add("iConomy", id, c)
 
     def SetMoney(self, id, amount, Player=None):
@@ -73,7 +75,7 @@ class iConomy:
         if c < 0:
             return "Player would have negative money. Cancelling."
         if Player is not None:
-            Player.MessageFrom(__Sys__, "Your balance magically changed to " + str(amount) + __MoneyMark__)
+            Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
         DataStore.Add("iConomy", id, c)
 
     def GetMoney(self, id):
@@ -116,11 +118,11 @@ class iConomy:
 
     def On_PluginInit(self):
         ini = self.iConomy()
-        __MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
-        __KillPortion__ = float(ini.GetSetting("Settings", "KillPortion"))
-        __DeathPortion__ = float(ini.GetSetting("Settings", "DeathPortion"))
-        __DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
-        __Sys__ = ini.GetSetting("Settings", "Sysname")
+        self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
+        self.__KillPortion__ = float(ini.GetSetting("Settings", "KillPortion"))
+        self.__DeathPortion__ = float(ini.GetSetting("Settings", "DeathPortion"))
+        self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
+        self.__Sys__ = ini.GetSetting("Settings", "Sysname")
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -128,29 +130,30 @@ class iConomy:
         qargs = cmd.quotedArgs
         if cmd.cmd == "money":
             if len(args) == 0:
-                Player.MessageFrom(__Sys__, "You have " + str(self.GetMoney(Player.SteamID)) + __MoneyMark__)
+                m = self.GetMoney(Player.SteamID)
+                Player.MessageFrom(self.__Sys__, "You have " + str(m) + self.__MoneyMark__)
                 return
             if len(args) > 0 and Player.Admin:
                 playerr = self.CheckV(Player, args)
                 if playerr is None:
                     return
-                Player.MessageFrom(__Sys__, playerr.Name + " has " + str(self.GetMoney(playerr.SteamID)) + __MoneyMark__)
+                Player.MessageFrom(self.__Sys__, playerr.Name + " has " + str(self.GetMoney(playerr.SteamID)) + self.__MoneyMark__)
         elif cmd.cmd == "pay":
             if len(args) == 0:
-                Player.MessageFrom(__Sys__, 'Usage: /pay "PlayerName" "amount"')
+                Player.MessageFrom(self.__Sys__, 'Usage: /pay "PlayerName" "amount"')
             elif len(args) > 0:
                 playerr = self.CheckV(Player, qargs[0])
                 if playerr is None:
                     return
                 m = self.GetMoney(Player.SteamID)
                 if m < float(qargs[1]):
-                    Player.MessageFrom(__Sys__, "You can't pay more than you currently have.")
+                    Player.MessageFrom(self.__Sys__, "You can't pay more than you currently have.")
                     return
                 self.GiveMoney(playerr.SteamID, qargs[1], playerr, Player)
-                Player.MessageFrom(__Sys__, "You payed " + qargs[1] + __MoneyMark__  + " to " + playerr.Name)
+                Player.MessageFrom(self.__Sys__, "You payed " + qargs[1] + self.__MoneyMark__  + " to " + playerr.Name)
         elif cmd.cmd == "takemoney":
             if len(args) == 0:
-                Player.MessageFrom(__Sys__, 'Usage: /takemoney "PlayerName" "amount"')
+                Player.MessageFrom(self.__Sys__, 'Usage: /takemoney "PlayerName" "amount"')
             elif len(args) > 0:
                 if Player.Admin:
                     playerr = self.CheckV(Player, qargs[0])
@@ -158,11 +161,11 @@ class iConomy:
                         return
                     d = self.TakeMoney(playerr.SteamID, qargs[1], playerr)
                     if d is not None:
-                        Player.MessageFrom(__Sys__, d)
-                    Player.MessageFrom(__Sys__, "You took " + qargs[1] + __MoneyMark__  + " from " + playerr.Name)
+                        Player.MessageFrom(self.__Sys__, d)
+                    Player.MessageFrom(self.__Sys__, "You took " + qargs[1] + self.__MoneyMark__  + " from " + playerr.Name)
         elif cmd.cmd == "setmoney":
             if len(args) == 0:
-                Player.MessageFrom(__Sys__, 'Usage: /setmoney "PlayerName" "amount"')
+                Player.MessageFrom(self.__Sys__, 'Usage: /setmoney "PlayerName" "amount"')
             elif len(args) > 0:
                 if Player.Admin:
                     playerr = self.CheckV(Player, qargs[0])
@@ -170,24 +173,24 @@ class iConomy:
                         return
                     d = self.SetMoney(playerr.SteamID, qargs[1], playerr)
                     if d is not None:
-                        Player.MessageFrom(__Sys__, d)
-                    Player.MessageFrom(__Sys__, "You set " + playerr.Name + "'s balance to " + qargs[1] + __MoneyMark__)
+                        Player.MessageFrom(self.__Sys__, d)
+                    Player.MessageFrom(self.__Sys__, "You set " + playerr.Name + "'s balance to " + qargs[1] + self.__MoneyMark__)
         elif cmd.cmd == "givemoney":
             if len(args) == 0:
-                Player.MessageFrom(__Sys__, 'Usage: /givemoney "PlayerName" "amount"')
+                Player.MessageFrom(self.__Sys__, 'Usage: /givemoney "PlayerName" "amount"')
             elif len(args) > 0:
                 if Player.Admin:
                     playerr = self.CheckV(Player, qargs[0])
                     if playerr is None:
                         return
                     self.GiveMoney(playerr.SteamID, qargs[1], playerr)
-                    Player.MessageFrom(__Sys__, "You gave " + qargs[1] + __MoneyMark__ + " to " + playerr.Name)
+                    Player.MessageFrom(self.__Sys__, "You gave " + qargs[1] + self.__MoneyMark__ + " to " + playerr.Name)
 
     def On_PlayerConnected(self, Player):
         sid = Player.SteamID
         if DataStore.Get("iConomy", sid) is None:
-            DataStore.Add("iConomy", sid, __DefaultMoney__)
-        Player.MessageFrom(__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + __MoneyMark__)
+            DataStore.Add("iConomy", sid, self.__DefaultMoney__)
+        Player.MessageFrom(self.__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + self.__MoneyMark__)
 
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
@@ -199,8 +202,8 @@ class iConomy:
         vid = victim.SteamID
         s = self.HandleMoney(aid, vid)
         s = s.split(':')
-        attacker.MessageFrom(__Sys__, "You found " + str(s[0]) + __MoneyMark__)
+        attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
         if int(s[1]) == 0:
-            victim.MessageFrom(__Sys__, "You lost everything.")
+            victim.MessageFrom(self.__Sys__, "You lost everything.")
             return
-        victim.MessageFrom(__Sys__, "You lost " + str(s[1]) + __MoneyMark__)
+        victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
