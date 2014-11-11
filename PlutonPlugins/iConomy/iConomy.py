@@ -201,6 +201,6 @@ class iConomy:
         s = s.split(':')
         attacker.MessageFrom(__Sys__, "You found " + str(s[0]) + __MoneyMark__)
         if int(s[1]) == 0:
-            victim.MessageFrom(__Sys__, "You lost all.")
+            victim.MessageFrom(__Sys__, "You lost everything.")
             return
         victim.MessageFrom(__Sys__, "You lost " + str(s[1]) + __MoneyMark__)
