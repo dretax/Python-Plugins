@@ -161,7 +161,6 @@ class TpFriend:
                     DataStore.Add("tpfriendcooldown", Player.SteamID, 7)
                 time = DataStore.Get("tpfriendcooldown", Player.SteamID)
                 systick = System.Environment.TickCount
-                usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
                 pending = DataStore.Get("tpfriendpending2", playertor.SteamID)
                 if pending is not None:
                     Player.MessageFrom(systemname, "This player is already pending a request.")
@@ -174,9 +173,9 @@ class TpFriend:
 
                 calc = systick - time
                 if calc >= cooldown or time == 7:
-                    if usedtp is None:
+                    if DataStore.Get("tpfriendusedtp", Player.SteamID) is None:
                         DataStore.Add("tpfriendusedtp", Player.SteamID, 0)
-                        usedtp = 0
+                    usedtp = DataStore.Get("tpfriendusedtp", Player.SteamID)
                     maxtpnumber = int(maxuses)
                     playertpuse = int(usedtp)
                     if maxtpnumber > 0:
