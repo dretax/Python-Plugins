@@ -23,6 +23,7 @@ except ImportError:
 class IllegalName:
 
     RandNames = []
+    Words = {}
 
     def GetRand(self):
         for y in xrange(0, 550):
@@ -40,6 +41,12 @@ class IllegalName:
             IllegalNames.AddSetting("IllegalNames", "Name3", "SHITSERVER")
             IllegalNames.Save()
         return Plugin.GetIni("IllegalNames")
+
+    def On_PluginInit(self):
+        ini = self.IllegalNameConfig()
+        replace = ini.EnumSection("ReplaceCharactersTo")
+        for wr in replace:
+            self.Words[str(wr)] = str(ini.GetSetting("ReplaceCharactersTo", wr))
 
     def IllegalNameConfig(self):
         if not Plugin.IniExists("IllegalNameConfig"):
@@ -61,6 +68,8 @@ class IllegalName:
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
         listnames = illini.EnumSection("IllegalNames")
+        compile = re.compile(r'\b(' + '|'.join(self.Words.keys()) + r')\b')
+        name = compile.sub(lambda x: self.Words[x.group()], name)
         for checkn in listnames:
             get = illini.GetSetting("IllegalNames", checkn)
             name = self.Replace(get, '', name)
