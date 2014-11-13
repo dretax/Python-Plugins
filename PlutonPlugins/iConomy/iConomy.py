@@ -71,7 +71,7 @@ class iConomy:
 
     def SetMoney(self, id, amount, Player=None):
         if float(amount) < 0:
-            return "Player would have negative money. Cancelling."
+            return 12
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
         DataStore.Add("iConomy", id, float(amount))
@@ -178,6 +178,7 @@ class iConomy:
                     d = self.SetMoney(playerr.SteamID, qargs[1], playerr)
                     if d == 12:
                         Player.MessageFrom(self.__Sys__, "Player would have negative money. Cancelling.")
+                        return
                     Player.MessageFrom(self.__Sys__, "You set " + playerr.Name + "'s balance to " + qargs[1] + self.__MoneyMark__)
         elif cmd.cmd == "givemoney":
             if len(args) == 0:
