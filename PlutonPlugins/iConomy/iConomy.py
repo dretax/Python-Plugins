@@ -83,7 +83,8 @@ class iConomy:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.2
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
         systemname = "iConomy"
@@ -151,6 +152,7 @@ class iConomy:
                     Player.MessageFrom(self.__Sys__, "You can't pay more than you currently have.")
                     return
                 self.GiveMoney(playerr.SteamID, qargs[1], playerr, Player)
+                self.TakeMoney(Player.SteamID, qargs[1])
                 Player.MessageFrom(self.__Sys__, "You payed " + qargs[1] + self.__MoneyMark__  + " to " + playerr.Name)
         elif cmd.cmd == "takemoney":
             if len(args) == 0:
