@@ -70,7 +70,7 @@ class iConomy:
         DataStore.Add("iConomy", id, c)
 
     def SetMoney(self, id, amount, Player=None):
-        if amount < 0:
+        if float(amount) < 0:
             return "Player would have negative money. Cancelling."
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
