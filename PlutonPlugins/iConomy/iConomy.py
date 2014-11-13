@@ -64,7 +64,7 @@ class iConomy:
         m = float(DataStore.Get("iConomy", id))
         c = m - float(amount)
         if c < 0:
-            return "Player would have negative money. Cancelling."
+            return 12
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "You magically lost " + str(amount) + self.__MoneyMark__)
         DataStore.Add("iConomy", id, c)
@@ -163,8 +163,9 @@ class iConomy:
                     if playerr is None:
                         return
                     d = self.TakeMoney(playerr.SteamID, qargs[1], playerr)
-                    if d is not None:
-                        Player.MessageFrom(self.__Sys__, d)
+                    if d == 12:
+                        Player.MessageFrom(self.__Sys__, "Player would have negative money. Cancelling.")
+                        return
                     Player.MessageFrom(self.__Sys__, "You took " + qargs[1] + self.__MoneyMark__  + " from " + playerr.Name)
         elif cmd.cmd == "setmoney":
             if len(args) == 0:
@@ -175,8 +176,8 @@ class iConomy:
                     if playerr is None:
                         return
                     d = self.SetMoney(playerr.SteamID, qargs[1], playerr)
-                    if d is not None:
-                        Player.MessageFrom(self.__Sys__, d)
+                    if d == 12:
+                        Player.MessageFrom(self.__Sys__, "Player would have negative money. Cancelling.")
                     Player.MessageFrom(self.__Sys__, "You set " + playerr.Name + "'s balance to " + qargs[1] + self.__MoneyMark__)
         elif cmd.cmd == "givemoney":
             if len(args) == 0:
