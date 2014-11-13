@@ -33,9 +33,9 @@ class HomeSystem:
         if Player is None:
             return
         PLX = HomeSystem["LocationX"]
-        PLX = re.sub('[)\(\[\'\]\-\,]', '', str(PLX))
+        PLX = re.sub('[)\(\[\'\]\,]', '', str(PLX))
         PLZ = HomeSystem["LocationZ"]
-        PLZ = re.sub('[)\(\[\'\]\-\,]', '', str(PLZ))
+        PLZ = re.sub('[)\(\[\'\]\,]', '', str(PLZ))
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
@@ -455,6 +455,7 @@ class HomeSystem:
         elif command == "resettime":
             if Player.Admin:
                 DataStore.Add("home_cooldown", Player.SteamID, 7)
+                Player.Message("Time Reset!")
 
 
     """def On_EntityDeployed(Player, Entity):
