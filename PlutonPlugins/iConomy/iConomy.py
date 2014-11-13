@@ -70,13 +70,11 @@ class iConomy:
         DataStore.Add("iConomy", id, c)
 
     def SetMoney(self, id, amount, Player=None):
-        m = DataStore.Get("iConomy", id)
-        c = m - float(amount)
-        if c < 0:
+        if amount < 0:
             return "Player would have negative money. Cancelling."
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
-        DataStore.Add("iConomy", id, c)
+        DataStore.Add("iConomy", id, amount)
 
     def GetMoney(self, id):
         return DataStore.Get("iConomy", id)
@@ -103,7 +101,7 @@ class iConomy:
                         continue
         else:
             for pl in Server.ActivePlayers:
-                if args.lower() in pl.Name.lower():
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
