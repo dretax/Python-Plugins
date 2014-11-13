@@ -1,7 +1,7 @@
 import re
 
 __author__ = 'DreTaX'
-__version__ = '1.5'
+__version__ = '1.1'
 
 import clr
 
@@ -33,18 +33,17 @@ class HomeSystem:
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
             return
-        #PL = HomeSystem["Location"]
-        #PL = re.sub('[)\(\[\'\]]', '', str(PL))
-        #PL = PL.split(',')
+        PLX = int(HomeSystem["LocationX"])
+        PLZ = int(HomeSystem["LocationZ"])
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
-        #movec = config.GetSetting("Settings", "movecheck")
-        """if movec == 1:
-            if PL  Player.Location:
+        movec = config.GetSetting("Settings", "movecheck")
+        if movec == 1:
+            if PLX != int(Player.X) or PLZ != int(Player.Z):
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
-                return"""
-        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) +  + 3.0, float(HLoc[2]))
+                return
+        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
@@ -63,7 +62,7 @@ class HomeSystem:
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
-        Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 3.0, float(HLoc[2]))
+        Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 5.5, float(HLoc[2]))
         Player.Teleport(Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
 
@@ -188,15 +187,15 @@ class HomeSystem:
                     if calc >= cooldown or calc == 0:
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
-                            Player.GroundTeleport(float(check[0]), float(check[1]), float(check[2]))
+                            Player.GroundTeleport(float(check[0]), float(check[1]) + 5.5, float(check[2]))
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             Player.MessageFrom(homesystemname, "Teleported to home!")
-                            #BZHJ.addJob('mytestt', checkn, iJSON.stringify(jobParams));
                         else:
                             DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                             HomeSystem = Plugin.CreateDict()
                             HomeSystem["Player"] = Player.SteamID
-                            HomeSystem["Location"] = Player.Location
+                            HomeSystem["LocationX"] = str(Player.X)
+                            HomeSystem["LocationZ"] = str(Player.Z)
                             HomeSystem["HomeLocation"] = check
                             Plugin.CreateParallelTimer("HomeDelay", tpdelay * 1000, HomeSystem).Start()
                             Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
