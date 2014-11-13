@@ -38,7 +38,7 @@ class HomeSystem:
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
-        movec = config.GetSetting("Settings", "movecheck")
+        movec = int(config.GetSetting("Settings", "movecheck"))
         if movec == 1:
             if PLX != int(Player.X) or PLZ != int(Player.Z):
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
