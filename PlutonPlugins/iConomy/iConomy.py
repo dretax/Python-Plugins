@@ -87,12 +87,12 @@ class iConomy:
     """
     def CheckV(self, Player, args):
         systemname = "iConomy"
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
 
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
             for pl in Server.ActivePlayers:
                 for namePart in args:
                     if namePart.lower() in pl.Name.lower():
@@ -100,6 +100,9 @@ class iConomy:
                         count += 1
                         continue
         else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
             for pl in Server.ActivePlayers:
                 if str(args).lower() in pl.Name.lower():
                     p = pl
