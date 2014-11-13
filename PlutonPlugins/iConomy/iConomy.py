@@ -77,7 +77,8 @@ class iConomy:
         DataStore.Add("iConomy", id, float(amount))
 
     def GetMoney(self, id):
-        return DataStore.Get("iConomy", id)
+        m = DataStore.Get("iConomy", id)
+        return float(m)
 
 
     """
