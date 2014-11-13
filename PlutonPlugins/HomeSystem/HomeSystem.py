@@ -33,14 +33,16 @@ class HomeSystem:
         Player = Server.FindPlayer(HomeSystem["Player"])
         if Player is None:
             return
-        PLX = int(HomeSystem["LocationX"])
-        PLZ = int(HomeSystem["LocationZ"])
+        PLX = HomeSystem["LocationX"]
+        PLX = re.sub('[)\(\[\'\]\-\,]', '', str(PLX))
+        PLZ = HomeSystem["LocationZ"]
+        PLZ = re.sub('[)\(\[\'\]\-\,]', '', str(PLZ))
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         movec = int(config.GetSetting("Settings", "movecheck"))
         if movec == 1:
-            if PLX != int(Player.X) or PLZ != int(Player.Z):
+            if int(PLX) != int(Player.X) or int(PLZ) != int(Player.Z):
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
