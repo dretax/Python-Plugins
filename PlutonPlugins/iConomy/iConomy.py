@@ -43,8 +43,8 @@ class iConomy:
     """
 
     def HandleMoney(self, Aid, Vid):
-        am = DataStore.Get("iConomy", Aid)
-        vm = DataStore.Get("iConomy", Vid)
+        am = float(DataStore.Get("iConomy", Aid))
+        vm = float(DataStore.Get("iConomy", Vid))
         DataStore.Add("iConomy", Aid, am * self.__KillPortion__)
         if vm * self.__DeathPortion__ < 0:
             DataStore.Add("iConomy", Vid, 0.0)
@@ -57,11 +57,11 @@ class iConomy:
             Player.MessageFrom(self.__Sys__, "You magically found " + str(amount) + self.__MoneyMark__)
         elif Player is not None and FromPlayer is not None:
             Player.MessageFrom(self.__Sys__, "You got " + str(amount) + self.__MoneyMark__ + " from " + FromPlayer.Name)
-        m = DataStore.Get("iConomy", id)
+        m = float(self.GetMoney(id))
         DataStore.Add("iConomy", id, m + float(amount))
 
     def TakeMoney(self, id, amount, Player=None):
-        m = DataStore.Get("iConomy", id)
+        m = float(DataStore.Get("iConomy", id))
         c = m - float(amount)
         if c < 0:
             return "Player would have negative money. Cancelling."
@@ -74,7 +74,7 @@ class iConomy:
             return "Player would have negative money. Cancelling."
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
-        DataStore.Add("iConomy", id, amount)
+        DataStore.Add("iConomy", id, float(amount))
 
     def GetMoney(self, id):
         return DataStore.Get("iConomy", id)
