@@ -88,7 +88,6 @@ class iConomy:
     """
     def CheckV(self, Player, args):
         systemname = "iConomy"
-
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
