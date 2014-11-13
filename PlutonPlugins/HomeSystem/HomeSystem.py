@@ -41,7 +41,7 @@ class HomeSystem:
         HLoc = HLoc.split(',')
         movec = int(config.GetSetting("Settings", "movecheck"))
         if movec == 1:
-            if int(PLX) != int(Player.X) or int(PLZ) != int(Player.Z):
+            if int(float(PLX)) != int(float(Player.X)) or int(float(PLZ)) != int(float(Player.Z)):
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
