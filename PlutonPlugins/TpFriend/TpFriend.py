@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.7.1'
 
 import clr
 
@@ -60,8 +60,7 @@ class TpFriend:
             return
         DataStore.Remove("tpfriendpending", PlayerFrom.SteamID)
         DataStore.Remove("tpfriendpending2", PlayerTo.SteamID)
-        PlayerFrom.GroundTeleport(PlayerTo.Location)
-        PlayerFrom.Teleport(PlayerTo.Location)
+        PlayerFrom.Teleport(PlayerTo.X, PlayerTo.Y + 5.5, PlayerTo.Z)
         PlayerFrom.MessageFrom(systemname, "Teleported!")
         PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         if tpsec > 0:
@@ -108,18 +107,29 @@ class TpFriend:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.1
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
-        systemname = "TpFriend"
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
-
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
         count = 0
-        for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart.lower() in pl.Name.lower():
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
@@ -233,8 +243,7 @@ class TpFriend:
                         Plugin.CreateParallelTimer("TpDelay", launchcalc, tpdelaytp).Start()
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
-                        playerfromm.GroundTeleport(Player.Location)
-                        playerfromm.Teleport(Player.Location)
+                        playerfromm.Teleport(Player.X, Player.Y + 5.5, Player.Z)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, str(playerfromm.Name) + " teleported to you!")
                         tpdelaytp = Plugin.CreateDict()
