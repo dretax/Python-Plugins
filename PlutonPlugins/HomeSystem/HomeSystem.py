@@ -443,7 +443,7 @@ class HomeSystem:
                         Player.MessageFrom(homesystemname, "Player doesn't exist!")
                         return
 
-        elif command ==   "listwlh":
+        elif command == "listwlh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             ini = self.Wl()
@@ -452,6 +452,10 @@ class HomeSystem:
             for playerid in players:
                 nameof = ini.GetSetting(id, playerid)
                 Player.MessageFrom(homesystemname, "Whitelisted: " + nameof)
+        elif command == "resettime":
+            if Player.Admin:
+                DataStore.Add("home_cooldown", Player.SteamID, 7)
+
 
     """def On_EntityDeployed(Player, Entity):
         config = self.HomeConfig()
