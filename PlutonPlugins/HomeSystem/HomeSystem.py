@@ -44,7 +44,7 @@ class HomeSystem:
             if PL  Player.Location:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return"""
-        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]), float(HLoc[2]))
+        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) +  + 3.0, float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
@@ -63,7 +63,7 @@ class HomeSystem:
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
-        Home = Vector3(float(HLoc[0]), float(HLoc[1]), float(HLoc[2]))
+        Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 3.0, float(HLoc[2]))
         Player.Teleport(Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
 
@@ -398,16 +398,6 @@ class HomeSystem:
                         Player.MessageFrom(homesystemname, "Homes: " + homes[i])
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
-
-        elif command ==  "deletebeds":
-            config = self.HomeConfig()
-            homesystemname = config.GetSetting("Settings", "homesystemname")
-            antihack = config.GetSetting("Settings", "Antihack")
-            if Player.Admin and antihack == "1":
-                for x in World.Entities:
-                    if x.Name == "SleepingBagA" or x.Name == "SingleBed":
-                        x.Destroy()
-                        Player.MessageFrom(homesystemname, "Deleted one")
 
         elif command ==  "addfriendh":
             config = self.HomeConfig()
