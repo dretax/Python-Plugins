@@ -193,6 +193,14 @@ class iConomy:
                         return
                     self.GiveMoney(playerr.SteamID, qargs[1], playerr)
                     Player.MessageFrom(self.__Sys__, "You gave " + qargs[1] + self.__MoneyMark__ + " to " + playerr.Name)
+        elif cmd.cmd == "flushiconomy":
+            if Player.Owner:
+                DataStore.Flush('iConomy')
+                Player.MessageFrom(self.__Sys__, "DataBase Flushed.")
+                for p in Server.ActivePlayers:
+                    DataStore.Add('iConomy', p.SteamID, self.__DefaultMoney__)
+                    p.MessageFrom(self.__Sys__, "iConomy DataBase was Flushed.")
+
 
     def On_PlayerConnected(self, Player):
         sid = Player.SteamID
