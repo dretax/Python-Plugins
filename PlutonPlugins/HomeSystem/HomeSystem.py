@@ -1,5 +1,3 @@
-import re
-
 __author__ = 'DreTaX'
 __version__ = '1.1'
 
@@ -13,6 +11,7 @@ from UnityEngine import Vector3
 import math
 import System
 from System import *
+import re
 
 
 """
