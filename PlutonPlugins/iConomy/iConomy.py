@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -17,6 +17,9 @@ class iConomy:
     __MoneyMark__ = None
     __KillPortion__ = None
     __DeathPortion__ = None
+    __MoneyMode__ = None
+    __KillPortion2__ = None
+    __DeathPortion2__ = None
     __DefaultMoney__ = None
     __Sys__ = None
 
@@ -25,8 +28,11 @@ class iConomy:
             ini = Plugin.CreateIni("iConomy")
             ini.AddSetting("Settings", "DefaultMoney", "100.0")
             ini.AddSetting("Settings", "MoneyMark", "$")
+            ini.AddSetting("Settings", "PercentageOrExtra", "1")
             ini.AddSetting("Settings", "KillPortion", "1.25")
             ini.AddSetting("Settings", "DeathPortion", "0.75")
+            ini.AddSetting("Settings", "KillPortion2", "5.0")
+            ini.AddSetting("Settings", "DeathPortion2", "4.0")
             ini.AddSetting("Settings", "Sysname", "[iConomy]")
             ini.Save()
         return Plugin.GetIni("iConomy")
@@ -45,12 +51,20 @@ class iConomy:
     def HandleMoney(self, Aid, Vid):
         am = float(DataStore.Get("iConomy", Aid))
         vm = float(DataStore.Get("iConomy", Vid))
-        DataStore.Add("iConomy", Aid, am * self.__KillPortion__)
-        if vm * self.__DeathPortion__ < 0:
-            DataStore.Add("iConomy", Vid, 0.0)
-            return str((am * self.__KillPortion__) - am) + ":0"
-        DataStore.Add("iConomy", Vid, vm * self.__DeathPortion__)
-        return str((am * self.__KillPortion__) - am) + ":" + str(vm - (vm * self.__DeathPortion__))
+        if self.__MoneyMode__ == 1:
+            DataStore.Add("iConomy", Aid, am * self.__KillPortion__)
+            if vm * self.__DeathPortion__ < 0:
+                DataStore.Add("iConomy", Vid, 0.0)
+                return str((am * self.__KillPortion__) - am) + ":0"
+            DataStore.Add("iConomy", Vid, vm * self.__DeathPortion__)
+            return str((am * self.__KillPortion__) - am) + ":" + str(vm - (vm * self.__DeathPortion__))
+        else:
+            DataStore.Add("iConomy", Aid, am + self.__KillPortion2__)
+            if vm - self.__DeathPortion2__ < 0:
+                DataStore.Add("iConomy", Vid, 0.0)
+                return str(self.__KillPortion2__) + ":0"
+            DataStore.Add("iConomy", Vid, vm + self.__DeathPortion2__)
+            return str(self.__KillPortion2__) + ":" + str(self.__DeathPortion2__)
 
     def GiveMoney(self, id, amount, Player = None, FromPlayer = None):
         if Player is not None and FromPlayer is None:
@@ -104,8 +118,9 @@ class iConomy:
             p = self.GetPlayerName(str(args))
             if p is not None:
                 return p
+            s = str(args).lower()
             for pl in Server.ActivePlayers:
-                if str(args).lower() in pl.Name.lower():
+                if s in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
@@ -121,9 +136,12 @@ class iConomy:
     def On_PluginInit(self):
         ini = self.iConomy()
         self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
+        self.__MoneyMode__ = int(ini.GetSetting("Settings", "PercentageOrExtra"))
         self.__KillPortion__ = float(ini.GetSetting("Settings", "KillPortion"))
         self.__DeathPortion__ = float(ini.GetSetting("Settings", "DeathPortion"))
         self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
+        self.__DeathPortion2__ = float(ini.GetSetting("Settings", "KillPortion2"))
+        self.__DefaultMoney2__ = float(ini.GetSetting("Settings", "DeathPortion2"))
         self.__Sys__ = ini.GetSetting("Settings", "Sysname")
 
     def On_Command(self, cmd):
@@ -220,6 +238,6 @@ class iConomy:
         s = s.split(':')
         attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
         if int(s[1]) == 0:
-            victim.MessageFrom(self.__Sys__, "You lost everything.")
+            victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
             return
         victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
