@@ -274,20 +274,19 @@ class iConomy:
                 m = float(DataStore.Get("iConomy", victim.SteamID))
                 if NMoneyMode == 1:
                     c = m * NDeathPortion
-                    DataStore.Add("iConomy", victim.SteamID, c)
                     if c < 0.0:
                         DataStore.Add("iConomy", victim.SteamID, 0.0)
                         victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
                         return
-                    DataStore.Add("iConomy", victim.SteamID, c)
-                    victim.MessageFrom(self.__Sys__, "You lost: " + str(m - c) + self.__MoneyMark__)
+                    DataStore.Add("iConomy", victim.SteamID, round(c, 2))
+                    victim.MessageFrom(self.__Sys__, "You lost: " + str(round(m - c, 2)) + self.__MoneyMark__)
                 else:
                     c = m - NDeathPortion2
                     if c < 0.0:
                         DataStore.Add("iConomy", victim.SteamID, 0.0)
                         victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
                         return
-                    DataStore.Add("iConomy", victim.SteamID, c)
+                    DataStore.Add("iConomy", victim.SteamID, round(c, 2))
                     victim.MessageFrom(self.__Sys__, "You lost: " + str(NDeathPortion2) + self.__MoneyMark__)
             return
         attacker = Server.GetPlayer(PlayerDeathEvent.Attacker)
@@ -317,9 +316,9 @@ class iConomy:
         Aid = float(DataStore.Get("iConomy", attacker.SteamID))
         if NMoneyMode == 1:
             c = Aid * NKillPortion
-            DataStore.Add("iConomy", attacker.SteamID, c)
-            attacker.MessageFrom(self.__Sys__, "You received: " + str(c) + self.__MoneyMark__)
+            DataStore.Add("iConomy", attacker.SteamID, round(c, 2))
+            attacker.MessageFrom(self.__Sys__, "You received: " + str(round(c - Aid, 2)) + self.__MoneyMark__)
         else:
             c = Aid + NKillPortion2
-            DataStore.Add("iConomy", attacker.SteamID, c)
+            DataStore.Add("iConomy", attacker.SteamID, round(c, 2))
             attacker.MessageFrom(self.__Sys__, "You received: " + str(NKillPortion2) + self.__MoneyMark__)
