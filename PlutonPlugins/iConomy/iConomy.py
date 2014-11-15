@@ -71,15 +71,17 @@ class iConomy:
     """
 
     def HandleMoney(self, Aid, Vid):
-        am = float(DataStore.Get("iConomy", Aid))
-        vm = float(DataStore.Get("iConomy", Vid))
+        am = round(float(DataStore.Get("iConomy", Aid)), 2)
+        vm = round(float(DataStore.Get("iConomy", Vid)), 2)
         if self.__MoneyMode__ == 0:
             return
         elif self.__MoneyMode__ == 1:
+            if am == 0.0:
+                am = 20.0
             amoney = round(float(am * self.__KillPortion__), 2)
             vmoney = round(float(vm * self.__DeathPortion__), 2)
             DataStore.Add("iConomy", Aid, amoney)
-            if vm * self.__DeathPortion__ < 0.0:
+            if vmoney < 0.0:
                 DataStore.Add("iConomy", Vid, 0.0)
                 return str(amoney - am) + ":0"
             DataStore.Add("iConomy", Vid, vmoney)
@@ -319,10 +321,12 @@ class iConomy:
         NKillPortion2 = float(ini.GetSetting(name + "KillSettings", "KillPortion2"))
         Aid = round(float(DataStore.Get("iConomy", attacker.SteamID)), 2)
         if NMoneyMode == 1:
+            if Aid == 0.0:
+                Aid = 20.0
             c = round(Aid * NKillPortion, 2)
-            DataStore.Add("iConomy", attacker.SteamID, c, 2)
+            DataStore.Add("iConomy", attacker.SteamID, c)
             attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
         else:
             c = Aid + NKillPortion2
-            DataStore.Add("iConomy", attacker.SteamID, round(c, 2))
+            DataStore.Add("iConomy", attacker.SteamID, c)
             attacker.MessageFrom(self.__Sys__, "You received: " + str(NKillPortion2) + self.__MoneyMark__)
