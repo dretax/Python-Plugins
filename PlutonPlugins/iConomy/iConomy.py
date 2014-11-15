@@ -77,8 +77,9 @@ class iConomy:
             return
         elif self.__MoneyMode__ == 1:
             if am == 0.0:
-                am = 20.0
-            amoney = round(float(am * self.__KillPortion__), 2)
+                amoney = round(float((am + 20.0) * self.__KillPortion__), 2)
+            else:
+                amoney = round(float(am * self.__KillPortion__), 2)
             vmoney = round(float(vm * self.__DeathPortion__), 2)
             DataStore.Add("iConomy", Aid, amoney)
             if vmoney < 0.0:
@@ -279,6 +280,8 @@ class iConomy:
                 NDeathPortion2 = float(ini.GetSetting(name + "KillSettings", "DeathPortion2"))
                 m = round(float(DataStore.Get("iConomy", victim.SteamID)), 2)
                 if NMoneyMode == 1:
+                    if m == 0.0:
+                        m = 20.0
                     c = round(m * NDeathPortion, 2)
                     if c < 0.0:
                         DataStore.Add("iConomy", victim.SteamID, 0.0)
@@ -321,11 +324,15 @@ class iConomy:
         NKillPortion2 = float(ini.GetSetting(name + "KillSettings", "KillPortion2"))
         Aid = round(float(DataStore.Get("iConomy", attacker.SteamID)), 2)
         if NMoneyMode == 1:
+            n = None
             if Aid == 0.0:
-                Aid = 20.0
+                n = 20.0
             c = round(Aid * NKillPortion, 2)
             DataStore.Add("iConomy", attacker.SteamID, c)
-            attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
+            if n is not None:
+               attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__ + " and an extra 20" + self.__MoneyMark__)
+            else:
+                attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
         else:
             c = Aid + NKillPortion2
             DataStore.Add("iConomy", attacker.SteamID, c)
