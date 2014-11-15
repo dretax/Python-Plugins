@@ -14,26 +14,54 @@ from System import *
 
 class iConomy:
 
+    #Plugin Settings
     __MoneyMark__ = None
-    __KillPortion__ = None
-    __DeathPortion__ = None
-    __MoneyMode__ = None
-    __KillPortion2__ = None
-    __DeathPortion2__ = None
     __DefaultMoney__ = None
     __Sys__ = None
+    #Player Settings!
+    __PMoneyMode__ = None
+    __PKillPortion__ = None
+    __PKillPortion2__ = None
+    __PDeathPortion__ = None
+    __PDeathPortion2__ = None
+    #NPC Settings
+    __NMoneyMode__ = None
+    __NKillPortion__ = None
+    __NKillPortion2__ = None
+    __NDeathPortion__ = None
+    __NDeathPortion2__ = None
 
     def iConomy(self):
         if not Plugin.IniExists("iConomy"):
             ini = Plugin.CreateIni("iConomy")
             ini.AddSetting("Settings", "DefaultMoney", "100.0")
             ini.AddSetting("Settings", "MoneyMark", "$")
-            ini.AddSetting("Settings", "PercentageOrExtra", "1")
-            ini.AddSetting("Settings", "KillPortion", "1.25")
-            ini.AddSetting("Settings", "DeathPortion", "0.75")
-            ini.AddSetting("Settings", "KillPortion2", "5.0")
-            ini.AddSetting("Settings", "DeathPortion2", "4.0")
             ini.AddSetting("Settings", "Sysname", "[iConomy]")
+            ini.AddSetting("PlayerKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("PlayerKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("PlayerKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("PlayerKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("PlayerKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("bearKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("bearKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("bearKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("bearKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("bearKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("stagKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("stagKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("stagKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("stagKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("stagKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("wolfKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("wolfKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("wolfKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("wolfKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("wolfKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("boarKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("boarKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("boarKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("boarKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("boarKillSettings", "KillPortion2", "5.0")
             ini.Save()
         return Plugin.GetIni("iConomy")
 
@@ -51,16 +79,18 @@ class iConomy:
     def HandleMoney(self, Aid, Vid):
         am = float(DataStore.Get("iConomy", Aid))
         vm = float(DataStore.Get("iConomy", Vid))
-        if self.__MoneyMode__ == 1:
+        if self.__MoneyMode__ == 0:
+            return
+        elif self.__MoneyMode__ == 1:
             DataStore.Add("iConomy", Aid, am * self.__KillPortion__)
-            if vm * self.__DeathPortion__ < 0:
+            if vm * self.__DeathPortion__ < 0.0:
                 DataStore.Add("iConomy", Vid, 0.0)
                 return str((am * self.__KillPortion__) - am) + ":0"
             DataStore.Add("iConomy", Vid, vm * self.__DeathPortion__)
             return str((am * self.__KillPortion__) - am) + ":" + str(vm - (vm * self.__DeathPortion__))
         else:
             DataStore.Add("iConomy", Aid, am + self.__KillPortion2__)
-            if vm - self.__DeathPortion2__ < 0:
+            if vm - self.__DeathPortion2__ < 0.0:
                 DataStore.Add("iConomy", Vid, 0.0)
                 return str(self.__KillPortion2__) + ":0"
             DataStore.Add("iConomy", Vid, vm + self.__DeathPortion2__)
@@ -77,14 +107,14 @@ class iConomy:
     def TakeMoney(self, id, amount, Player=None):
         m = float(DataStore.Get("iConomy", id))
         c = m - float(amount)
-        if c < 0:
+        if c < 0.0:
             return 12
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "You magically lost " + str(amount) + self.__MoneyMark__)
         DataStore.Add("iConomy", id, c)
 
     def SetMoney(self, id, amount, Player=None):
-        if float(amount) < 0:
+        if float(amount) < 0.0:
             return 12
         if Player is not None:
             Player.MessageFrom(self.__Sys__, "Your balance magically changed to " + str(amount) + self.__MoneyMark__)
@@ -102,7 +132,8 @@ class iConomy:
         V4.0
     """
     def CheckV(self, Player, args):
-        systemname = "iConomy"
+        ini = self.iConomy()
+        systemname = ini.GetSetting("Settings", "Sysname")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
@@ -133,16 +164,24 @@ class iConomy:
             Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
+    def IsAnimal(self, String):
+        s = String.replace('(Clone)', '')
+        if s == 'stag' or s == 'wolf' or s == 'bear' or s == 'boar':
+            return True
+        return False
+
     def On_PluginInit(self):
         ini = self.iConomy()
+        #Plugin Settings
         self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
-        self.__MoneyMode__ = int(ini.GetSetting("Settings", "PercentageOrExtra"))
-        self.__KillPortion__ = float(ini.GetSetting("Settings", "KillPortion"))
-        self.__DeathPortion__ = float(ini.GetSetting("Settings", "DeathPortion"))
         self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
-        self.__DeathPortion2__ = float(ini.GetSetting("Settings", "KillPortion2"))
-        self.__DefaultMoney2__ = float(ini.GetSetting("Settings", "DeathPortion2"))
         self.__Sys__ = ini.GetSetting("Settings", "Sysname")
+        #Player Settings!
+        self.__MoneyMode__ = int(ini.GetSetting("PlayerKillSettings", "PercentageOrExtra"))
+        self.__KillPortion__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion"))
+        self.__KillPortion2__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion2"))
+        self.__DeathPortion__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion"))
+        self.__DeathPortion2__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion2"))
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -228,8 +267,30 @@ class iConomy:
 
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
+            if PlayerDeathEvent.Attacker.Name and self.IsAnimal(PlayerDeathEvent.Attacker.Name):
+                name = PlayerDeathEvent.Attacker.Name
+                name = name.replace('(Clone)', '')
+                ini = self.iConomy()
+                NMoneyMode = int(ini.GetSetting(name + "NPCKillSettings", "PercentageOrExtra"))
+                if NMoneyMode == 0:
+                    return
+                victim = PlayerDeathEvent.Victim
+                NDeathPortion = float(ini.GetSetting(name + "NPCKillSettings", "DeathPortion"))
+                NDeathPortion2 = float(ini.GetSetting(name + "NPCKillSettings", "DeathPortion2"))
+                m = float(DataStore.Get("iConomy", victim.SteamID))
+                if NMoneyMode == 1:
+                    DataStore.Add("iConomy", victim.SteamID, m * NDeathPortion)
+                    if m * NDeathPortion < 0.0:
+                        DataStore.Add("iConomy", victim.SteamID, 0.0)
+                        return
+                    DataStore.Add("iConomy", victim.SteamID, m * NDeathPortion)
+                else:
+                    DataStore.Add("iConomy", victim.SteamID, m + NDeathPortion2)
+                    if m - NDeathPortion2 < 0.0:
+                        DataStore.Add("iConomy", victim.SteamID, 0.0)
+                        return
+                    DataStore.Add("iConomy", victim.SteamID, m + NDeathPortion2)
             return
-
         attacker = Server.GetPlayer(PlayerDeathEvent.Attacker)
         victim = PlayerDeathEvent.Victim
         aid = attacker.SteamID
@@ -237,7 +298,33 @@ class iConomy:
         s = self.HandleMoney(aid, vid)
         s = s.split(':')
         attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
-        if int(s[1]) == 0:
+        if float(s[1]) == 0.0:
             victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
             return
         victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
+
+    def On_NPCKilled(self, NPCDeathEvent):
+        NPC = NPCDeathEvent.Victim
+        attacker = Server.GetPlayer(NPCDeathEvent.Attacker)
+        ini = self.iConomy()
+        name = NPC.Name
+        name = name.replace('(Clone)', '')
+        #NPC Settings
+        NMoneyMode = int(ini.GetSetting(name + "NPCKillSettings", "PercentageOrExtra"))
+        if NMoneyMode == 0.0:
+            return
+        NKillPortion = float(ini.GetSetting(name + "NPCKillSettings", "KillPortion"))
+        NKillPortion2 = float(ini.GetSetting(name + "NPCKillSettings", "KillPortion2"))
+        Aid = float(DataStore.Get("iConomy", attacker.SteamID))
+        if NMoneyMode == 1:
+            DataStore.Add("iConomy", attacker.SteamID, Aid * NKillPortion)
+            if Aid * NKillPortion < 0.0:
+                DataStore.Add("iConomy", Aid, 0.0)
+                return
+            DataStore.Add("iConomy", attacker.SteamID, Aid * NKillPortion)
+        else:
+            DataStore.Add("iConomy", attacker.SteamID, Aid + NKillPortion2)
+            if Aid - NKillPortion2 < 0.0:
+                DataStore.Add("iConomy", attacker.SteamID, 0.0)
+                return
+            DataStore.Add("iConomy", attacker.SteamID, Aid + NKillPortion2)
