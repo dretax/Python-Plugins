@@ -14,9 +14,6 @@ from System import *
 
 class AdminCommands:
 
-    matrix = [
-     ["foot:csirke", 2, 3, 4], ]
-
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
             loc = Plugin.CreateIni("AdminCmdConfig")
@@ -34,18 +31,29 @@ class AdminCommands:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.1
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
-        systemname = "AdminCommands"
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
-
+        systemname = "iConomy"
         count = 0
-        for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart.lower() in pl.Name.lower():
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            s = str(args).lower()
+            for pl in Server.ActivePlayers:
+                if s in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
@@ -89,3 +97,17 @@ class AdminCommands:
                 DataStore.Add("godmode", Player.SteamID, 1)
                 Player.Message("God mode on.")
                 Player.basePlayer.metabolism.health.min = 100.0
+        elif cmd.cmd == "door":
+            if not Player.Admin:
+                Player.Message("You aren't an admin!")
+                return
+            if DataStore.Get("adoor", Player.SteamID) == 1:
+                DataStore.Remove("adoor", Player.SteamID)
+                Player.Message("Magic is now gone.")
+            else:
+                DataStore.Add("adoor", Player.SteamID, 1)
+                Player.Message("Open up, Sesame!")
+
+    def On_DoorLock(self, DoorCodeEvent):
+        if DataStore.Get("adoor", DoorCodeEvent.Player.SteamID):
+            DoorCodeEvent.CodeEntered = DoorCodeEvent.doorCode
