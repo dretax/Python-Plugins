@@ -302,6 +302,8 @@ class iConomy:
         victim = PlayerDeathEvent.Victim
         aid = attacker.SteamID
         vid = victim.SteamID
+        if aid == vid:
+            return
         s = self.HandleMoney(aid, vid)
         s = s.split(':')
         attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
