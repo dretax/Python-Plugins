@@ -331,7 +331,7 @@ class iConomy:
                 c = round(n * NKillPortion, 2)
             DataStore.Add("iConomy", attacker.SteamID, c)
             if n is not None:
-               attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__ + " and an extra 20" + self.__MoneyMark__)
+               attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
             else:
                 attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
         else:
