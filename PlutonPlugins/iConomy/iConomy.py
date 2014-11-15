@@ -268,8 +268,8 @@ class iConomy:
 
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
-            if PlayerDeathEvent.Attacker.Name and self.IsAnimal(PlayerDeathEvent.Attacker.Name):
-                name = PlayerDeathEvent.Attacker.Name
+            if PlayerDeathEvent.Attacker.name and self.IsAnimal(PlayerDeathEvent.Attacker.name):
+                name = PlayerDeathEvent.Attacker.name
                 name = name.replace('(Clone)', '')
                 ini = self.iConomy()
                 NMoneyMode = int(ini.GetSetting(name + "KillSettings", "PercentageOrExtra"))
@@ -288,7 +288,7 @@ class iConomy:
                         victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
                         return
                     DataStore.Add("iConomy", victim.SteamID, c)
-                    victim.MessageFrom(self.__Sys__, "You lost: " + str(c) + self.__MoneyMark__)
+                    victim.MessageFrom(self.__Sys__, "You lost: " + str(m - c) + self.__MoneyMark__)
                 else:
                     c = m - NDeathPortion2
                     if c < 0.0:
