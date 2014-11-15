@@ -19,17 +19,11 @@ class iConomy:
     __DefaultMoney__ = None
     __Sys__ = None
     #Player Settings!
-    __PMoneyMode__ = None
-    __PKillPortion__ = None
-    __PKillPortion2__ = None
-    __PDeathPortion__ = None
-    __PDeathPortion2__ = None
-    #NPC Settings
-    __NMoneyMode__ = None
-    __NKillPortion__ = None
-    __NKillPortion2__ = None
-    __NDeathPortion__ = None
-    __NDeathPortion2__ = None
+    __MoneyMode__ = None
+    __KillPortion__ = None
+    __KillPortion2__ = None
+    __DeathPortion__ = None
+    __DeathPortion2__ = None
 
     def iConomy(self):
         if not Plugin.IniExists("iConomy"):
