@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -32,16 +32,52 @@ class SpikeDamage:
             return True
         return False
 
-    def GetPlayer(self, name):
-        name = Data.ToLower(name)
-        for pl in Server.Players:
-            if (Data.ToLower(pl.Name) == name):
-                return pl
-        return None
+    def GetPlayerName(self, name):
+        try:
+            name = name.lower()
+            for pl in Server.Players:
+                if pl.Name.lower() == name:
+                    return pl
+            return None
+        except:
+            Plugin.Log("SpikeDamage", "Error caught at getPlayer method. Player was null.")
+            return None
+
+    # Method provided by Spoock. Converted to Python by DreTaX
+    def CheckV(self, Player, args):
+        systemname = "[SpikeDamage]"
+        Nickname = ""
+        for i in xrange(-1, len(args)):
+            i += 1
+            Nickname += args[i] + " "
+            Nickname = Data.Substring(Nickname, 0, len(Nickname) - 1)
+            target = self.GetPlayerName(Nickname)
+            if target is not None:
+                return target
+
+            else:
+                cc = 0
+                found = None
+                for all in Server.Players:
+                    name = all.Name.lower()
+                    check = args[0].lower()
+                    if check in name:
+                        found = all.Name
+                        cc += 1
+
+                if (cc == 1):
+                    target = self.GetPlayerName(found)
+                    return target
+                elif cc > 1:
+                    Player.MessageFrom(systemname, "Found [color#FF0000]" + cc + " players[/color] with similar names. [color#FF0000]Use more correct name !")
+                    return None
+                elif cc == 0:
+                    Player.MessageFrom(systemname, "Player [color#00FF00]" + Nickname + "[/color] not found")
+                    return None
 
     def On_PlayerHurt(self, HurtEvent):
-        if HurtEvent.Attacker != None and HurtEvent.Victim != None:
-            if (HurtEvent.Attacker == HurtEvent.Victim):
+        if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
+            if HurtEvent.Attacker.SteamID == HurtEvent.Victim.SteamID:
                 bleed = HurtEvent.DamageType
                 damage = HurtEvent.DamageAmount
                 if bleed == "Melee":
@@ -64,22 +100,34 @@ class SpikeDamage:
                 Player.Message("/spikedmga name - Adds friend to whitelist")
                 Player.Message("/spikedmgd name - Deletes friend from whitelist")
                 Player.Message("/spikedmgl - Lists Friends in Whitelist")
+        elif cmd == "spikedmga":
+            if len(args) == 0:
+                Player.Message("/spikedmga name - Adds friend to whitelist")
+            elif len(args) > 0:
+                playerr = self.CheckV(Player, args)
+                if playerr is None:
+                    return
+                idof = playerr.SteamID
+                name = str(playerr.Name)
+                ini = self.SpikeL()
+                ini.AddSetting(Player.SteamID, idof, name)
+                ini.Save()
         elif cmd == "spikedmgd":
             if len(args) == 0:
                 Player.Message("Usage: /spikedmgd playername")
                 return
-            elif len(args) == 1:
+            elif len(args) > 0:
                 name = args[0]
                 ini = self.SpikeL()
                 id = Player.SteamID
                 players = ini.EnumSection(id)
                 i = 0
-                counted = players.Length
-                name = Data.ToLower(name)
+                counted = len(players)
+                name = name.lower()
                 for playerid in players:
                     i += 1
                     nameof = ini.GetSetting(id, playerid)
-                    lowered = Data.ToLower(nameof)
+                    lowered = nameof.lower()
                     if lowered == name:
                         ini.DeleteSetting(id, playerid)
                         ini.Save()
