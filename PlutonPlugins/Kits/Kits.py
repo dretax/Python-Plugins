@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
 
@@ -26,6 +26,9 @@ class Kits:
             loc.Save()
         return Plugin.GetIni("KitsConfig")
 
+    def On_PluginInit(self):
+        self.KitsConfig()
+
     def GetPlayerName(self, namee):
         name = namee.lower()
         for pl in Server.ActivePlayers:
@@ -37,18 +40,28 @@ class Kits:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.1
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
         systemname = "Kits"
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
-
         count = 0
-        for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart.lower() in pl.Name.lower():
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
