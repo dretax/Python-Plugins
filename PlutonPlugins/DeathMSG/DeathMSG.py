@@ -89,7 +89,7 @@ class DeathMSG:
             if not isinstance(PlayerDeathEvent.Attacker.displayName, str):
                 return
             attacker = PlayerDeathEvent.Attacker
-            attackername = str(attacker.displayName)
+            attackername = str(attacker.name)
             ani = self.IsAnimal(attackername)
             if ani is None:
                 return
