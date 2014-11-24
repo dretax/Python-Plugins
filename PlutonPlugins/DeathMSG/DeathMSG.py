@@ -86,7 +86,7 @@ class DeathMSG:
     def On_PlayerDied(self, PlayerDeathEvent):
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
             #I'm unsure, so I just made this lol
-            if not isinstance(PlayerDeathEvent.Attacker.displayName, str):
+            if not isinstance(PlayerDeathEvent.Attacker.name, str):
                 return
             attacker = PlayerDeathEvent.Attacker
             attackername = str(attacker.name)
