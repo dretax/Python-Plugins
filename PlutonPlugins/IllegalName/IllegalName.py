@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -46,7 +46,8 @@ class IllegalName:
         ini = self.IllegalNameConfig()
         replace = ini.EnumSection("ReplaceCharactersTo")
         for wr in replace:
-            self.Words[str(wr)] = str(ini.GetSetting("ReplaceCharactersTo", wr))
+            s = str(ini.GetSetting("ReplaceCharactersTo", wr))
+            self.Words.update({wr:s})
 
     def IllegalNameConfig(self):
         if not Plugin.IniExists("IllegalNameConfig"):
