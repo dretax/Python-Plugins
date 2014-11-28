@@ -29,12 +29,10 @@ class TClans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) is not None:
-            return True
-        if ini.GetSetting("ClanOfficers", ID) is not None:
-            return True
-        if ini.GetSetting("ClanOwners", ID) is not None:
-            return True
+        if ini.GetSetting("ClanMembers", ID) is not None \
+            or ini.GetSetting("ClanOfficers", ID) is not None \
+            or ini.GetSetting("ClanOwners", ID) is not None:
+                return True
         return False
 
     def GetClanMember(self, Clan, ID):
