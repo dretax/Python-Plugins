@@ -7,7 +7,7 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-
+import BasePlayer
 class Player:
     def Find(nameOrSteamidOrIP):
         return
@@ -134,3 +134,5 @@ class Player:
     Y = None
 
     Z = None
+
+    basePlayer = BasePlayer
