@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -21,22 +21,44 @@ class Report:
             ini.Save()
         return Plugin.GetIni("Reports")
 
-    # method by Illuminati
-    def CheckV(self, Player, args):
-        systemname = "[Report System]"
-        p = Server.FindPlayer(String.Join(" ", args))
-        if p is not None:
-            return p
-
-        count = 0
+    def GetPlayerName(self, namee):
+        name = namee.lower()
         for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart in pl.Name:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        Can Handle Single argument and Array args.
+        V4.0
+    """
+    def CheckV(self, Player, args):
+        ini = self.TpFriendConfig()
+        systemname = ini.GetSetting("Settings", "sysname")
+        count = 0
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + str(args) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
