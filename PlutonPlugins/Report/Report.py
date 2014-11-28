@@ -35,8 +35,7 @@ class Report:
         V4.0
     """
     def CheckV(self, Player, args):
-        ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
+        systemname = "[Report System]"
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
