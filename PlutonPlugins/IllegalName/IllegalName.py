@@ -23,15 +23,12 @@ except ImportError:
 class IllegalName:
 
     RandNames = []
-    Words = {}
 
     def GetRand(self):
-        for y in xrange(0, 550):
+        d = random.randrange(0, 550)
+        while d in self.RandNames:
             d = random.randrange(0, 550)
-            if d in self.RandNames:
-                continue
-            self.RandNames.append(d)
-            return d
+        return d
 
     def getIllegal(self):
         if not Plugin.IniExists("IllegalNames"):
@@ -41,13 +38,6 @@ class IllegalName:
             IllegalNames.AddSetting("IllegalNames", "Name3", "SHITSERVER")
             IllegalNames.Save()
         return Plugin.GetIni("IllegalNames")
-
-    def On_PluginInit(self):
-        ini = self.IllegalNameConfig()
-        replace = ini.EnumSection("ReplaceCharactersTo")
-        for wr in replace:
-            s = str(ini.GetSetting("ReplaceCharactersTo", wr))
-            self.Words.update({wr:s})
 
     def IllegalNameConfig(self):
         if not Plugin.IniExists("IllegalNameConfig"):
@@ -68,12 +58,6 @@ class IllegalName:
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
-        listnames = illini.EnumSection("IllegalNames")
-        compile = re.compile(r'\b(' + '|'.join(self.Words.keys()) + r')\b')
-        name = compile.sub(lambda x: self.Words[x.group()], name)
-        for checkn in listnames:
-            get = illini.GetSetting("IllegalNames", checkn)
-            name = self.Replace(get, '', name)
         if asciie == 1:
             newname = self.CutName(name)
             name = newname
