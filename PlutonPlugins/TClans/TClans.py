@@ -5,6 +5,8 @@ import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
+import System
+from System import String
 
 class TClans:
 
@@ -29,6 +31,8 @@ class TClans:
         ini = self.Clans()
         if ini.GetSetting("ClanMembers", ID) is not None:
             return True
+        if ini.GetSetting("ClanOfficers", ID) is not None:
+            return True
         if ini.GetSetting("ClanOwners", ID) is not None:
             return True
         return False
@@ -43,9 +47,23 @@ class TClans:
         ini = self.Clans()
         if ini.GetSetting("ClanMembers", ID) is not None:
             return ini.GetSetting("ClanMembers", ID)
+        if ini.GetSetting("ClanOfficers", ID) is not None:
+            return ini.GetSetting("ClanOfficers", ID)
         if ini.GetSetting("ClanOwners", ID) is not None:
             return ini.GetSetting("ClanOwners", ID)
         return None
+
+    def GetAllOnlinePlayersOfClan(self, Clan):
+        ini = self.Clans()
+        sec = ini.EnumSection(Clan)
+        ids = []
+        Members = []
+        for id in sec:
+            ids.append(id)
+        for player in Server.ActivePlayers:
+            if player.SteamID in ids:
+                Members.append(player)
+        return Members
 
     def GetClanPopulation(self, Clan):
         ini = self.Clans()
@@ -108,7 +126,7 @@ class TClans:
             ini.DeleteSetting("ClanOfficers", ID)
             ini.AddSetting("ClanOwners", ID)
         else:
-            return None
+            return
         ini.Save()
 
     def DemotePlayer(self, ID):
@@ -121,13 +139,21 @@ class TClans:
             ini.DeleteSetting("ClanOwners", ID)
             ini.AddSetting("ClanOfficers", ID)
         else:
-            return None
+            return
         ini.Save()
 
     def RemovePlayerFromClan(self, Clan, ID):
         ini = self.Clans()
-        ini.DeleteSetting(Clan, ID)
-        ini.DeleteSetting("ClanMembers", ID)
+        rank = self.GetClanRank(ID)
+        if rank == 1:
+            ini.DeleteSetting(Clan, ID)
+            ini.DeleteSetting("ClanMembers", ID)
+        elif rank == 2:
+            ini.DeleteSetting(Clan, ID)
+            ini.DeleteSetting("ClanOfficers", ID)
+        elif rank == 3:
+            ini.DeleteSetting(Clan, ID)
+            ini.DeleteSetting("ClanOwners", ID)
         ini.Save()
 
     def GetClanMembers(self, Clan):
@@ -138,8 +164,70 @@ class TClans:
             s = s + m +", "
         return s
 
+    def GetPlayerName(self, namee):
+        name = namee.lower()
+        for pl in Server.ActivePlayers:
+            if pl.Name.lower() == name:
+                return pl
+        return None
+
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        Can Handle Single argument and Array args.
+        V4.0
+    """
+    def CheckV(self, Player, args):
+        ini = self.ClansConfig()
+        systemname = ini.GetSetting("Settings", "Sys")
+        count = 0
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            return None
+
     """
         Events/Methods.
     """
 
-    #TODO: Start working out the commands, and the events.
+    def On_PlayerConnected(self, Player):
+        if self.HasClan(Player.SteamID):
+            clan = self.GetClanOfPlayer(Player.SteamID)
+            name = Player.Name
+            Player.basePlayer.displayName = "[" + clan + "] " + name
+
+    def On_Command(self, cmd):
+        Player = cmd.User
+        if not self.HasClan(Player.SteamID):
+            return
+        args = cmd.args
+        command = cmd.cmd
+        cfg = self.ClansConfig()
+        sys = cfg.GetSetting("Settings", "Sys")
+        if command == "chelp":
+            Player.MessageFrom(sys, "TClans Created by " + __author__ + " V" + __version__)
+            #todo: ......
