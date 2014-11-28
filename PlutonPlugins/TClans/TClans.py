@@ -220,8 +220,6 @@ class TClans:
 
     def On_Command(self, cmd):
         Player = cmd.User
-        if not self.HasClan(Player.SteamID):
-            return
         args = cmd.args
         command = cmd.cmd
         cfg = self.ClansConfig()
