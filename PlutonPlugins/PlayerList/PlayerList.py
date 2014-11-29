@@ -1,5 +1,16 @@
 __author__ = 'DreTaX'
+__version__ = '1.0'
 
+import clr
+
+clr.AddReferenceByPartialName("Pluton")
+import Pluton
+import System
+from System import *
+
+"""
+    Class
+"""
 
 class PlayerList:
 
