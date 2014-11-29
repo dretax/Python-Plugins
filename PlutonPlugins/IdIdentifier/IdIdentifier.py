@@ -42,8 +42,7 @@ class IdIdentifier:
         V4.0
     """
     def CheckV(self, Player, args):
-        ini = self.ClansConfig()
-        systemname = ini.GetSetting("Settings", "Sys")
+        systemname = "IdIdentifier"
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(String.Join(" ", args))
