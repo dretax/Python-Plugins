@@ -8,13 +8,6 @@ clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import re
 import sys
-path = Util.GetPublicFolder()
-sys.path.append(path + "\\Python\\Lib\\")
-Lib = True
-try:
-    import random
-except ImportError:
-    Lib = False
 """
     Class
 """
@@ -23,11 +16,30 @@ except ImportError:
 class IllegalName:
 
     RandNames = []
+    Words = {}
+    Lib = True
+    rand = None
+
+    def On_PluginInit(self):
+        #I had a shitty error, now I'm testing.
+        path = Util.GetPublicFolder()
+        sys.path.append(path + "\\Python\\Lib\\")
+        try:
+            import random as r
+            self.rand = r
+        except ImportError:
+            self.Lib = False
+
+        ini = self.IllegalNameConfig()
+        replace = ini.EnumSection("ReplaceCharactersTo")
+        for wr in replace:
+            s = str(ini.GetSetting("ReplaceCharactersTo", wr))
+            self.Words.update({wr:s})
 
     def GetRand(self):
-        d = random.randrange(0, 550)
+        d = self.rand.randrange(0, 550)
         while d in self.RandNames:
-            d = random.randrange(0, 550)
+            d = self.rand.randrange(0, 550)
         return d
 
     def getIllegal(self):
@@ -58,6 +70,12 @@ class IllegalName:
         asciie = int(ini.GetSetting("options", "CheckForNonAscii"))
         regex = int(ini.GetSetting("options", "CheckWithRegEx"))
         illini = self.getIllegal()
+        listnames = illini.EnumSection("IllegalNames")
+        compile = re.compile(r'\b(' + '|'.join(self.Words.keys()) + r')\b')
+        name = compile.sub(lambda x: self.Words[x.group()], name)
+        for checkn in listnames:
+            get = illini.GetSetting("IllegalNames", checkn)
+            name = self.Replace(get, '', name)
         if asciie == 1:
             newname = self.CutName(name)
             name = newname
@@ -77,7 +95,7 @@ class IllegalName:
             n = len(name)
             if n <= 1:
                 name = name + "Stranger"
-                if Lib:
+                if self.Lib:
                     rand = self.GetRand()
                     name = name + str(rand)
         AuthEvent.con.username = str(name)
