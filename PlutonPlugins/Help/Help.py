@@ -12,6 +12,9 @@ import Pluton
 
 class Help:
 
+    def On_PluginInit(self):
+        self.HelpCfg()
+
     def HelpCfg(self):
         if not Plugin.IniExists("Help"):
             loc = Plugin.CreateIni("Help")
