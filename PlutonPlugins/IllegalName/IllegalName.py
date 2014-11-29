@@ -8,6 +8,13 @@ clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import re
 import sys
+path = Util.GetPublicFolder()
+Lib = True
+try:
+    sys.path.append(path + "\\Python\\Lib\\")
+    import random
+except ImportError:
+    Lib = False
 """
     Class
 """
@@ -17,19 +24,8 @@ class IllegalName:
 
     RandNames = []
     Words = {}
-    Lib = True
-    rand = None
 
     def On_PluginInit(self):
-        #I had a shitty error, now I'm testing.
-        path = Util.GetPublicFolder()
-        sys.path.append(path + "\\Python\\Lib\\")
-        try:
-            import random as r
-            self.rand = r
-        except ImportError:
-            self.Lib = False
-
         ini = self.IllegalNameConfig()
         replace = ini.EnumSection("ReplaceCharactersTo")
         for wr in replace:
@@ -37,9 +33,9 @@ class IllegalName:
             self.Words.update({wr:s})
 
     def GetRand(self):
-        d = self.rand.randrange(0, 550)
+        d = random.randrange(0, 550)
         while d in self.RandNames:
-            d = self.rand.randrange(0, 550)
+            d = random.randrange(0, 550)
         return d
 
     def getIllegal(self):
@@ -95,7 +91,7 @@ class IllegalName:
             n = len(name)
             if n <= 1:
                 name = name + "Stranger"
-                if self.Lib:
+                if Lib:
                     rand = self.GetRand()
                     name = name + str(rand)
         AuthEvent.con.username = str(name)
