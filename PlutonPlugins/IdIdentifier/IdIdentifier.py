@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -38,18 +38,29 @@ class IdIdentifier:
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.1
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
-        systemname = "IdIdentifier"
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
-
+        ini = self.ClansConfig()
+        systemname = ini.GetSetting("Settings", "Sys")
         count = 0
-        for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart.lower() in pl.Name.lower():
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
@@ -108,17 +119,3 @@ class IdIdentifier:
                 if playerr is None:
                     return
                 Player.Message("UID of " + playerr.Name + " is:" + playerr.SteamID)
-        elif cmd.cmd == "playerlist":
-            all = ""
-            i = 0
-            Player.Message("Online Players: " + str(Server.ActivePlayers.Count))
-            for pl in Server.ActivePlayers:
-                i += 1
-                if i <= 30:
-                    all = all + str(pl.Name) + ", "
-                else:
-                    Player.Message(all)
-                    all = all.replace(all, "")
-                    all = all + str(pl.Name + ", ")
-                    i = 1
-            Player.Message(all)
