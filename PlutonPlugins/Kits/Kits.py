@@ -157,20 +157,15 @@ class Kits:
                 DataStore.Add("AdminKit", Player.SteamID, args[0])
                 Player.MessageFrom("Kits", "DefaultKit " + str(args[0]) + " set!")
 
-    def On_Chat(self, ChatEvent):
-        if DataStore.ContainsKey("GiveKit", ChatEvent.User.SteamID):
-            Player = ChatEvent.User
-            kit = ChatEvent.OriginalText
-            if Server.LoadOuts.ContainsKey(kit):
-                Player.MessageFrom("Kits", "This Kit doesn't exist!")
-                return
-            loadout = Server.LoadOuts[kit]
-            loadout.ToInv(Player.Inventory)
-            DataStore.Remove("GiveKit", Player.SteamID)
-            ChatEvent.FinalText = ""
+    def DelayCallback(self, timer):
+        timer.Kill()
+        Delay = timer.Args
+        Player = Server.FindPlayer(Delay["Player"])
+        if Player is None:
+            return
+        self.GiveRespawnKit(Player)
 
-    def On_Respawn(self, RespawnEvent):
-        Player = RespawnEvent.Player
+    def GiveRespawnKit(self, Player):
         Ini = self.KitsConfig()
         values = Ini.GetSetting("PlayerKits", "DefaultKits")
         array = values.split(',')
@@ -211,3 +206,21 @@ class Kits:
                             done = round((calc / 1000) / 60, 2)
                             done2 = round((cooldown / 1000) / 60, 2)
                             Player.MessageFrom("Kits", str(get[0]) + " is still on cooldown: " + str(done) + "/" + str(done2) + " minutes")
+
+    def On_Chat(self, ChatEvent):
+        if DataStore.ContainsKey("GiveKit", ChatEvent.User.SteamID):
+            Player = ChatEvent.User
+            kit = ChatEvent.OriginalText
+            if Server.LoadOuts.ContainsKey(kit):
+                Player.MessageFrom("Kits", "This Kit doesn't exist!")
+                return
+            loadout = Server.LoadOuts[kit]
+            loadout.ToInv(Player.Inventory)
+            DataStore.Remove("GiveKit", Player.SteamID)
+            ChatEvent.FinalText = ""
+
+    def On_Respawn(self, RespawnEvent):
+        Delay = Plugin.CreateDict()
+        Delay["Player"] = RespawnEvent.Player.SteamID
+        c = 5 * 1000
+        Plugin.CreateParallelTimer("Delay", c, Delay).Start()
