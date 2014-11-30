@@ -212,6 +212,7 @@ class Kits:
             Player = ChatEvent.User
             kit = ChatEvent.OriginalText
             if Server.LoadOuts.ContainsKey(kit):
+                ChatEvent.FinalText = ""
                 Player.MessageFrom("Kits", "This Kit doesn't exist!")
                 return
             loadout = Server.LoadOuts[kit]
