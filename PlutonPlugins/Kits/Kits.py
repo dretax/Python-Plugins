@@ -141,7 +141,7 @@ class Kits:
                         Player.Message("Kit " + str(args[0]) + " not found!")
         elif cmd.cmd == "givekit":
             if Player.Admin:
-                if len(args) >= 1:
+                if len(args) <= 1:
                     Player.MessageFrom("Kits", 'Usage: /givekit "playername" "kitname"')
                     return
                 playerr = self.CheckV(Player, args[0])
