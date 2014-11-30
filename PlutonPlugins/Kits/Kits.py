@@ -80,7 +80,7 @@ class Kits:
 
     def On_Command(self, cmd):
         Player = cmd.User
-        args = cmd.args
+        args = cmd.quotedArgs
         if cmd.cmd == "kit" or cmd.cmd == "kits":
             ini = self.KitsConfig()
             if Player.Admin:
@@ -148,7 +148,7 @@ class Kits:
                 if playerr is None:
                     return
                 kit = args[1]
-                if Server.LoadOuts.ContainsKey(kit):
+                if not Server.LoadOuts.ContainsKey(kit):
                     Player.MessageFrom("Kits", "This Kit doesn't exist!")
                     return
                 loadout = Server.LoadOuts[kit]
