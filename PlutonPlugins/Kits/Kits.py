@@ -141,14 +141,21 @@ class Kits:
                         Player.Message("Kit " + str(args[0]) + " not found!")
         elif cmd.cmd == "givekit":
             if Player.Admin:
-                if len(args) == 0:
-                    Player.MessageFrom("Kits", "Usage: /givekit playername")
+                if len(args) >= 1:
+                    Player.MessageFrom("Kits", 'Usage: /givekit "playername" "kitname"')
                     return
-                playerr = self.CheckV(Player, args)
+                playerr = self.CheckV(Player, args[0])
                 if playerr is None:
                     return
-                Player.MessageFrom("Kits", "Enter the kit's name in chat now!")
-                DataStore.Add("GiveKit", Player.SteamID, 1)
+                kit = args[1]
+                if Server.LoadOuts.ContainsKey(kit):
+                    Player.MessageFrom("Kits", "This Kit doesn't exist!")
+                    return
+                loadout = Server.LoadOuts[kit]
+                loadout.ToInv(Player.Inventory)
+                Player.MessageFrom("Kits", playerr.Name + " Received the kit: " + kit)
+                playerr.MessageFrom("Kits", "You received a kit: " + kit)
+
         elif cmd.cmd == "setdefaultkit":
             if Player.Admin:
                 if len(args) == 0:
@@ -206,19 +213,6 @@ class Kits:
                             done = round((calc / 1000) / 60, 2)
                             done2 = round((cooldown / 1000) / 60, 2)
                             Player.MessageFrom("Kits", str(get[0]) + " is still on cooldown: " + str(done) + "/" + str(done2) + " minutes")
-
-    def On_Chat(self, ChatEvent):
-        if DataStore.ContainsKey("GiveKit", ChatEvent.User.SteamID):
-            Player = ChatEvent.User
-            kit = ChatEvent.OriginalText
-            if Server.LoadOuts.ContainsKey(kit):
-                ChatEvent.FinalText = ""
-                Player.MessageFrom("Kits", "This Kit doesn't exist!")
-                return
-            loadout = Server.LoadOuts[kit]
-            loadout.ToInv(Player.Inventory)
-            DataStore.Remove("GiveKit", Player.SteamID)
-            ChatEvent.FinalText = ""
 
     def On_Respawn(self, RespawnEvent):
         Delay = Plugin.CreateDict()
