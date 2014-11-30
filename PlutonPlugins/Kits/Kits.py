@@ -148,7 +148,7 @@ class Kits:
                 if playerr is None:
                     return
                 Player.MessageFrom("Kits", "Enter the kit's name in chat now!")
-                DataStore.Add("GiveKit", Player.SteamID)
+                DataStore.Add("GiveKit", Player.SteamID, 1)
         elif cmd.cmd == "setdefaultkit":
             if Player.Admin:
                 if len(args) == 0:
