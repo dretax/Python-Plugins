@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -316,16 +316,16 @@ class iConomy:
         NPC = NPCDeathEvent.Victim
         attacker = Server.GetPlayer(NPCDeathEvent.Attacker)
         ini = self.iConomy()
-        name = NPC.Name
+        name = str(NPC.Name)
         name = name.replace('(Clone)', '')
         #NPC Settings
-        NMoneyMode = int(ini.GetSetting(name + "KillSettings", "PercentageOrExtra"))
-        if NMoneyMode == 0:
+        NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
+        if int(NMoneyMode) == 0:
             return
         NKillPortion = float(ini.GetSetting(name + "KillSettings", "KillPortion"))
         NKillPortion2 = float(ini.GetSetting(name + "KillSettings", "KillPortion2"))
         Aid = round(float(DataStore.Get("iConomy", attacker.SteamID)), 2)
-        if NMoneyMode == 1:
+        if int(NMoneyMode) == 1:
             n = None
             c = round(Aid * NKillPortion, 2)
             if Aid == 0.0:
