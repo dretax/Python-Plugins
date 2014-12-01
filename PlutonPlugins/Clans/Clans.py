@@ -8,6 +8,7 @@ import Pluton
 import System
 from System import *
 import sys
+import re
 path = Util.GetPublicFolder()
 Lib = True
 try:
@@ -453,6 +454,9 @@ class Clans:
                 Player.MessageFrom(sys, "You already have a clan. Leave first.")
                 return
             text = String.Join(" ", args)
+            if len(text) < 3 or not re.match("[\w]+$", text):
+                Player.MessageFrom(sys, "Give atleast 3 characters without spaces.")
+                return
             self.CreateClan(text, id, str(Player.Name))
             cost = int(cfg.GetSetting("Settings", "Cost"))
             if cost > 0:
