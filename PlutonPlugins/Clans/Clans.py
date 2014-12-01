@@ -27,7 +27,7 @@ class Clans:
         if not Plugin.IniExists("ClansConfig"):
             ini = Plugin.CreateIni("ClansConfig")
             ini.AddSetting("Settings", "Sys", "[Clans]")
-            ini.AddSetting("Setting", "Cost", "0")
+            ini.AddSetting("Settings", "Cost", "0")
             ini.Save()
         return Plugin.GetIni("ClansConfig")
 
@@ -45,11 +45,8 @@ class Clans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) is not None \
-            or ini.GetSetting("ClanOfficers", ID) is not None \
-            or ini.GetSetting("ClanOwners", ID) is not None \
-            or ini.GetSetting("ClanCoOwners", ID) is not None:
-                return True
+        if ini.GetSetting("ClanMembers", ID) is not None or ini.GetSetting("ClanOfficers", ID) is not None or ini.GetSetting("ClanOwners", ID) is not None or ini.GetSetting("ClanCoOwners", ID) is not None:
+            return True
         return False
 
     def GetClanMember(self, Clan, ID):
@@ -126,6 +123,11 @@ class Clans:
 
     def DeleteClan(self, Clan):
         ini = self.Clans()
+        sys = ini.GetSetting("Settings", "Sys")
+        online = self.GetAllOnlinePlayersOfClan(Clan)
+        for p in online:
+            if p is not None:
+                p.MessageFrom(sys, "Your clan was disbanded.")
         ini.DeleteSetting(Clan)
         sec = ini.EnumSection("ClanMembers")
         sec2 = ini.EnumSection("ClanOwners")
@@ -330,7 +332,8 @@ class Clans:
 
     def On_Command(self, cmd):
         Player = cmd.User
-        args = cmd.quotedArgs
+        args = cmd.args
+        qargs = cmd.quotedArgs
         command = cmd.cmd
         cfg = self.ClansConfig()
         claninfo = self.ClanInfo()
@@ -424,10 +427,11 @@ class Clans:
             if not Lib:
                 Player.MessageFrom(sys, "Sorry, this feature doesn't work on this server.")
                 return
-            clan = str(args[0])
-            epw = str(args[1])
+            clan = str(qargs[0])
+            epw = str(qargs[1])
             if self.GetClanPopulation(clan) is None:
                 Player.MessageFrom(sys, "Clan named " + clan + " doesn't exist.")
+                return
             n = hashlib.md5(epw).hexdigest()
             pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
             n2 = hashlib.md5(pw).hexdigest()
