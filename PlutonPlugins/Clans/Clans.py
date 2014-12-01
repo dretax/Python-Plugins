@@ -78,7 +78,7 @@ class Clans:
         for id in sec:
             ids.append(id)
         for player in Server.ActivePlayers:
-            if player.GameID in ids:
+            if player.SteamID in ids:
                 Members.append(player)
         return Members
 
@@ -318,8 +318,8 @@ class Clans:
     """
 
     def On_PlayerConnected(self, Player):
-        if self.HasClan(Player.GameID):
-            clan = self.GetClanOfPlayer(Player.GameID)
+        if self.HasClan(Player.SteamID):
+            clan = self.GetClanOfPlayer(Player.SteamID)
             name = Player.Name
             Player.basePlayer.displayName = "[" + clan + "] " + name
             claninfo = self.ClanInfo()
@@ -375,7 +375,7 @@ class Clans:
                 Player.MessageFrom(sys, "Members: " + n)
                 Player.MessageFrom(sys, "Exists Since: " + str(ex))
         elif command == "cmembers":
-            id = Player.GameID
+            id = Player.SteamID
             if len(args) == 0:
                 clan = self.GetClanOfPlayer(id)
                 Player.MessageFrom(sys, self.GetClanMembers(clan))
@@ -392,7 +392,7 @@ class Clans:
                 Player.MessageFrom(sys, "YOU WON'T BE ABLE TO CHANGE THE PASSWORD AFTER THIS.")
                 Player.MessageFrom(sys, "Only admins will be able to reset this password.")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan.")
                 return
@@ -416,7 +416,7 @@ class Clans:
                 Player.MessageFrom(sys, 'Usage /crankpw "clanname" "password"')
                 Player.MessageFrom(sys, "Quotes are REQUIRED!")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             name = Player.Name
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan.")
@@ -443,7 +443,7 @@ class Clans:
                 if cost > 0:
                     Player.MessageFrom(sys, "Cost of Creation: " + str(cost))
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if self.HasClan(id):
                 Player.MessageFrom(sys, "You already have a clan. Leave first.")
                 return
@@ -457,7 +457,7 @@ class Clans:
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cinvite playername")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
@@ -467,28 +467,28 @@ class Clans:
             playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
-            if self.HasClan(playerr.GameID):
+            if self.HasClan(playerr.SteamID):
                 Player.MessageFrom(sys, "This player has a clan.")
                 return
-            if self.IsPending(playerr.GameID):
+            if self.IsPending(playerr.SteamID):
                 Player.MessageFrom(sys, "This player is pending a request. Try after a few seconds.")
                 return
-            if playerr.GameID == id:
+            if playerr.SteamID == id:
                 Player.MessageFrom(sys, "Gosh, this is yourself....")
                 return
             clan = self.GetClanOfPlayer(id)
-            self.MakePending(playerr.GameID, id)
+            self.MakePending(playerr.SteamID, id)
             playerr.MessageFrom(sys, "Clan " + clan + " invited you to join their forces!")
             playerr.MessageFrom(sys, "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
             autokill = Plugin.CreateDict()
-            autokill["PlayerR"] = Player.GameID
-            autokill["PlayerT"] = playerr.GameID
+            autokill["PlayerR"] = Player.SteamID
+            autokill["PlayerT"] = playerr.SteamID
             Plugin.CreateParallelTimer("ClansAutoKill", 1000 * 40, autokill).Start()
         elif command == "cdeny":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cdeny")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.IsPending(id):
                 Player.MessageFrom(sys, "You aren't pending any requests!")
                 return
@@ -501,7 +501,7 @@ class Clans:
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cjoin")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if self.HasClan(id):
                 Player.MessageFrom(sys, "You already have a clan!")
                 return
@@ -520,7 +520,7 @@ class Clans:
                 Player.MessageFrom(sys, "Usage /cm message")
                 return
             name = str(Player.Name)
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
@@ -534,23 +534,23 @@ class Clans:
                 Player.MessageFrom(sys, "Usage /ckick playername")
                 return
             name = str(Player.Name)
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
             playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
-            if playerr.GameID == id:
+            if playerr.SteamID == id:
                 Player.MessageFrom(sys, "Gosh, this is yourself....")
                 return
-            rank = self.GetClanRank(playerr.GameID)
+            rank = self.GetClanRank(playerr.SteamID)
             selfrank = self.GetClanRank(id)
             clan = self.GetClanOfPlayer(id)
-            if self.GetClanOfPlayer(playerr.GameID) is not None:
+            if self.GetClanOfPlayer(playerr.SteamID) is not None:
                 Player.MessageFrom(sys, "This player doesn't even have a clan")
                 return
-            otherclan = self.GetClanOfPlayer(playerr.GameID)
+            otherclan = self.GetClanOfPlayer(playerr.SteamID)
             if rank == selfrank:
                 Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
                 return
@@ -560,7 +560,7 @@ class Clans:
             if otherclan != clan:
                 Player.MessageFrom(sys, "Heh. Silly you.")
                 return
-            self.RemovePlayerFromClan(clan, playerr.GameID)
+            self.RemovePlayerFromClan(clan, playerr.SteamID)
             online = self.GetAllOnlinePlayersOfClan(clan)
             for p in online:
                 if p is not None:
@@ -570,7 +570,7 @@ class Clans:
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cpromote playername")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
@@ -580,24 +580,24 @@ class Clans:
             playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
-            if playerr.GameID == id:
+            if playerr.SteamID == id:
                 Player.MessageFrom(sys, "Gosh, this is yourself....")
                 return
             clan = self.GetClanOfPlayer(id)
-            otherclan = self.GetClanOfPlayer(playerr.GameID)
+            otherclan = self.GetClanOfPlayer(playerr.SteamID)
             if otherclan != clan:
                 Player.MessageFrom(sys, "Heh. Silly you.")
                 return
-            rank = self.GetClanRank(playerr.GameID)
+            rank = self.GetClanRank(playerr.SteamID)
             if rank > 0 and rank < 3:
-                self.PromotePlayer(playerr.GameID)
+                self.PromotePlayer(playerr.SteamID)
             else:
                 Player.MessageFrom(sys, "You can't promote to Owner. Only one owner can exist.")
         elif command == "cdemote":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cdemote playername")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
@@ -607,15 +607,15 @@ class Clans:
             playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
-            if playerr.GameID == id:
+            if playerr.SteamID == id:
                 Player.MessageFrom(sys, "Gosh, this is yourself....")
                 return
             clan = self.GetClanOfPlayer(id)
-            otherclan = self.GetClanOfPlayer(playerr.GameID)
+            otherclan = self.GetClanOfPlayer(playerr.SteamID)
             if otherclan != clan:
                 Player.MessageFrom(sys, "Heh. Silly you.")
                 return
-            rank = self.GetClanRank(playerr.GameID)
+            rank = self.GetClanRank(playerr.SteamID)
             selfrank = self.GetClanRank(id)
             if rank == 4:
                 Player.MessageFrom(sys, "You can't demote an owner.")
@@ -623,10 +623,10 @@ class Clans:
             if selfrank == rank:
                 Player.MessageFrom(sys, "You can't demote people with the same rank.")
                 return
-            self.DemotePlayer(playerr.GameID)
+            self.DemotePlayer(playerr.SteamID)
         elif command == "crank":
             if len(args) == 0:
-                id = Player.GameID
+                id = Player.SteamID
                 if not self.HasClan(id):
                     Player.MessageFrom(sys, "You don't have a clan!")
                     return
@@ -640,7 +640,7 @@ class Clans:
                 playerr = self.CheckV(Player, args)
                 if playerr is None:
                     return
-                id = playerr.GameID
+                id = playerr.SteamID
                 if not self.HasClan(id):
                     Player.MessageFrom(sys, "This player doesn't have a clan!")
                     return
@@ -654,7 +654,7 @@ class Clans:
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cmotd motd")
                 return
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
@@ -669,7 +669,7 @@ class Clans:
                 Player.MessageFrom(sys, "Usage /cdisband ownerpassword - (Only required if you set the password)")
                 return
             epw = String.Join(" ", args)
-            id = Player.GameID
+            id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
