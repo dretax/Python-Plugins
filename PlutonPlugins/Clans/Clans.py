@@ -45,9 +45,10 @@ class Clans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) is not None or ini.GetSetting("ClanOfficers", ID) is not None or ini.GetSetting("ClanOwners", ID) is not None or ini.GetSetting("ClanCoOwners", ID) is not None:
+        if ini.GetSetting("ClanMembers", ID) or ini.GetSetting("ClanOfficers", ID) or ini.GetSetting("ClanOwners", ID) or ini.GetSetting("ClanCoOwners", ID):
             return True
-        return False
+        else:
+            return False
 
     def GetClanMember(self, Clan, ID):
         ini = self.Clans()
