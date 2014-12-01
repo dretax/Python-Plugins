@@ -183,6 +183,14 @@ class iConomy:
         self.__KillPortion2__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion2"))
         self.__DeathPortion__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion"))
         self.__DeathPortion2__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion2"))
+        DataStore.Add("iConomy", "MoneyMark", str(self.__MoneyMark__))
+        DataStore.Add("iConomy", "SysName", str(self.__Sys__))
+        DataStore.Add("iConomy", "DefaultMoney", str(self.__DefaultMoney__))
+        DataStore.Add("iConomy", "MoneyMode", str(self.__MoneyMode__))
+        DataStore.Add("iConomy", "KillP", str(self.__KillPortion__))
+        DataStore.Add("iConomy", "KillP2", str(self.__KillPortion2__))
+        DataStore.Add("iConomy", "DeathP", str(self.__DeathPortion__))
+        DataStore.Add("iConomy", "DeathP2", str(self.__DeathPortion2__))
 
     def On_Command(self, cmd):
         Player = cmd.User
