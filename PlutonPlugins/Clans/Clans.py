@@ -452,11 +452,12 @@ class Clans:
             if self.HasClan(id):
                 Player.MessageFrom(sys, "You already have a clan. Leave first.")
                 return
-            self.CreateClan(args, id, str(Player.Name))
+            text = String.Join(" ", args)
+            self.CreateClan(text, id, str(Player.Name))
             cost = int(cfg.GetSetting("Settings", "Cost"))
             if cost > 0:
                 self.TakeMoney(id, cost, Player)
-            Server.BroadcastFrom(sys, args + " got created by " + Player.Name)
+            Server.BroadcastFrom(sys, text + " got created by " + Player.Name)
             Player.MessageFrom(sys, "You created your first clan! /cinvite playername to invite!")
         elif command == "cinvite":
             if len(args) == 0:
@@ -533,7 +534,8 @@ class Clans:
             rank = self.GetClanRank(id)
             rank = self.TranslateToRank(rank)
             name = "(" + rank + ") " + name
-            self.SendPrivateMessage(clan, name, args)
+            text = String.Join(" ", args)
+            self.SendPrivateMessage(clan, name, text)
         elif command == "ckick":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /ckick playername")
