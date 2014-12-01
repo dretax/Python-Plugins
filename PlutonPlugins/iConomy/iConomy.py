@@ -327,6 +327,8 @@ class iConomy:
         name = str(NPC.Name)
         name = name.replace('(Clone)', '')
         #NPC Settings
+        if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
+            return
         NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
         if int(NMoneyMode) == 0:
             return
