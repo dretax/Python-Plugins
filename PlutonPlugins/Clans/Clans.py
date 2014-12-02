@@ -122,6 +122,7 @@ class Clans:
     def DeleteClan(self, Clan):
         cfg = self.ClansConfig()
         ini = self.Clans()
+        claninfo = self.ClanInfo()
         sys = cfg.GetSetting("Settings", "Sys")
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for player in Server.ActivePlayers:
@@ -151,6 +152,9 @@ class Clans:
             if n == Clan:
                 ini.DeleteSetting("ClanCoOwners", p)
         ini.Save()
+        claninfo.DeleteSetting("ClanInfo" + Clan, "Creation")
+        claninfo.DeleteSetting("ClanInfo" + Clan, "Owner")
+        claninfo.Save()
 
     def AddPlayerToClan(self, Clan, ID, Name, Rank = None):
         ini = self.Clans()
