@@ -176,11 +176,20 @@ class Clans:
         if cur == 1:
             ini.DeleteSetting("ClanMembers", ID)
             ini.AddSetting("ClanOfficers", ID)
+            pr = "Officer"
         elif cur == 2:
             ini.DeleteSetting("ClanOfficers", ID)
             ini.AddSetting("ClanCoOwners", ID)
+            pr = "Co-Owner"
         else:
             return
+        clan = self.GetClanOfPlayer(ID)
+        pl = Server.FindPlayer(ID)
+        if pl is not None:
+            online = self.GetAllOnlinePlayersOfClan(clan)
+            for player in Server.ActivePlayers:
+                if player.SteamID in online:
+                    player.MessageFrom("[" + clan + "]", pl.Name + " got promoted to: " + pr)
         ini.Save()
 
     def DemotePlayer(self, ID):
@@ -189,11 +198,20 @@ class Clans:
         if cur == 2:
             ini.DeleteSetting("ClanOfficers", ID)
             ini.AddSetting("ClanMembers", ID)
+            dr = "Member"
         elif cur == 3:
             ini.DeleteSetting("ClanCoOwners", ID)
             ini.AddSetting("ClanOfficers", ID)
+            dr = "Officer"
         else:
             return
+        clan = self.GetClanOfPlayer(ID)
+        pl = Server.FindPlayer(ID)
+        if pl is not None:
+            online = self.GetAllOnlinePlayersOfClan(clan)
+            for player in Server.ActivePlayers:
+                if player.SteamID in online:
+                    player.MessageFrom("[" + clan + "]", pl.Name + " got demoted to: " + dr)
         ini.Save()
 
     def RemovePlayerFromClan(self, Clan, ID):
@@ -333,7 +351,7 @@ class Clans:
     def On_Chat(self, ChatEvent):
         if self.HasClan(ChatEvent.User.SteamID):
             clan = self.GetClanOfPlayer(ChatEvent.User.SteamID)
-            ChatEvent.BroadcastName = "[" + clan + "]" + ChatEvent.User.Name
+            ChatEvent.BroadcastName = "[" + clan + "] " + ChatEvent.User.Name
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -522,6 +540,7 @@ class Clans:
             inv = DataStore.Get("Clans", id)
             clan = self.GetClanOfPlayer(inv)
             self.AddPlayerToClan(clan, id, str(Player.Name))
+            DataStore.Remove("Clans", id)
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in Server.ActivePlayers:
                 if player.SteamID in online:
