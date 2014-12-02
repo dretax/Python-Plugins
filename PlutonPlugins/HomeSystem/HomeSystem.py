@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -137,6 +137,13 @@ class HomeSystem:
                 return True
             return False
 
+    def IsFloat(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
     def isNoneOrEmptyOrBlankString(self, String):
         if String:
             if not String.strip():
@@ -234,6 +241,9 @@ class HomeSystem:
                                 if homes:
                                     homes = homes.replace(",", "")
                                     check = self.HomeOfID(idof, homes)
+                                    if not self.IsFloat(check[0]) or not self.IsFloat(check[1]) or not self.IsFloat(check[2]):
+                                        Plugin.Log("HomeSystemError", "Something is wrong at: " + str(check) + " | " + str(homes))
+                                        continue
                                     vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
                                     dist = Util.GetVectorsDistance(vector, Player.Location)
                                     if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
