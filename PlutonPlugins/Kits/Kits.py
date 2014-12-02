@@ -152,7 +152,7 @@ class Kits:
                     Player.MessageFrom("Kits", "This Kit doesn't exist!")
                     return
                 loadout = Server.LoadOuts[kit]
-                loadout.ToInv(Player.Inventory)
+                loadout.ToInv(playerr.Inventory)
                 Player.MessageFrom("Kits", playerr.Name + " Received the kit: " + kit)
                 playerr.MessageFrom("Kits", "You received a kit: " + kit)
 
