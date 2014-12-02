@@ -73,13 +73,9 @@ class Clans:
         ini = self.Clans()
         sec = ini.EnumSection(Clan)
         ids = []
-        Members = []
         for id in sec:
             ids.append(id)
-        for player in Server.ActivePlayers:
-            if player.SteamID in ids:
-                Members.append(player)
-        return Members
+        return ids
 
     def GetClanPopulation(self, Clan):
         ini = self.Clans()
@@ -116,7 +112,7 @@ class Clans:
         now = datetime.datetime.now()
         t = now.strftime("%Y-%m-%d %H:%M")
         ini.AddSetting(Clan, ID, Name)
-        ini.AddSetting("ClanOwners", ID, Name)
+        ini.AddSetting("ClanOwners", ID, Clan)
         ini.Save()
         claninfo.AddSetting("ClanInfo" + Clan, "Creation", str(t))
         claninfo.AddSetting("ClanInfo" + Clan, "Owner", Name)
@@ -127,8 +123,9 @@ class Clans:
         ini = self.Clans()
         sys = ini.GetSetting("Settings", "Sys")
         online = self.GetAllOnlinePlayersOfClan(Clan)
-        for p in online:
-            p.MessageFrom(sys, "Your clan was disbanded.")
+        for player in Server.ActivePlayers:
+            if player.SteamID in online:
+                player.MessageFrom(sys, "Your clan was disbanded.")
         enum = ini.EnumSection(Clan)
         for d in enum:
             ini.DeleteSetting(Clan, d)
