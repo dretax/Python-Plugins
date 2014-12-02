@@ -120,8 +120,9 @@ class Clans:
         #Todo: More to come.
 
     def DeleteClan(self, Clan):
+        cfg = self.ClansConfig()
         ini = self.Clans()
-        sys = ini.GetSetting("Settings", "Sys")
+        sys = cfg.GetSetting("Settings", "Sys")
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for player in Server.ActivePlayers:
             if player.SteamID in online:
@@ -228,9 +229,9 @@ class Clans:
 
     def SendPrivateMessage(self, Clan, FromPlayer, Message):
         online = self.GetAllOnlinePlayersOfClan(Clan)
-        for pl in online:
-            if pl is not None:
-                pl.MessageFrom(Clan, FromPlayer + " -> " + Message)
+        for player in Server.ActivePlayers:
+            if player.SteamID in online:
+                player.MessageFrom(Clan, FromPlayer + " -> " + Message)
 
     def MakePending(self, id, idinviter):
         DataStore.Add("Clans", id, idinviter)
@@ -520,9 +521,9 @@ class Clans:
             clan = self.GetClanOfPlayer(inv)
             self.AddPlayerToClan(clan, id, str(Player.Name))
             online = self.GetAllOnlinePlayersOfClan(clan)
-            for pl in online:
-                if pl is not None:
-                    pl.MessageFrom(sys, Player.Name + " joined to the clan!")
+            for player in Server.ActivePlayers:
+                if player.SteamID in online:
+                    player.MessageFrom(sys, Player.Name + " joined to the clan!")
         elif command == "cm":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cm message")
@@ -571,9 +572,9 @@ class Clans:
                 return
             self.RemovePlayerFromClan(clan, playerr.SteamID)
             online = self.GetAllOnlinePlayersOfClan(clan)
-            for p in online:
-                if p is not None:
-                    p.MessageFrom(clan, playerr.Name + " got kicked by: " + Player.Name)
+            for player in Server.ActivePlayers:
+                if player.SteamID in online:
+                    player.MessageFrom(clan, playerr.Name + " got kicked by: " + Player.Name)
             playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
         elif command == "cpromote":
             if len(args) == 0:
