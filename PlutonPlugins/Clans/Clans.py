@@ -231,7 +231,7 @@ class Clans:
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for player in Server.ActivePlayers:
             if player.SteamID in online:
-                player.MessageFrom(Clan, FromPlayer + " -> " + Message)
+                player.MessageFrom("[" + Clan + "]", FromPlayer + " -> " + Message)
 
     def MakePending(self, id, idinviter):
         DataStore.Add("Clans", id, idinviter)
@@ -324,7 +324,8 @@ class Clans:
         if self.HasClan(Player.SteamID):
             clan = self.GetClanOfPlayer(Player.SteamID)
             name = Player.Name
-            Player.basePlayer.displayName = "[" + clan + "] " + name
+            #Player.basePlayer.displayName = "[" + clan + "] " + name
+            Player.basePlayer.name = "[" + clan + "] " + name
             claninfo = self.ClanInfo()
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
@@ -489,14 +490,15 @@ class Clans:
             self.MakePending(playerr.SteamID, id)
             playerr.MessageFrom(sys, "Clan " + clan + " invited you to join their forces!")
             playerr.MessageFrom(sys, "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
+            online = self.GetAllOnlinePlayersOfClan(clan)
+            for player in Server.ActivePlayers:
+                if player.SteamID in online:
+                    player.MessageFrom(sys, Player.Name + " invited " + playerr.Name + " to join the clan.")
             autokill = Plugin.CreateDict()
             autokill["PlayerR"] = Player.SteamID
             autokill["PlayerT"] = playerr.SteamID
             Plugin.CreateParallelTimer("ClansAutoKill", 1000 * 40, autokill).Start()
         elif command == "cdeny":
-            if len(args) == 0:
-                Player.MessageFrom(sys, "Usage /cdeny")
-                return
             id = Player.SteamID
             if not self.IsPending(id):
                 Player.MessageFrom(sys, "You aren't pending any requests!")
@@ -507,9 +509,6 @@ class Clans:
             inviter.MessageFrom(sys, Player.Name + "  Denied the request!")
             Player.MessageFrom(sys, "You denied the request!")
         elif command == "cjoin":
-            if len(args) == 0:
-                Player.MessageFrom(sys, "Usage /cjoin")
-                return
             id = Player.SteamID
             if self.HasClan(id):
                 Player.MessageFrom(sys, "You already have a clan!")
