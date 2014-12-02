@@ -348,6 +348,19 @@ class Clans:
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
                 Player.MessageFrom("[" + clan + "]", motd)
 
+    def On_PlayerAttacked(self, PlayerHurtEvent):
+        if PlayerHurtEvent.Attacker.ToPlayer() is None:
+            return
+        Victim = PlayerHurtEvent.Victim
+        Attacker = Server.GetPlayer(PlayerHurtEvent.Attacker)
+        vid = Victim.SteamID
+        aid = Attacker.SteamID
+        if self.HasClan(vid) and self.HasClan(aid):
+            ca = self.GetClanOfPlayer(aid)
+            cv = self.GetClanOfPlayer(vid)
+            if ca == cv:
+                PlayerHurtEvent.DamageAmount = 0
+
     def On_Chat(self, ChatEvent):
         if self.HasClan(ChatEvent.User.SteamID):
             clan = self.GetClanOfPlayer(ChatEvent.User.SteamID)
@@ -475,8 +488,8 @@ class Clans:
                 Player.MessageFrom(sys, "You already have a clan. Leave first.")
                 return
             text = String.Join(" ", args)
-            if len(text) < 3 or not re.match("[\w]+$", text):
-                Player.MessageFrom(sys, "Give atleast 3 characters without spaces.")
+            if len(text) < 3 or len(text) > 16 or not re.match("[\w]+$", text):
+                Player.MessageFrom(sys, "Give 3-16 characters without spaces.")
                 return
             self.CreateClan(text, id, str(Player.Name))
             cost = cfg.GetSetting("Settings", "Cost")
