@@ -128,9 +128,10 @@ class Clans:
         sys = ini.GetSetting("Settings", "Sys")
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for p in online:
-            if p is not None:
-                p.MessageFrom(sys, "Your clan was disbanded.")
-        ini.DeleteSetting(Clan)
+            p.MessageFrom(sys, "Your clan was disbanded.")
+        enum = ini.EnumSection(Clan)
+        for d in enum:
+            ini.DeleteSetting(Clan, d)
         sec = ini.EnumSection("ClanMembers")
         sec2 = ini.EnumSection("ClanOwners")
         sec3 = ini.EnumSection("ClanOfficers")
@@ -688,11 +689,9 @@ class Clans:
                     Player.MessageFrom(sys, "Usage /cdisband ownerpassword - (This means password was set before)")
                     return
                 if rank == 4:
-                    epw = str(String.Join(" ", args))
                     pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
-                    n = hashlib.md5(epw).hexdigest()
-                    n2 = hashlib.md5(pw).hexdigest()
-                    if n == n2:
+                    n = hashlib.md5(str(args[0])).hexdigest()
+                    if n == pw:
                         self.DeleteClan(clan)
                     else:
                         Player.MessageFrom(sys, "Wrong Password.")
