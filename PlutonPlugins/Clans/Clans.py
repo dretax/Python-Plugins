@@ -325,12 +325,15 @@ class Clans:
             clan = self.GetClanOfPlayer(Player.SteamID)
             name = Player.Name
             #Player.basePlayer.displayName = "[" + clan + "] " + name
-            Player.basePlayer.name = "[" + clan + "] " + name
             claninfo = self.ClanInfo()
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
-                Player.MessageFrom(clan, motd)
+                Player.MessageFrom("[" + clan + "]", motd)
 
+    def On_Chat(self, ChatEvent):
+        if self.HasClan(ChatEvent.User.SteamID):
+            clan = self.GetClanOfPlayer(ChatEvent.User.SteamID)
+            ChatEvent.BroadcastName = "[" + clan + "]" + ChatEvent.User.Name
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -493,7 +496,7 @@ class Clans:
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in Server.ActivePlayers:
                 if player.SteamID in online:
-                    player.MessageFrom(sys, Player.Name + " invited " + playerr.Name + " to join the clan.")
+                    player.MessageFrom("[" + clan + "]", Player.Name + " invited " + playerr.Name + " to join the clan.")
             autokill = Plugin.CreateDict()
             autokill["PlayerR"] = Player.SteamID
             autokill["PlayerT"] = playerr.SteamID
@@ -522,7 +525,7 @@ class Clans:
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in Server.ActivePlayers:
                 if player.SteamID in online:
-                    player.MessageFrom(sys, Player.Name + " joined to the clan!")
+                    player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
         elif command == "cm":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cm message")
@@ -573,7 +576,7 @@ class Clans:
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in Server.ActivePlayers:
                 if player.SteamID in online:
-                    player.MessageFrom(clan, playerr.Name + " got kicked by: " + Player.Name)
+                    player.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
             playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
         elif command == "cpromote":
             if len(args) == 0:
@@ -673,7 +676,11 @@ class Clans:
                 text = String.Join(" ", args)
                 claninfo.AddSetting("ClanInfo" + clan, "Motd", text)
                 claninfo.Save()
-                Player.MessageFrom(sys, "Motd Set")
+                Player.MessageFrom("[" + clan + "]", "Motd was set to: " + text)
+                online = self.GetAllOnlinePlayersOfClan(clan)
+                for player in Server.ActivePlayers:
+                    if player.SteamID in online:
+                        player.MessageFrom("[" + clan + "]", "New Motd: " + text)
         elif command == "cdisband":
             id = Player.SteamID
             if not self.HasClan(id):
