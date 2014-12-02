@@ -187,12 +187,12 @@ class HomeSystem:
                     time = DataStore.Get("home_cooldown", id)
                     tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                     systick = System.Environment.TickCount
-                    if (systick - time) < 0 or math.isnan(systick - time) or math.isnan(time):
+                    if int(systick - int(time)) < 0 or math.isnan(int(systick - int(time))) or math.isnan(time):
                         DataStore.Add("home_cooldown", id, 7)
 
-                    calc = systick - time
+                    calc = systick - int(time)
 
-                    if calc >= cooldown or calc == 0:
+                    if calc >= cooldown or time == 7:
                         if tpdelay == 0:
                             DataStore.Add("homesystemautoban", id, "using")
                             Player.GroundTeleport(float(check[0]), float(check[1]) + 5.5, float(check[2]))
