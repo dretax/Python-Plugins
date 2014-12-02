@@ -170,20 +170,20 @@ class Clans:
         claninfo.AddSetting("ClanInfo" + Clan, "Join" + ID, str(t))
         claninfo.Save()
 
-    def PromotePlayer(self, ID, Name):
+    def PromotePlayer(self, ID):
         ini = self.Clans()
         cur = self.GetClanRank(ID)
+        clan = self.GetClanOfPlayer(ID)
         if cur == 1:
             ini.DeleteSetting("ClanMembers", ID)
-            ini.AddSetting("ClanOfficers", ID, Name)
+            ini.AddSetting("ClanOfficers", ID, clan)
             pr = "Officer"
         elif cur == 2:
             ini.DeleteSetting("ClanOfficers", ID)
-            ini.AddSetting("ClanCoOwners", ID, Name)
+            ini.AddSetting("ClanCoOwners", ID, clan)
             pr = "Co-Owner"
         else:
             return
-        clan = self.GetClanOfPlayer(ID)
         pl = Server.FindPlayer(ID)
         if pl is not None:
             online = self.GetAllOnlinePlayersOfClan(clan)
@@ -192,20 +192,20 @@ class Clans:
                     player.MessageFrom("[" + clan + "]", pl.Name + " got promoted to: " + pr)
         ini.Save()
 
-    def DemotePlayer(self, ID, Name):
+    def DemotePlayer(self, ID):
         ini = self.Clans()
         cur = self.GetClanRank(ID)
+        clan = self.GetClanOfPlayer(ID)
         if cur == 2:
             ini.DeleteSetting("ClanOfficers", ID)
-            ini.AddSetting("ClanMembers", ID, Name)
+            ini.AddSetting("ClanMembers", ID, clan)
             dr = "Member"
         elif cur == 3:
             ini.DeleteSetting("ClanCoOwners", ID)
-            ini.AddSetting("ClanOfficers", ID, Name)
+            ini.AddSetting("ClanOfficers", ID, clan)
             dr = "Officer"
         else:
             return
-        clan = self.GetClanOfPlayer(ID)
         pl = Server.FindPlayer(ID)
         if pl is not None:
             online = self.GetAllOnlinePlayersOfClan(clan)
@@ -622,7 +622,7 @@ class Clans:
                 return
             rank = self.GetClanRank(playerr.SteamID)
             if rank > 0 and rank < 3:
-                self.PromotePlayer(playerr.SteamID, playerr.Name)
+                self.PromotePlayer(playerr.SteamID)
             else:
                 Player.MessageFrom(sys, "You can't promote to Owner. Only one owner can exist.")
         elif command == "cdemote":
@@ -655,7 +655,7 @@ class Clans:
             if selfrank == rank:
                 Player.MessageFrom(sys, "You can't demote people with the same rank.")
                 return
-            self.DemotePlayer(playerr.SteamID, playerr.Name)
+            self.DemotePlayer(playerr.SteamID)
         elif command == "crank":
             if len(args) == 0:
                 id = Player.SteamID
