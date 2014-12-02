@@ -46,7 +46,7 @@ class Clans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) or ini.GetSetting("ClanOfficers", ID) or ini.GetSetting("ClanOwners", ID) or ini.GetSetting("ClanCoOwners", ID):
+        if ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or ini.ContainsSetting("ClanOwners", ID) or ini.ContainsSetting("ClanCoOwners", ID):
             return True
         else:
             return False
@@ -59,13 +59,13 @@ class Clans:
 
     def GetClanOfPlayer(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) is not None:
+        if ini.ContainsSetting("ClanMembers", ID):
             return ini.GetSetting("ClanMembers", ID)
-        if ini.GetSetting("ClanOfficers", ID) is not None:
+        if ini.ContainsSetting("ClanOfficers", ID):
             return ini.GetSetting("ClanOfficers", ID)
-        if ini.GetSetting("ClanOwners", ID) is not None:
+        if ini.ContainsSetting("ClanOwners", ID):
             return ini.GetSetting("ClanOwners", ID)
-        if ini.GetSetting("ClanCoOwners", ID) is not None:
+        if ini.ContainsSetting("ClanCoOwners", ID):
             return ini.GetSetting("ClanCoOwners", ID)
         return None
 
@@ -90,13 +90,13 @@ class Clans:
 
     def GetClanRank(self, ID):
         ini = self.Clans()
-        if ini.GetSetting("ClanMembers", ID) is not None:
+        if ini.ContainsSetting("ClanMembers", ID):
             return 1
-        if ini.GetSetting("ClanOfficers", ID) is not None:
+        if ini.ContainsSetting("ClanOfficers", ID):
             return 2
-        if ini.GetSetting("ClanCoOwners", ID) is not None:
+        if ini.ContainsSetting("ClanCoOwners", ID):
             return 3
-        if ini.GetSetting("ClanOwners", ID) is not None:
+        if ini.ContainsSetting("ClanOwners", ID):
             return 4
         return None
 
@@ -327,7 +327,7 @@ class Clans:
             name = Player.Name
             Player.basePlayer.displayName = "[" + clan + "] " + name
             claninfo = self.ClanInfo()
-            if claninfo.GetSetting("ClanInfo" + clan, "Motd") is not None:
+            if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
                 Player.MessageFrom(clan, motd)
 
@@ -409,8 +409,7 @@ class Clans:
                 Player.MessageFrom(sys, "Online the Owner of the clan can do this.")
                 return
             clan = self.GetClanOfPlayer(id)
-            info = claninfo.GetSetting("ClanInfo" + clan, "Password")
-            if info is not None:
+            if claninfo.ContainsSetting("ClanInfo" + clan, "Password"):
                 Player.MessageFrom(sys, "Password is already set.")
                 return
             n = hashlib.md5(str(args[0])).hexdigest()
@@ -445,8 +444,8 @@ class Clans:
         elif command == "ccreate":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /ccreate clanname - No need to add [] or ()")
-                cost = int(cfg.GetSetting("Settings", "Cost"))
-                if cost > 0:
+                cost = cfg.GetSetting("Settings", "Cost")
+                if int(cost) > 0:
                     Player.MessageFrom(sys, "Cost of Creation: " + str(cost))
                 return
             id = Player.SteamID
@@ -458,8 +457,8 @@ class Clans:
                 Player.MessageFrom(sys, "Give atleast 3 characters without spaces.")
                 return
             self.CreateClan(text, id, str(Player.Name))
-            cost = int(cfg.GetSetting("Settings", "Cost"))
-            if cost > 0:
+            cost = cfg.GetSetting("Settings", "Cost")
+            if int(cost) > 0:
                 self.TakeMoney(id, cost, Player)
             Server.BroadcastFrom(sys, text + " got created by " + Player.Name)
             Player.MessageFrom(sys, "You created your first clan! /cinvite playername to invite!")
@@ -686,7 +685,7 @@ class Clans:
                 return
             rank = self.GetClanRank(id)
             clan = self.GetClanOfPlayer(id)
-            if claninfo.GetSetting("ClanInfo" + clan, "Password") is not None:
+            if claninfo.ContainsSetting("ClanInfo" + clan, "Password"):
                 if rank == 4:
                     pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
                     n = hashlib.md5(epw).hexdigest()
