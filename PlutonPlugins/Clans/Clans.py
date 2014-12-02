@@ -155,13 +155,13 @@ class Clans:
         ini = self.Clans()
         ini.AddSetting(Clan, ID, Name)
         if Rank == 1 or Rank == None:
-            ini.AddSetting("ClanMembers", ID, Name)
+            ini.AddSetting("ClanMembers", ID, Clan)
         elif Rank == 2:
-            ini.AddSetting("ClanOfficers", ID, Name)
+            ini.AddSetting("ClanOfficers", ID, Clan)
         elif Rank == 3:
-            ini.AddSetting("ClanCoOwners", ID, Name)
+            ini.AddSetting("ClanCoOwners", ID, Clan)
         elif Rank == 4:
-            ini.AddSetting("ClanOwners", ID, Name)
+            ini.AddSetting("ClanOwners", ID, Clan)
         ini.Save()
         claninfo = self.ClanInfo()
         now = datetime.datetime.now()
