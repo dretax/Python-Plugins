@@ -415,9 +415,10 @@ class Clans:
             n = hashlib.md5(str(args[0])).hexdigest()
             claninfo.AddSetting("ClanInfo" + clan, "Password", n)
             claninfo.Save()
+            Player.MessageFrom(sys, "Password " + qargs[0] + " set.")
         elif command == "cloginpw":
-            if len(args) == 0 or len(args) > 1:
-                Player.MessageFrom(sys, 'Usage /crankpw "clanname" "password"')
+            if len(args) == 0 or len(args) > 2:
+                Player.MessageFrom(sys, 'Usage /cloginpw "clanname" "password"')
                 Player.MessageFrom(sys, "Quotes are REQUIRED!")
                 return
             id = Player.SteamID
@@ -674,11 +675,8 @@ class Clans:
                 text = String.Join(" ", args)
                 claninfo.AddSetting("ClanInfo" + clan, "Motd", text)
                 claninfo.Save()
+                Player.MessageFrom(sys, "Motd Set")
         elif command == "cdisband":
-            if len(args) == 0:
-                Player.MessageFrom(sys, "Usage /cdisband ownerpassword - (Only required if you set the password)")
-                return
-            epw = String.Join(" ", args)
             id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
@@ -686,7 +684,11 @@ class Clans:
             rank = self.GetClanRank(id)
             clan = self.GetClanOfPlayer(id)
             if claninfo.ContainsSetting("ClanInfo" + clan, "Password"):
+                if len(args) == 0:
+                    Player.MessageFrom(sys, "Usage /cdisband ownerpassword - (This means password was set before)")
+                    return
                 if rank == 4:
+                    epw = str(String.Join(" ", args))
                     pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
                     n = hashlib.md5(epw).hexdigest()
                     n2 = hashlib.md5(pw).hexdigest()
