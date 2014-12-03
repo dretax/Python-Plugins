@@ -71,8 +71,8 @@ class iConomy:
     """
 
     def HandleMoney(self, Aid, Vid):
-        am = round(float(DataStore.Get("iConomy", Aid)), 2)
-        vm = round(float(DataStore.Get("iConomy", Vid)), 2)
+        am = round(self.GetMoney(Aid), 2)
+        vm = round(self.GetMoney(Vid), 2)
         if self.__MoneyMode__ == 0:
             return
         elif self.__MoneyMode__ == 1:
@@ -102,11 +102,11 @@ class iConomy:
             Player.MessageFrom(self.__Sys__, "You magically found " + str(amount) + self.__MoneyMark__)
         elif Player is not None and FromPlayer is not None:
             Player.MessageFrom(self.__Sys__, "You got " + str(amount) + self.__MoneyMark__ + " from " + FromPlayer.Name)
-        m = float(self.GetMoney(id))
+        m = self.GetMoney(id)
         DataStore.Add("iConomy", id, m + float(amount))
 
     def TakeMoney(self, id, amount, Player=None):
-        m = float(DataStore.Get("iConomy", id))
+        m = self.GetMoney(id)
         c = m - float(amount)
         if c < 0.0:
             return 12
@@ -330,6 +330,11 @@ class iConomy:
         if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
             return
         NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
+        try:
+            int(NMoneyMode)
+        except:
+            Plugin.Log("Error", "Something went wrong: " + str(NMoneyMode) + " | " + str(name))
+            return
         if int(NMoneyMode) == 0:
             return
         NKillPortion = float(ini.GetSetting(name + "KillSettings", "KillPortion"))
