@@ -126,7 +126,18 @@ class HomeSystem:
 
     def HomeConfig(self):
         if not Plugin.IniExists("HomeConfig"):
-            homes = Plugin.CreateIni("HomeConfig")
+            Plugin.CreateIni("HomeConfig")
+            homes = Plugin.GetIni("HomeConfig")
+            homes.AddSetting("Settings", "Cooldown", "300000")
+            homes.AddSetting("Settings", "safetpcheck", "5")
+            homes.AddSetting("Settings", "Maxhomes", "1")
+            homes.AddSetting("Settings", "tpdelay", "10")
+            homes.AddSetting("Settings", "DistanceCheck", "0")
+            homes.AddSetting("Settings", "Distance", "15")
+            homes.AddSetting("Settings", "movecheck", "0")
+            homes.AddSetting("Settings", "homesystemname", "[HomeSystem]")
+            homes.AddSetting("Antihack", "Antihack", "true")
+            homes.AddSetting("Antihack", "BanBeds", "true")
             homes.Save()
         return Plugin.GetIni("HomeConfig")
 
@@ -374,7 +385,7 @@ class HomeSystem:
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
 
-        elif command ==  "delhome":
+        elif command == "delhome":
             if len(args) == 1:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -402,7 +413,7 @@ class HomeSystem:
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /delhome name")
 
-        elif command ==  "homes":
+        elif command == "homes":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             ini = self.Homes()
@@ -419,7 +430,7 @@ class HomeSystem:
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
 
-        elif command ==  "addfriendh":
+        elif command == "addfriendh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             if len(args) == 0:
@@ -436,7 +447,7 @@ class HomeSystem:
                 else:
                     Player.MessageFrom(homesystemname, "Player doesn't exist, or you tried to add yourself!");
 
-        elif command ==  "delfriendh":
+        elif command == "delfriendh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             if len(args) == 0:
@@ -476,27 +487,50 @@ class HomeSystem:
             if Player.Admin:
                 DataStore.Add("home_cooldown", Player.SteamID, 7)
                 Player.Message("Time Reset!")
+            else:
+                homesystemname = self.HomeConfig().GetSetting("Settings", "homesystemname")
+                Player.MessageFrom(homesystemname, "You are not allowed to use this command")
+
+        elif command == "deletebeds":
+            homesystemname = self.HomeConfig().GetSetting("Settings", "homesystemname")
+            if Player.Admin:
+                config = self.HomeConfig()
+                if config.GetSetting("Antihack", "Antihack") == "true":
+                    if config.GetSetting("Antihack", "BanBeds") == "true":
+                        Player.MessageFrom(homesystemname, "Deleting all Sleeping bags and Beds, May lag for a few seconds")
+                        for ent in World.Entities:
+                            if ent.Name == "sleepingbag" or ent.Name == "singlebed":
+                                Util.DestroyEntity(ent)
+                                Player.MessageFrom(homesystemname, "Deleted all Sleeping bags and beds from the server")
+                            else:
+                                Player.MessageFrom(homesystemname, "Could not find any Sleeping bags or Beds")
+                    else:
+                        Player.MessageFrom(homesystemname, "ERROR: BanBeds option in the config is set to false")
+                else:
+                    Player.MessageFrom(homesystemname, "ERROR: Antihack option in the config is set to false")
+            else:
+                Player.MessageFrom(homesystemname, "You are not allowed to use this command")
 
 
-    """def On_EntityDeployed(Player, Entity):
+    def On_EntityDeployed(self, Entity):
         config = self.HomeConfig()
-        antihack = config.GetSetting("Settings", "Antihack")
         homesystemname = config.GetSetting("Settings", "homesystemname")
         if Entity is not None:
-            if antihack == "1":
+            if config.GetSetting("Antihack", "Antihack") == "true" and config.GetSetting("Antihack", "BanBeds") == "true":
                 inventory = Player.Inventory
-                if Entity.Name == "SleepingBagA":
+                Player.MessageFrom(homesystemname, "Debug: " + Entity)
+                if Entity.Name == "sleepingbag":
                     Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 15 Cloth.")
-                    Entity.Destroy()
+                    Player.MessageFrom(homesystemname, "Use /home for help on setting a home!")
+                    #Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(homesystemname, "Here's your 15 Cloth back.")
+                    Util.DestroyEntity(Entity)
                     inventory.AddItem("Cloth", 15)
-                if Entity.Name == "SingleBed":
-                    Player.MessageFrom(homesystemname, "Beds are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
-                    Entity.Destroy()
+                elif Entity.Name == "bed":
+                    Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
+                    Player.MessageFrom(homesystemname, "Use /home for help on setting a home!")
+                    #Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(homesystemname, "Here's your 40 Cloth and 100 Metal frags back.")
+                    Util.DestroyEntity(Entity)
                     inventory.AddItem("Cloth", 40)
-                    inventory.AddItem("Metal Fragments", 100)"""
+                    inventory.AddItem("Metal Fragments", 100)
