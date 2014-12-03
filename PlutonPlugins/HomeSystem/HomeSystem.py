@@ -44,12 +44,16 @@ class HomeSystem:
             if int(float(PLX)) != int(float(Player.X)) or int(float(PLZ)) != int(float(Player.Z)):
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
+        if not self.IsFloat(HLoc[0]) or not self.IsFloat(HLoc[1]) or not self.IsFloat(HLoc[2]):
+            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
+            DataStore.Add("home_cooldown", Player.SteamID, 7)
+            return
         Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
-        return
-
 
 
     def HomeSafeTyCallback(self, timer):
@@ -63,6 +67,12 @@ class HomeSystem:
         HLoc = HomeSystem["HomeLocation"]
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
+        if not self.IsFloat(HLoc[0]) or not self.IsFloat(HLoc[1]) or not self.IsFloat(HLoc[2]):
+            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
+            DataStore.Add("home_cooldown", Player.SteamID, 7)
+            return
         Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 5.5, float(HLoc[2]))
         Player.Teleport(Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
@@ -137,7 +147,7 @@ class HomeSystem:
                 return True
             return False
 
-    def IsFloat(value):
+    def IsFloat(self, value):
         try:
             float(value)
             return True
