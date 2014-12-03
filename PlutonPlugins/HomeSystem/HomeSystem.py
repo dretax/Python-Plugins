@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.2b'
 
 import clr
 
@@ -37,7 +37,7 @@ class HomeSystem:
         PLZ = HomeSystem["LocationZ"]
         PLZ = re.sub('[)\(\[\'\]\,]', '', str(PLZ))
         HLoc = HomeSystem["HomeLocation"]
-        HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
+        HLoc = re.sub('[)\(\[\'\]\,]', '', str(HLoc))
         HLoc = HLoc.split(',')
         movec = int(config.GetSetting("Settings", "movecheck"))
         if movec == 1:
@@ -96,7 +96,7 @@ class HomeSystem:
     def FriendOf(self, id, selfid):
         ini = self.Wl()
         check = ini.GetSetting(id, selfid)
-        if check and check is not None:
+        if check:
             return True
         return False
 
@@ -108,8 +108,8 @@ class HomeSystem:
 
     def HomeOf(self, Player, Home):
         ini = self.Homes()
-        check = ini.GetSetting(Player.SteamID, Home)
-        if check is not None:
+        if ini.ContainsSetting(Player.SteamID, Home):
+            check = ini.GetSetting(Player.SteamID, Home)
             c = check.replace("(", "")
             c = c.replace(")", "")
             return c.split(",")
@@ -117,8 +117,8 @@ class HomeSystem:
 
     def HomeOfID(self, id, Home):
         ini = self.Homes()
-        check = ini.GetSetting(id, Home)
-        if check is not None:
+        if ini.ContainsSetting(id, Home):
+            check = ini.GetSetting(id, Home)
             c = check.replace("(", "")
             c = c.replace(")", "")
             return c.split(",")
@@ -143,7 +143,7 @@ class HomeSystem:
         checkdist = ini.EnumSection(id)
         for home in checkdist:
             homes = ini.GetSetting(id, home)
-            if homes is not None:
+            if homes:
                 return True
             return False
 
@@ -373,7 +373,6 @@ class HomeSystem:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
-
         elif command ==  "delhome":
             if len(args) == 1:
                 config = self.HomeConfig()
@@ -383,8 +382,8 @@ class HomeSystem:
                 id = Player.SteamID
                 check = ini.GetSetting(id, home)
                 ifdfhome = ini.GetSetting("DefaultHome", id)
-                if check is not None:
-                    if ifdfhome is not None:
+                if check:
+                    if ifdfhome:
                         ini.DeleteSetting("DefaultHome", id)
                     homes = ini.GetSetting("HomeNames", id)
                     second = homes.replace(home+",", "")
@@ -407,7 +406,7 @@ class HomeSystem:
             homesystemname = config.GetSetting("Settings", "homesystemname")
             ini = self.Homes()
             id = Player.SteamID
-            if ini.GetSetting("HomeNames", id) is not None:
+            if ini.GetSetting("HomeNames", id):
                 homes = ini.GetSetting("HomeNames", id).split(',')
                 leng = len(homes)
                 for i in xrange(-1, leng):
@@ -427,7 +426,7 @@ class HomeSystem:
                 return
             elif len(args) > 0:
                 playertor = self.GetPlayer(args[0])
-                if playertor is not None and playertor != Player:
+                if playertor and playertor != Player:
                     ini = self.Wl()
                     id = Player.SteamID
                     ini.AddSetting(id, playertor.SteamID, playertor.Name)
@@ -435,7 +434,6 @@ class HomeSystem:
                     Player.MessageFrom(homesystemname, "Player Whitelisted")
                 else:
                     Player.MessageFrom(homesystemname, "Player doesn't exist, or you tried to add yourself!");
-
         elif command ==  "delfriendh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -462,7 +460,6 @@ class HomeSystem:
                     if i == counted:
                         Player.MessageFrom(homesystemname, "Player doesn't exist!")
                         return
-
         elif command == "listwlh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -476,27 +473,3 @@ class HomeSystem:
             if Player.Admin:
                 DataStore.Add("home_cooldown", Player.SteamID, 7)
                 Player.Message("Time Reset!")
-
-
-    """def On_EntityDeployed(Player, Entity):
-        config = self.HomeConfig()
-        antihack = config.GetSetting("Settings", "Antihack")
-        homesystemname = config.GetSetting("Settings", "homesystemname")
-        if Entity is not None:
-            if antihack == "1":
-                inventory = Player.Inventory
-                if Entity.Name == "SleepingBagA":
-                    Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 15 Cloth.")
-                    Entity.Destroy()
-                    inventory.AddItem("Cloth", 15)
-                if Entity.Name == "SingleBed":
-                    Player.MessageFrom(homesystemname, "Beds are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
-                    Entity.Destroy()
-                    inventory.AddItem("Cloth", 40)
-                    inventory.AddItem("Metal Fragments", 100)"""
