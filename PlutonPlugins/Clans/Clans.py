@@ -116,6 +116,7 @@ class Clans:
         ini.Save()
         claninfo.AddSetting("ClanInfo" + Clan, "Creation", str(t))
         claninfo.AddSetting("ClanInfo" + Clan, "Owner", Name)
+        claninfo.AddSetting("ClanList", Clan, "1")
         claninfo.Save()
         #Todo: More to come.
 
@@ -154,6 +155,7 @@ class Clans:
         ini.Save()
         claninfo.DeleteSetting("ClanInfo" + Clan, "Creation")
         claninfo.DeleteSetting("ClanInfo" + Clan, "Owner")
+        claninfo.DeleteSetting("ClanList", Clan)
         claninfo.Save()
 
     def AddPlayerToClan(self, Clan, ID, Name, Rank = None):
@@ -399,23 +401,22 @@ class Clans:
             Player.MessageFrom(sys, "/cdisband - Disbands clan, If ownerpw was set, It will need It")
         elif command == "clist":
             Player.MessageFrom(sys, "---Clan List---")
-            sec = claninfo.Sections
+            sec = claninfo.EnumSection("ClanList")
             for clanname in sec:
-                name = clanname.replace("ClanInfo", "")
-                Player.MessageFrom(sys, "[" + name + "]")
+                Player.MessageFrom(sys, "[" + clanname + "]")
         elif command == "cinfo":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Specify Clan name!")
                 return
-            sec = claninfo.Sections
-            for clanname in sec:
-                name = clanname.replace("ClanInfo", "")
-                n = self.GetClanPopulation(name)
-                own = claninfo.GetSetting(clanname, "Owner")
-                ex = claninfo.GetSetting(clanname, "Creation")
-                Player.MessageFrom(sys, "Clan: [" + name + "]")
+            text = String.Join(" ", args)
+            if claninfo.ContainsSetting("ClanList", text):
+                clan = claninfo.GetSetting("ClanList", text)
+                n = self.GetClanPopulation(clan)
+                own = claninfo.GetSetting(clan, "Owner")
+                ex = claninfo.GetSetting(clan, "Creation")
+                Player.MessageFrom(sys, "Clan: [" + clan + "]")
                 Player.MessageFrom(sys, "Owner: " + own)
-                Player.MessageFrom(sys, "Members: " + n)
+                Player.MessageFrom(sys, "Members: " + str(n))
                 Player.MessageFrom(sys, "Exists Since: " + str(ex))
         elif command == "cmembers":
             id = Player.SteamID
@@ -424,10 +425,9 @@ class Clans:
                 Player.MessageFrom(sys, self.GetClanMembers(clan))
             else:
                 clan = String.Join(" ", args)
-                if self.GetClanOfPlayer(clan) is not None:
+                if not claninfo.ContainsSetting("ClanList", clan):
                     Player.MessageFrom(sys, "Clan named " + clan + " doesn't exist.")
                     return
-                clan = self.GetClanOfPlayer(clan)
                 Player.MessageFrom(sys, self.GetClanMembers(clan))
         elif command == "crankpw":
             if len(args) == 0 or len(args) > 1:
