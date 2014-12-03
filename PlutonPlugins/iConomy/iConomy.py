@@ -270,7 +270,7 @@ class iConomy:
 
     def On_PlayerConnected(self, Player):
         sid = Player.SteamID
-        if DataStore.Get("iConomy", sid) is None:
+        if not DataStore.ContainsKey("iConomy", sid):
             DataStore.Add("iConomy", sid, self.__DefaultMoney__)
         Player.MessageFrom(self.__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + self.__MoneyMark__)
 
@@ -286,7 +286,7 @@ class iConomy:
                 victim = PlayerDeathEvent.Victim
                 NDeathPortion = float(ini.GetSetting(name + "KillSettings", "DeathPortion"))
                 NDeathPortion2 = float(ini.GetSetting(name + "KillSettings", "DeathPortion2"))
-                m = round(float(DataStore.Get("iConomy", victim.SteamID)), 2)
+                m = round(self.GetMoney(victim.SteamID), 2)
                 if NMoneyMode == 1:
                     if m == 0.0:
                         m = 20.0
