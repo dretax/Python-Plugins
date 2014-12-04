@@ -56,6 +56,11 @@ class iConomy:
             ini.AddSetting("boarKillSettings", "DeathPortion", "0.75")
             ini.AddSetting("boarKillSettings", "KillPortion2", "5.0")
             ini.AddSetting("boarKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("chickenKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("chickenKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("chickenKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("chickenKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("chickenKillSettings", "DeathPortion2", "4.0")
             ini.Save()
         return Plugin.GetIni("iConomy")
 
@@ -122,8 +127,13 @@ class iConomy:
         DataStore.Add("iConomy", id, float(amount))
 
     def GetMoney(self, id):
-        m = DataStore.Get("iConomy", id)
-        return float(m)
+        if DataStore.ContainsKey("iConomy", id):
+            m = DataStore.Get("iConomy", id)
+            return float(m)
+        else:
+            m = self.__DefaultMoney__
+            DataStore.Add("iConomy", id, float(m))
+
 
 
     """
@@ -167,7 +177,7 @@ class iConomy:
 
     def IsAnimal(self, String):
         s = String.replace('(Clone)', '')
-        if s == 'stag' or s == 'wolf' or s == 'bear' or s == 'boar':
+        if s == 'stag' or s == 'wolf' or s == 'bear' or s == 'boar' or s == 'chicken':
             return True
         return False
 
@@ -330,11 +340,6 @@ class iConomy:
         if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
             return
         NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
-        try:
-            int(NMoneyMode)
-        except:
-            Plugin.Log("Error", "Something went wrong: " + str(NMoneyMode) + " | " + str(name))
-            return
         if int(NMoneyMode) == 0:
             return
         NKillPortion = float(ini.GetSetting(name + "KillSettings", "KillPortion"))
