@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -245,6 +245,21 @@ class Clans:
             g = ini.GetSetting(Clan, m)
             s = s + g +", "
         return s
+
+    def GetClanMembersList(self, Clan):
+        ini = self.Clans()
+        sec = ini.EnumSection(Clan)
+        names = {}
+        for id in sec:
+            g = str(ini.GetSetting(Clan, id))
+            g = g.lower()
+            names.update({id:g})
+        return names
+
+    def GetKeyByValue(self, List, Value):
+        for n, v in List.iteritems():
+            if v == Value:
+                return n
 
     def IsPending(self, id):
         if DataStore.ContainsKey("Clans", id):
@@ -577,43 +592,89 @@ class Clans:
             name = "(" + rank + ") " + name
             text = String.Join(" ", args)
             self.SendPrivateMessage(clan, name, text)
-        elif command == "ckick":
-            if len(args) == 0:
-                Player.MessageFrom(sys, "Usage /ckick playername")
-                return
-            name = str(Player.Name)
+        elif command == "cleave":
             id = Player.SteamID
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
-            playerr = self.CheckV(Player, args)
-            if playerr is None:
-                return
-            if playerr.SteamID == id:
-                Player.MessageFrom(sys, "Gosh, this is yourself....")
-                return
-            rank = self.GetClanRank(playerr.SteamID)
-            selfrank = self.GetClanRank(id)
+            rank = self.GetClanRank(id)
             clan = self.GetClanOfPlayer(id)
-            if self.GetClanOfPlayer(playerr.SteamID) is not None:
-                Player.MessageFrom(sys, "This player doesn't even have a clan")
+            lenn = self.GetClanPopulation(clan)
+            if lenn == 1:
+                self.DeleteClan(clan)
                 return
-            otherclan = self.GetClanOfPlayer(playerr.SteamID)
-            if rank == selfrank:
-                Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+            if rank == 4:
+                self.DeleteClan(clan)
+            else:
+                self.RemovePlayerFromClan(clan, id)
+                online = self.GetAllOnlinePlayersOfClan(clan)
+                for pl in Server.ActivePlayers:
+                    if pl.SteamID in online:
+                        pl.MessageFrom("[" + clan + "]", Player.Name + " left the clan.")
+                Player.MessageFrom(clan, "You left your clan.")
+        elif command == "ckick":
+            if len(args) == 0:
+                Player.MessageFrom(sys, "Usage /ckick playername")
                 return
-            if rank > selfrank:
-                Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+            id = Player.SteamID
+            if not self.HasClan(id):
+                Player.MessageFrom(sys, "You don't have a clan!")
                 return
-            if otherclan != clan:
-                Player.MessageFrom(sys, "Heh. Silly you.")
-                return
-            self.RemovePlayerFromClan(clan, playerr.SteamID)
-            online = self.GetAllOnlinePlayersOfClan(clan)
-            for player in Server.ActivePlayers:
-                if player.SteamID in online:
-                    player.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
-            playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
+            clan = self.GetClanOfPlayer(id)
+            playerr = self.CheckV(Player, args)
+            selfrank = self.GetClanRank(id)
+            if playerr is None:
+                text = String.Join(" ", args)
+                text = text.lower()
+                list = self.GetClanMembersList(clan)
+                values = list.values()
+                namee = None
+                for name in values:
+                    if text in name:
+                        n = self.GetKeyByValue(list, name)
+                        otherrank = self.GetClanRank(n)
+                        if otherrank == selfrank:
+                            Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+                            return
+                        if otherrank > selfrank:
+                            Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+                            return
+                        if n == id:
+                            Player.MessageFrom(sys, "Gosh, this is yourself....")
+                            return
+                        self.RemovePlayerFromClan(clan, n)
+                        namee = name
+                if namee:
+                    online = self.GetAllOnlinePlayersOfClan(clan)
+                    for pl in Server.ActivePlayers:
+                        if pl.SteamID in online:
+                            pl.MessageFrom("[" + clan + "]", namee + " got kicked by: " + Player.Name)
+                            return
+                Player.MessageFrom(sys, "Couldn't find player.")
+            else:
+                if playerr.SteamID == id:
+                    Player.MessageFrom(sys, "Gosh, this is yourself....")
+                    return
+                rank = self.GetClanRank(playerr.SteamID)
+                if self.GetClanOfPlayer(playerr.SteamID) is not None:
+                    Player.MessageFrom(sys, "This player doesn't even have a clan")
+                    return
+                otherclan = self.GetClanOfPlayer(playerr.SteamID)
+                if rank == selfrank:
+                    Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+                    return
+                if rank > selfrank:
+                    Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
+                    return
+                if otherclan != clan:
+                    Player.MessageFrom(sys, "Heh. Silly you.")
+                    return
+                self.RemovePlayerFromClan(clan, playerr.SteamID)
+                online = self.GetAllOnlinePlayersOfClan(clan)
+                for pl in Server.ActivePlayers:
+                    if pl.SteamID in online:
+                        pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
+                playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
         elif command == "cpromote":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cpromote playername")
