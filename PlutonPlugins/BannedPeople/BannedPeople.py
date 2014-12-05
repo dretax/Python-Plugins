@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0b'
+__version__ = '1.1'
 
 import clr
 
@@ -33,7 +33,6 @@ class BannedPeople:
     def On_PluginInit(self):
         self.BannedPeopleConfig()
 
-
     def argsToText(self, args):
         text = String.Join(" ", args)
         return text
@@ -45,7 +44,7 @@ class BannedPeople:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIds", pl)
             lower = pl.lower()
-            if nameid != None and lower == name:
+            if nameid and lower == name:
                 return pl
         return None
 
@@ -57,7 +56,7 @@ class BannedPeople:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIps", pl)
             lower = pl.lower()
-            if nameid != None and lower == name:
+            if nameid and lower == name:
                 return pl
         return None
 
@@ -68,23 +67,32 @@ class BannedPeople:
                 return pl
         return None
 
-
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
-        V3.1
+        Can Handle Single argument and Array args.
+        V4.0
     """
     def CheckV(self, Player, args):
         ini = self.BannedPeopleConfig()
         systemname = ini.GetSetting("Main", "Name")
-        p = self.GetPlayerName(String.Join(" ", args))
-        if p is not None:
-            return p
-
         count = 0
-        for pl in Server.ActivePlayers:
-            for namePart in args:
-                if namePart.lower() in pl.Name.lower():
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(String.Join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            p = self.GetPlayerName(str(args))
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if str(args).lower() in pl.Name.lower():
                     p = pl
                     count += 1
                     continue
@@ -151,7 +159,7 @@ class BannedPeople:
                     name = self.argsToText(args)
                     id = self.GetPlayerUnBannedID(name)
                     ip = self.GetPlayerUnBannedIP(name)
-                    if id == None:
+                    if id is None:
                         Player.Message("Target: " + name + " isn't in the database, or you misspelled It!")
 
                     else:
