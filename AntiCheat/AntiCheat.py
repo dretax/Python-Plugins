@@ -28,10 +28,8 @@ class AntiCheat:
                     continue
                 locl = DataStore.Get("EquinoxAntiCheat", id).split(",")
                 vector = Util.CreateVector(locl[0], locl[1], locl[2])
-                dist = Util.GetVectorsDistance(vector, loc)
-                ndist = round(dist, 2)
-                nyan = (int(player.Y) - int(locl[1]))
-                ndistt = round(nyan, 2)
+                ndist = round(Util.GetVectorsDistance(vector, loc), 2)
+                ndistt = round(int(player.Y) - int(locl[1]), 2)
                 if ndistt > 23 and ndistt > 0:
                     player.Message("You moved too fast!")
                     Server.Broadcast(name + " was moving too fast. Kicked.")
