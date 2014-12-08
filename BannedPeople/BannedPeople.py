@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -50,7 +50,7 @@ class BannedPeople:
             Nickname += args[i] + " "
             Nickname = Data.Substring(Nickname, 0, len(Nickname) - 1)
             target = self.GetPlayerName(Nickname)
-            if target != None:
+            if target is not None:
                 return target
 
             else:
@@ -150,6 +150,7 @@ class BannedPeople:
                         id = playerr.SteamID
                         ip = playerr.IP
                         name = playerr.Name
+                        loc = str(playerr.Location)
                         for pl in Server.Players:
                             if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
 
@@ -162,6 +163,7 @@ class BannedPeople:
                         Player.Message("You banned " + name)
                         Player.Message("Player's IP: " + ip)
                         Player.Message("Player's ID: " + id)
+                        Player.Message("Player's Location: " + loc)
                         playerr.Message("You were banned from the server")
                         checking = DataStore.Get("BanIp", Player.SteamID)
                         if checking == "true":
