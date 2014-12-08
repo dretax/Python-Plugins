@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 import math
 
@@ -74,7 +74,7 @@ class FPSBoost:
     def On_Command(self, Player, cmd, args):
         if cmd == "fps":
             time = DataStore.Get("FPSBoost", Player.SteamID)
-            if time == None:
+            if time is None:
                 DataStore.Add("FPSBoost", Player.SteamID, str(System.Environment.TickCount))
                 time = DataStore.Get("FPSBoost", Player.SteamID)
             ini = self.FPSINI()
@@ -97,7 +97,7 @@ class FPSBoost:
                 self.SendFPS(Player)
         elif cmd == "graph":
             time = DataStore.Get("FPSBoost", Player.SteamID)
-            if time == None:
+            if time is None:
                 DataStore.Add("FPSBoost", Player.SteamID, str(System.Environment.TickCount))
                 time = DataStore.Get("FPSBoost", Player.SteamID)
             ini = self.FPSINI()
