@@ -123,28 +123,28 @@ class IdIdentifier:
                     Player.Message("Id of Player (" + id + ") was banned.")
 
 
-def On_EntityHurt(self, HurtEvent):
-    if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-        #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
-        id = self.TrytoGrabID(HurtEvent.Attacker)
-        if id is None:
-            return
-        gun = HurtEvent.WeaponName
-        if gun == "Shotgun":
-            return
-        else:
-            #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
-            OwnerID = self.GetIt(HurtEvent.Entity)
-            if OwnerID is None:
+    def On_EntityHurt(self, HurtEvent):
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
+            #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
+            id = self.TrytoGrabID(HurtEvent.Attacker)
+            if id is None:
                 return
-            get = DataStore.Get("OwnerMode", HurtEvent.Attacker.SteamID)
-            if get is not None and get == "true":
-                type = HurtEvent.DamageType
-                if type == "Bleeding":
-                    HurtEvent.DamageAmount = 0
-                    OwnerID = HurtEvent.Entity.OwnerID
-                    name = self.PlayersIni().GetSetting("Track", OwnerID)
-                    if (name is not None):
-                        HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
-                    else:
-                        HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
+            gun = HurtEvent.WeaponName
+            if gun == "Shotgun":
+                return
+            else:
+                #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
+                OwnerID = self.GetIt(HurtEvent.Entity)
+                if OwnerID is None:
+                    return
+                get = DataStore.Get("OwnerMode", HurtEvent.Attacker.SteamID)
+                if get is not None and get == "true":
+                    type = HurtEvent.DamageType
+                    if type == "Bleeding":
+                        HurtEvent.DamageAmount = 0
+                        OwnerID = HurtEvent.Entity.OwnerID
+                        name = self.PlayersIni().GetSetting("Track", OwnerID)
+                        if (name is not None):
+                            HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
+                        else:
+                            HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
