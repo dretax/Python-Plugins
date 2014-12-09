@@ -22,9 +22,9 @@ class BannedPeople:
 
     def GetPlayerName(self, name):
         try:
-            name = name.lower()
+            namee = name.lower()
             for pl in Server.Players:
-                if pl.Name.lower() == name:
+                if pl.Name.lower() == namee:
                     return pl
             return None
         except:
@@ -109,25 +109,25 @@ class BannedPeople:
 
 
     def GetPlayerUnBannedID(self, name):
-        name = Data.ToLower(name)
+        namee = name.lower()
         ini = self.BannedPeopleIni()
         checkdist = ini.EnumSection("NameIds")
         for pl in checkdist:
             nameid = ini.GetSetting("NameIds", pl)
-            lower = Data.ToLower(pl)
-            if (nameid != None and lower == name):
+            lower = pl.lower()
+            if nameid and lower == namee:
                 return pl
         return None
 
 
     def GetPlayerUnBannedIP(self, name):
-        name = Data.ToLower(name)
+        namee = name.lower()
         ini = self.BannedPeopleIni()
         checkdist = ini.EnumSection("NameIps")
         for pl in checkdist:
             nameid = ini.GetSetting("NameIps", pl)
-            lower = Data.ToLower(pl)
-            if (nameid != None and lower == name):
+            lower = pl.lower()
+            if nameid and lower == namee:
                 return pl
         return None
 
@@ -138,7 +138,7 @@ class BannedPeople:
                 sysname = ini.GetSetting("Main", "Name")
                 if len(args) > 0:
                     playerr = self.CheckV(Player, args)
-                    if playerr == None:
+                    if playerr is None:
                         Player.MessageFrom(sysname, "No Player found with that name!")
 
                     else:
@@ -184,7 +184,7 @@ class BannedPeople:
                     name = self.argsToText(args)
                     id = self.GetPlayerUnBannedID(name)
                     ip = self.GetPlayerUnBannedIP(name)
-                    if id == None:
+                    if id is None:
                         Player.Message("Target: " + name + " isn't in the database, or you misspelled It!")
 
                     else:
@@ -198,7 +198,8 @@ class BannedPeople:
                         ini.DeleteSetting("NameIds", name)
                         ini.Save()
                         for pl in Server.Players:
-                            if pl.Admin: pl.MessageFrom(sysname, name + " was unbanned by: " + Player.Name);
+                            if pl.Admin:
+                                pl.MessageFrom(sysname, name + " was unbanned by: " + Player.Name)
 
                         Player.MessageFrom(sysname, "Player " + name + " unbanned!")
                 else:
@@ -207,19 +208,12 @@ class BannedPeople:
             if Player.Admin or self.isMod(Player.SteamID):
                 ini = self.BannedPeopleConfig()
                 sysname = ini.GetSetting("Main", "Name")
-                if len(args) == 0:
-                    Player.MessageFrom(sysname, "BanIp HideName")
-                    Player.MessageFrom(sysname, "To activate use the command \"/banhidename true\"")
-                    Player.MessageFrom(sysname, "To deactivate use the command \"/banhidename false\"")
-
-                if len(args) == 1:
-                    if args[0] == "true":
-                        DataStore.Add("BanIp", Player.SteamID, "true")
-                        Player.MessageFrom(sysname, "Now hiding your name!")
-
-                    if args[0] == "false":
-                        DataStore.Add("BanIp", Player.SteamID, "false")
-                        Player.MessageFrom(sysname, "Now displaying your name!")
+                if not DataStore.ContainsKey("BanIp", Player.SteamID):
+                    DataStore.Add("BanIp", Player.SteamID, "true")
+                    Player.MessageFrom(sysname, "Now hiding your name!")
+                else:
+                    DataStore.Remove("BanIp", Player.SteamID)
+                    Player.MessageFrom(sysname, "Now displaying your name!")
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
