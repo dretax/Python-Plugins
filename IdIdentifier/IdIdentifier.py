@@ -55,11 +55,11 @@ class IdIdentifier:
 
     def On_PlayerConnected(self, Player):
         sid = self.TrytoGrabID(Player)
-        if (sid == None):
+        if sid is None:
             return
         banini = self.ManualBan()
         isbanned = banini.GetSetting("Banned", sid)
-        if str(isbanned) == "1":
+        if int(isbanned) == 1:
             Player.Disconnect()
             return
         name = Player.Name
@@ -94,23 +94,18 @@ class IdIdentifier:
 
     def On_Command(self, Player, cmd, args):
         if cmd == "owner":
-            if len(args) == 0:
-                Player.Message("OwnerMode")
-                Player.Message("To activate use the command \"/owner start\"")
-                Player.Message("To deactivate use the command \"/owner stop\"")
-            elif len(args) == 1:
-                if Player.Admin or self.isMod(Player.SteamID):
-                    id = Player.SteamID
-                    if (args[0] == "start"):
-                        DataStore.Add("OwnerMode", id, "true")
-                        Player.Message("---Owner---")
-                        Player.Message("You are in Owner mode")
-                        Player.Message("If you finished, don't forget to quit from It!")
-                        Player.Message("Shotgun cannot be used in Owner mode!")
-                    elif (args[0] == "stop"):
-                        DataStore.Add("OwnerMode", id, "false")
-                        Player.Message("---Owner---")
-                        Player.Message("You quit Owner mode!")
+            if Player.Admin or self.isMod(Player.SteamID):
+                id = Player.SteamID
+                if not DataStore.ContainsKey("OwnerMode", id):
+                    Player.Message("---Owner---")
+                    Player.Message("You are in Owner mode")
+                    Player.Message("If you finished, don't forget to quit from It!")
+                    Player.Message("Shotgun cannot be used in Owner mode!")
+                    DataStore.Add("OwnerMode", id, "true")
+                else:
+                    DataStore.Remove("OwnerMode", id)
+                    Player.Message("---Owner---")
+                    Player.Message("You quit Owner mode!")
         elif cmd == "offban":
             ini = self.ManualBan()
             if len(args) == 0:
