@@ -59,15 +59,15 @@ class IdIdentifier:
             return
         banini = self.ManualBan()
         isbanned = banini.GetSetting("Banned", sid)
-        if int(isbanned) == 1:
+        if str(isbanned) == "1":
             Player.Disconnect()
             return
-        name = Player.Name
+        name = str(Player.Name)
         ip = str(Player.IP)
         location = str(Player.Location)
         dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if (ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None):
+        if ini.GetSetting("Track", sid) and ini.GetSetting("LastJoin", name):
             ini.SetSetting("Track", sid, name)
             ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
@@ -78,13 +78,15 @@ class IdIdentifier:
 
 
     def On_PlayerDisconnected(self, Player):
-        name = Player.Name
-        id = Player.SteamID
+        name = str(Player.Name)
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
         location = str(Player.Location)
         ini = self.PlayersIni()
         dt = str(System.DateTime.Now)
         try:
-            if ini.GetSetting("Track", name) is not None:
+            if ini.GetSetting("Track", name):
                 ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
             else:
                 ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
