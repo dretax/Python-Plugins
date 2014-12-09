@@ -67,7 +67,7 @@ class IdIdentifier:
         location = str(Player.Location)
         dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if (ini.GetSetting("Track", sid) != None and ini.GetSetting("LastJoin", name) != None):
+        if (ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None):
             ini.SetSetting("Track", sid, name)
             ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
@@ -84,7 +84,7 @@ class IdIdentifier:
         ini = self.PlayersIni()
         dt = str(System.DateTime.Now)
         try:
-            if ini.GetSetting("Track", name) != None:
+            if ini.GetSetting("Track", name) is not None:
                 ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
             else:
                 ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
@@ -124,7 +124,7 @@ class IdIdentifier:
 
 
 def On_EntityHurt(self, HurtEvent):
-    if HurtEvent.Attacker != None and HurtEvent.Entity != None and not HurtEvent.IsDecay:
+    if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
         #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
         id = self.TrytoGrabID(HurtEvent.Attacker)
         if id is None:
@@ -138,13 +138,13 @@ def On_EntityHurt(self, HurtEvent):
             if OwnerID is None:
                 return
             get = DataStore.Get("OwnerMode", HurtEvent.Attacker.SteamID)
-            if get != None and get == "true":
+            if get is not None and get == "true":
                 type = HurtEvent.DamageType
                 if type == "Bleeding":
                     HurtEvent.DamageAmount = 0
                     OwnerID = HurtEvent.Entity.OwnerID
                     name = self.PlayersIni().GetSetting("Track", OwnerID)
-                    if (name != None):
+                    if (name is not None):
                         HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
                     else:
                         HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
