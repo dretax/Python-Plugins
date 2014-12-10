@@ -59,7 +59,7 @@ class DestroySystem:
                 Player.Message("If you finished, don't forget to quit from It!")
                 Player.Message("Shotgun cannot be used in destroy mode!")
             else:
-                DataStore.Add("DestroySystem", Player.SteamID, "false")
+                DataStore.Remove("DestroySystem", Player.SteamID)
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy mode!")
 
