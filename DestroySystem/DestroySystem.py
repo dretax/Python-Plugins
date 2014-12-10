@@ -17,6 +17,7 @@ class DestroySystem:
 
     def On_PluginInit(self):
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
+        self.DestroySys()
 
     def IsEligible(self, HurtEvent):
         try:
