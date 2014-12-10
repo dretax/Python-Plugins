@@ -139,6 +139,9 @@ class DestroySystem:
                             elif EntityName == "Wood Box":
                                 HurtEvent.Attacker.Inventory.AddItem("Wood Storage Box", 1)
 
+                            elif EntityName == "Wood Box Large":
+                                HurtEvent.Attacker.Inventory.AddItem("Large Wood Storage", 1)
+
                             elif EntityName == "Metal Bars Window":
                                 HurtEvent.Attacker.Inventory.AddItem("Metal Window Bars", 1)
 
