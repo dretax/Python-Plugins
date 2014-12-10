@@ -63,6 +63,32 @@ class DestroySystem:
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy mode!")
 
+    Items = {
+        'WoodFoundation': 'Wood Foundation',
+        'WoodDoorFrame': 'Wood Doorway',
+        'WoodWall': 'Wood Wall',
+        'WoodPillar': 'Wood Pillar',
+        'WoodCeiling': 'Wood Ceiling',
+        'MetalDoor': 'Metal Door',
+        'WoodStairs': 'Wood Stairs',
+        'WoodWindowFrame': 'Wood Window',
+        'MetalFoundation': 'Metal Foundation',
+        'MetalDoorFrame': 'Metal Doorway',
+        'MetalWall': 'Metal Wall',
+        'MetalPillar': 'Metal Pillar',
+        'MetalCeiling': 'Metal Stairs',
+        'MetalStairs': 'Metal Stairs',
+        'MetalWindowFrame': 'Metal Window',
+        'Wood_Shelter': 'Wood Shelter',
+        'Barricade_Fence_Deployable': 'Wood Barricade',
+        'Wood Box': 'Wood Storage Box',
+        'Wood Box Large': 'Large Wood Storage',
+        'Metal Bars Window': 'Metal Window Bars',
+        'CampFire': 'Camp Fire',
+        'Wood Spike Wall': 'Spike Wall',
+        'Large Wood Spike Wall': 'Large Spike Wall'
+    }
+
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
@@ -86,71 +112,8 @@ class DestroySystem:
                         ini = self.DestroySys()
                         giveback = int(ini.GetSetting("options", "giveback"))
                         if giveback == 1:
-                            if EntityName == "WoodFoundation":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Foundation", 1)
-
-                            elif EntityName == "WoodDoorFrame":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Doorway", 1)
-
-                            elif EntityName == "WoodWall":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Wall", 1)
-
-                            elif EntityName == "WoodPillar":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Pillar", 1)
-
-                            elif EntityName == "WoodCeiling":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Ceiling", 1)
-
-                            elif EntityName == "MetalDoor":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Door", 1)
-
-                            elif EntityName == "WoodStairs":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Stairs", 1)
-
-                            elif EntityName == "WoodWindowFrame":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Window", 1)
-
-                            elif EntityName == "MetalFoundation":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Foundation", 1)
-
-                            elif EntityName == "MetalDoorFrame":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Doorway", 1)
-
-                            elif EntityName == "MetalWall":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Wall", 1)
-
-                            elif EntityName == "MetalPillar":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Pillar", 1)
-
-                            elif EntityName == "MetalCeiling":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Ceiling", 1)
-
-                            elif EntityName == "MetalStairs":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Stairs", 1)
-
-                            elif EntityName == "MetalWindowFrame":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Window", 1)
-
-                            elif EntityName == "Wood_Shelter":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Shelter", 1)
-
-                            elif EntityName == "Barricade_Fence_Deployable":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Barricade", 1)
-
-                            elif EntityName == "Wood Box":
-                                HurtEvent.Attacker.Inventory.AddItem("Wood Storage Box", 1)
-
-                            elif EntityName == "Wood Box Large":
-                                HurtEvent.Attacker.Inventory.AddItem("Large Wood Storage", 1)
-
-                            elif EntityName == "Metal Bars Window":
-                                HurtEvent.Attacker.Inventory.AddItem("Metal Window Bars", 1)
-
-                            elif EntityName == "CampFire":
-                                HurtEvent.Attacker.Inventory.AddItem("Camp Fire", 1)
-
-                            elif EntityName == "Wood Spike Wall":
-                                HurtEvent.Attacker.Inventory.AddItem("Spike Wall", 1)
-
-                            elif EntityName == "Large Wood Spike Wall":
-                                HurtEvent.Attacker.Inventory.AddItem("Large Spike Wall", 1)
+                            item = self.Items.get(EntityName, None)
+                            if item is None:
+                                return
+                            else:
+                                HurtEvent.Attacker.Inventory.AddItem(item, 1)
