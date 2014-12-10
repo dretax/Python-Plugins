@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -19,6 +19,10 @@ class BannedPeople:
 
     def On_PluginInit(self):
         Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
+
+    red = "[color #FF0000]"
+    green = "[color #009900]"
+    white = "[color #FFFFFF]"
 
     def GetPlayerName(self, name):
         try:
@@ -133,13 +137,13 @@ class BannedPeople:
 
     def On_Command(self, Player, cmd, args):
         if cmd == "banip":
+            ini = self.BannedPeopleConfig()
+            sysname = ini.GetSetting("Main", "Name")
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 if len(args) > 0:
                     playerr = self.CheckV(Player, args)
                     if playerr is None:
-                        Player.MessageFrom(sysname, "No Player found with that name!")
+                        return
 
                     else:
                         ini = self.BannedPeopleIni()
@@ -152,7 +156,7 @@ class BannedPeople:
                         name = playerr.Name
                         loc = str(playerr.Location)
                         for pl in Server.Players:
-                            if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
+                            if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + self.red +  name + self.white + " was banned by: " + Player.Name)
 
                         ini.AddSetting("Ips", ip, "1")
                         ini.AddSetting("Ids", id, "1")
@@ -167,14 +171,16 @@ class BannedPeople:
                         playerr.Message("You were banned from the server")
                         checking = DataStore.Get("BanIp", Player.SteamID)
                         if checking == "true":
-                            playerr.MessageFrom(sysname, "Admin, who banned you: UNKNOWN - Admin in Casing mode")
+                            playerr.MessageFrom(sysname, self.red + "Admin, who banned you: UNKNOWN - Admin in Casing mode")
 
-                        elif checking == "false" or checking == None:
-                            playerr.MessageFrom(sysname, "Admin, who banned you: " + Player.Name)
+                        elif checking == "false" or checking is None:
+                            playerr.MessageFrom(sysname, self.red + "Admin, who banned you: " + Player.Name)
 
                         playerr.Disconnect()
                 else:
                     Player.MessageFrom(sysname, "Specify a Name!")
+            else:
+                Player.MessageFrom(sysname, "You aren't an admin!")
 
         elif cmd == "unbanip":
             if Player.Admin or self.isMod(Player.SteamID):
@@ -199,7 +205,7 @@ class BannedPeople:
                         ini.Save()
                         for pl in Server.Players:
                             if pl.Admin:
-                                pl.MessageFrom(sysname, name + " was unbanned by: " + Player.Name)
+                                pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: "  + self.green + Player.Name)
 
                         Player.MessageFrom(sysname, "Player " + name + " unbanned!")
                 else:
