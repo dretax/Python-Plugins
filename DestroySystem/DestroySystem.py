@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -50,30 +50,21 @@ class DestroySystem:
         return Plugin.GetIni("DestroySys")
 
     def On_Command(self, Player, cmd, args):
-        if cmd == "destroy":
-            if len(args) == 0:
-                Player.Message("Destroy System")
-                Player.Message("To activate use the command \"/destroy start\"")
-                Player.Message("To deactivate use the command \"/destroy stop\"")
-
-            elif len(args) == 1:
-                if args[0] == "start":
-                    DataStore.Add("DestroySystem", Player.SteamID, "true")
-                    Player.Message("---DestroySystem---")
-                    Player.Message("You are in Destroy mode")
-                    Player.Message("If you finished, don't forget to quit from It!")
-                    Player.Message("Shotgun cannot be used in destroy mode!")
-
-                elif args[0] == "stop":
-                    DataStore.Add("DestroySystem", Player.SteamID, "false")
-                    Player.Message("---DestroySystem---")
-                    Player.Message("You quit Destroy mode!")
-                else:
-                    Player.Message("Type /destroy for help")
+        if cmd == "destroy" or cmd == "crush" or cmd == "c":
+            if not DataStore.ContainsKey("DestroySystem", Player.SteamID):
+                DataStore.Add("DestroySystem", Player.SteamID, "true")
+                Player.Message("---DestroySystem---")
+                Player.Message("You are in Destroy mode")
+                Player.Message("If you finished, don't forget to quit from It!")
+                Player.Message("Shotgun cannot be used in destroy mode!")
+            else:
+                DataStore.Add("DestroySystem", Player.SteamID, "false")
+                Player.Message("---DestroySystem---")
+                Player.Message("You quit Destroy mode!")
 
 
     def On_EntityHurt(self, HurtEvent):
-        if HurtEvent.Attacker != None and HurtEvent.Entity != None and not HurtEvent.IsDecay:
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
