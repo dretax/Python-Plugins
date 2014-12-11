@@ -12,6 +12,10 @@ from System import *
     Class
 """
 
+import sys
+path = Util.GetRootFolder()
+sys.path.append(path + "\\Save\\Lib\\")
+
 Lib = True
 try:
     import random
@@ -28,8 +32,6 @@ class HomeSystem3:
     white = "[color #FFFFFF]"
 
     def On_PluginInit(self):
-        if not Lib:
-            return
         Util.ConsoleLog("HomeSystem3 by " + __author__ + " Version: " + __version__ + " loaded.", False)
         self.Config()
         self.PlayersIni()
@@ -141,14 +143,12 @@ class HomeSystem3:
         return False
 
     def On_Command(self, Player, cmd, args):
-        if not Lib:
-            return
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
         id = Player.GameID
         beds = self.PlayersIni()
         if cmd == "home":
-            Player.MessageFrom(sys, self.green + "HomeSystem3" + self.red + __version__ + self.white + " by " + __author__)
+            Player.MessageFrom(sys, self.green + "HomeSystem3 V" + self.red + __version__ + self.white + " by " + __author__)
             Player.MessageFrom(sys, "/setdefaulthome - Sets home, If standing on a bed or bag.")
             Player.MessageFrom(sys, "/delhome - Deletes your Default Home")
             Player.MessageFrom(sys, "/addfriendh name - Adds Player To Foundation Whitelist")
@@ -220,8 +220,6 @@ class HomeSystem3:
                 Player.MesssageFrom(sys, "- " + str(nameof))
 
     def On_PlayerConnected(self, Player):
-        if not Lib:
-            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -285,16 +283,12 @@ class HomeSystem3:
                     Player.MessageFrom(sys, self.green + "Teleported to a random location.")
 
     def On_PlayerDisconnected(self, Player):
-        if not Lib:
-            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
         DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
 
     def On_EntityDeployed(self, Player, Entity):
-        if not Lib:
-            return
         if Entity is not None and Player is not None:
             if Entity.Name == "SleepingBagA" or Entity.Name == "SingleBed":
                 id = Player.GameID
