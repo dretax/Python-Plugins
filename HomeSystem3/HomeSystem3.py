@@ -148,7 +148,7 @@ class HomeSystem3:
         id = Player.GameID
         beds = self.PlayersIni()
         if cmd == "home":
-            Player.MessageFrom(sys, self.green + "HomeSystem3 V" + self.red + __version__ + self.white + " by " + __author__)
+            Player.MessageFrom(sys, self.green + "HomeSystem3" + self.white + " by " + __author__)
             Player.MessageFrom(sys, "/setdefaulthome - Sets home, If standing on a bed or bag.")
             Player.MessageFrom(sys, "/delhome - Deletes your Default Home")
             Player.MessageFrom(sys, "/addfriendh name - Adds Player To Foundation Whitelist")
@@ -159,8 +159,10 @@ class HomeSystem3:
             if not self.HasHome(id):
                 for x in World.Entities:
                     if x.Name == "SleepingBagA" or x.Name == "SingleBed":
-                        dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
-                        if dist <= 1:
+                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
+                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
+                        Player.Message(str(dist))
+                        if dist <= 2:
                             beds.AddSetting("Homes", id, str(loc))
                             beds.Save()
                             Player.MessageFrom(sys, "Home Set.")
@@ -197,7 +199,7 @@ class HomeSystem3:
                 id = Player.SteamID
                 players = beds.EnumSection(id)
                 i = 0
-                counted = players.Length
+                counted = len(players)
                 name = name.lower()
                 for playerid in players:
                     i += 1
@@ -224,31 +226,36 @@ class HomeSystem3:
         if id is None:
             return
         jtime = DataStore.Get("HomeSys3JCD", id)
+        Plugin.Log("asd", "asd1")
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
-        cooldown = ini.GetSetting("Settings", "JoinCooldown")
-        if jtime is None:
-            DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
-            jtime = 7
-        calc = int(System.Environment.TickCount - jtime)
-        if calc < 0 or math.isnan(calc):
-            DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
-            jtime = 7
-
-        if System.Environment.TickCount <= jtime + cooldown * 1000:
+        Plugin.Log("asd", "asd12")
+        cooldown = int(ini.GetSetting("Settings", "JoinCooldown"))
+        Plugin.Log("asd", "asd13")
+        Plugin.Log("asd", "asd14")
+        if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
+            DataStore.Remove("HomeSys3JCD", id)
+            jtime = 0
+        calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
+        Plugin.Log("asd", "asd15")
+        #if System.Environment.TickCount <= jtime + cooldown * 1000:
+        if calc > 0:
+            Plugin.Log("asd", "asd16")
             calc2 = cooldown * 1000
             calc2 = round((calc2 - calc) / 1000, 2)
-            Player.MessageFrom(sys, cooldown + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+            Player.MessageFrom(sys, self.red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
             Player.Disconnect()
             return
-        if System.Environment.TickCount > jtime + cooldown * 1000 or jtime == 7:
+        #elif System.Environment.TickCount > jtime + cooldown * 1000 or jtime is 0:
+        else:
+            DataStore.Remove("HomeSys3JCD", id)
             if not self.HasHome(id):
                 randomloc = int(ini.GetSetting("Settings", "Randoms"))
                 rand = random.randrange(0, randomloc)
                 deff = self.DefaultLocations()
                 randp = deff.GetSetting("DefaultLoc", str(rand))
                 randp = self.Replace(randp)
-                location = Util.CreateVector(randp[0], randp[1], randp[2])
+                location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
                 Player.SafeTeleportTo(location)
                 Player.MessageFrom(sys, self.red + "Teleported to a random location.")
                 Player.MessageFrom(sys, self.red + "Type /home to get the commands.")
@@ -264,7 +271,7 @@ class HomeSystem3:
                     beds = self.PlayersIni()
                     h = beds.GetSetting("Homes", id)
                     h = self.Replace(h)
-                    home = Util.CreateVector(h[0], h[1], h[2])
+                    home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
                     Player.SafeTeleportTo(home)
                     Player.MessageFrom(sys, self.green + "Teleported to your home.")
                     DataStore.Add("HomeSys3CD", id, System.Environment.TickCount)
@@ -278,7 +285,7 @@ class HomeSystem3:
                     deff = self.DefaultLocations()
                     randp = deff.GetSetting("DefaultLoc", str(rand))
                     randp = self.Replace(randp)
-                    location = Util.CreateVector(randp[0], randp[1], randp[2])
+                    location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
                     Player.SafeTeleportTo(location)
                     Player.MessageFrom(sys, self.green + "Teleported to a random location.")
 
@@ -294,17 +301,18 @@ class HomeSystem3:
                 id = Player.GameID
                 ini = self.Config()
                 max = float(ini.GetSetting("Settings", "Distance"))
-                loc = Entity.Location
+                loc = Util.CreateVector(Entity.X, Entity.Y, Entity.Z)
                 sys = ini.GetSetting("Settings", "SysName")
                 msg = ini.GetSetting("Settings", "Message")
                 for x in World.Entities:
                     if x.Name == "WoodFoundation" or x.Name == "MetalFoundation":
-                        dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
+                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
+                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
                         if dist >= max:
                             ownerid = self.GetIt(x)
                             if ownerid is None:
                                 try:
-                                    Plugin.Log("HomeSystem3Error", str(x.Location) + " | " + str(x.Name))
+                                    Plugin.Log("HomeSystem3Error", str(eloc) + " | " + str(x.Name))
                                 except:
                                     pass
                                 continue
