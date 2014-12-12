@@ -1,11 +1,12 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-
+import System
+from System import *
 
 """
     Class
@@ -67,7 +68,7 @@ class BannedPeople:
                         found = all.Name
                         cc += 1
 
-                if (cc == 1):
+                if cc == 1:
                     target = self.GetPlayerName(found)
                     return target
                 elif cc > 1:
@@ -92,25 +93,14 @@ class BannedPeople:
             return None
 
     def argsToText(self, args):
-        text = ""
-        if len(args) == 1:
-            text = args[0]
-        else:
-            for l in xrange(0, len(args)):
-                l += 1
-                if l == (len(args) - 1):
-                    text += args[l]
-                else:
-                    text += args[l] + " "
+        text = String.Join(" ", args)
         return text
-
 
     def BannedPeopleIni(self):
         if not Plugin.IniExists("BannedPeople"):
             ini = Plugin.CreateIni("BannedPeople")
             ini.Save()
         return Plugin.GetIni("BannedPeople")
-
 
     def GetPlayerUnBannedID(self, name):
         namee = name.lower()
@@ -119,7 +109,9 @@ class BannedPeople:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIds", pl)
             lower = pl.lower()
-            if nameid and lower == namee:
+            if nameid is None:
+                return
+            if lower == namee or namee in lower:
                 return pl
         return None
 
@@ -131,7 +123,9 @@ class BannedPeople:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIps", pl)
             lower = pl.lower()
-            if nameid and lower == namee:
+            if nameid is None:
+                return
+            if lower == namee or namee in lower:
                 return pl
         return None
 
@@ -147,7 +141,7 @@ class BannedPeople:
 
                     else:
                         ini = self.BannedPeopleIni()
-                        if playerr.Admin or self.isMod(Player.SteamID):
+                        if playerr.Admin or self.isMod(playerr.SteamID):
                             Player.MessageFrom(sysname, "You cannot ban admins!")
                             return
 
@@ -220,6 +214,14 @@ class BannedPeople:
                 else:
                     DataStore.Remove("BanIp", Player.SteamID)
                     Player.MessageFrom(sysname, "Now displaying your name!")
+        elif cmd == "bans":
+            if Player.Admin or self.isMod(Player.SteamID):
+                ini = self.BannedPeopleConfig()
+                sysname = ini.GetSetting("Main", "Name")
+                checkdist = ini.EnumSection("NameIds")
+                Player.MessageFrom(sysname, self.red + "Current Bans:")
+                for pl in checkdist:
+                    Player.MessageFrom(sysname, str(pl))
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
