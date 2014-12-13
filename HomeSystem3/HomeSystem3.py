@@ -295,7 +295,7 @@ class HomeSystem3:
             Player.MessageFrom(sys, self.green + "Teleported to your home.")
             DataStore.Add("HomeSys3CD", id, System.Environment.TickCount)
         else:
-            Player.MessageFrom(sys, "Your home teleportation is on cooldown.")
+            Player.MessageFrom(sys, self.green + "Your home teleportation is on cooldown.")
             done = round((calc / 1000) / 60, 2)
             done2 = round((cooldown / 1000) / 60, 2)
             Player.MessageFrom(sys, self.green + "Time: " + str(done) + "/" + str(done2))
