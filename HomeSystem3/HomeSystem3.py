@@ -211,6 +211,9 @@ class HomeSystem3:
                 players = beds.EnumSection(id)
                 i = 0
                 counted = len(players)
+                if counted == 0:
+                    Player.MessageFrom(sys, "You have never whitelisted anyone.")
+                    return
                 name = name.lower()
                 for playerid in players:
                     i += 1
