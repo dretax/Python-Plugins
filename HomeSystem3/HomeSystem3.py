@@ -30,11 +30,20 @@ class HomeSystem3:
     red = "[color #FF0000]"
     green = "[color #009900]"
     white = "[color #FFFFFF]"
+    TimerStore = "HomeTimer"
 
     def On_PluginInit(self):
         Util.ConsoleLog("HomeSystem3 by " + __author__ + " Version: " + __version__ + " loaded.", False)
         self.Config()
         self.PlayersIni()
+        DataStore.Flush("HomeSys3JCD")
+        DataStore.Flush("HomeTimer")
+        DataStore.Flush("HomeSys3CD")
+
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
 
     def PlayersIni(self):
         if not Plugin.IniExists("Players"):
@@ -103,10 +112,10 @@ class HomeSystem3:
                     return None
 
     def DefaultLocations(self):
-        if not Plugin.IniExists("DefaultLocations"):
-            ini = Plugin.CreateIni("DefaultLocations")
+        if not Plugin.IniExists("DefaultLoc"):
+            ini = Plugin.CreateIni("DefaultLoc")
             ini.Save()
-        return Plugin.GetIni("DefaultLocations")
+        return Plugin.GetIni("DefaultLoc")
 
     #There is an error while converting ownerid to string in C#. Hax it.
     def GetIt(self, Entity):
@@ -120,7 +129,7 @@ class HomeSystem3:
 
     def TrytoGrabID(self, Player):
         try:
-            id = Player.GameID
+            id = Player.SteamID
             return id
         except:
             return None
@@ -145,7 +154,7 @@ class HomeSystem3:
     def On_Command(self, Player, cmd, args):
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
-        id = Player.GameID
+        id = Player.SteamID
         beds = self.PlayersIni()
         if cmd == "home":
             Player.MessageFrom(sys, self.green + "HomeSystem3" + self.white + " by " + __author__)
@@ -161,7 +170,6 @@ class HomeSystem3:
                     if x.Name == "SleepingBagA" or x.Name == "SingleBed":
                         eloc = Util.CreateVector(x.X, x.Y, x.Z)
                         dist = round(Util.GetVectorsDistance(loc, eloc), 2)
-                        Player.Message(str(dist))
                         if dist <= 2:
                             beds.AddSetting("Homes", id, str(loc))
                             beds.Save()
@@ -185,7 +193,10 @@ class HomeSystem3:
                 playerr = self.CheckV(Player, args)
                 if playerr is None:
                     return
-                idr = playerr.GameID
+                if playerr == Player:
+                    Player.MessageFrom(sys, "This is you...")
+                    return
+                idr = playerr.SteamID
                 nrr = str(playerr.Name)
                 beds.AddSetting(id, idr, nrr)
                 beds.Save()
@@ -219,86 +230,131 @@ class HomeSystem3:
             Player.MessageFrom(sys, self.green + " List of Whitelisted Friends:")
             for playerid in players:
                 nameof = beds.GetSetting(id, playerid)
-                Player.MesssageFrom(sys, "- " + str(nameof))
+                if nameof:
+                    Player.MesssageFrom(sys, "- " + str(nameof))
+
+    def HomeTimerCallback(self):
+        epoch = Plugin.GetTimestamp()
+        if DataStore.Count(self.TimerStore) >= 1:
+            ids = DataStore.Keys(self.TimerStore)
+            for id in ids:
+                time = int(DataStore.Get(self.TimerStore, id))
+                if epoch >= time:
+                    if not self.HasHome(id):
+                        Player = Server.FindPlayer(id)
+                        if Player is None:
+                            DataStore.Remove(self.TimerStore, id)
+                            continue
+                        self.SendRandom(Player)
+                    else:
+                        Player = Server.FindPlayer(id)
+                        if Player is None:
+                            DataStore.Remove(self.TimerStore, id)
+                            continue
+                        self.SendH(Player)
+                    DataStore.Remove(self.TimerStore, id)
+        else:
+            Plugin.KillTimer("HomeTimer")
+
+    def SendRandom(self, Player):
+        ini = self.Config()
+        sys = ini.GetSetting("Settings", "SysName")
+        randomloc = int(ini.GetSetting("Settings", "Randoms"))
+        rand = random.randrange(0, randomloc)
+        deff = self.DefaultLocations()
+        randp = deff.GetSetting("DefaultLoc", str(rand))
+        randp = self.Replace(randp)
+        location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
+        Player.TeleportTo(location)
+        Player.MessageFrom(sys, self.red + "Teleported to a random location.")
+        Player.MessageFrom(sys, self.red + "Type /home to get the commands.")
+
+
+    def SendH(self, Player):
+        ini = self.Config()
+        sys = ini.GetSetting("Settings", "SysName")
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
+        time = DataStore.Get("HomeSys3CD", id)
+        cooldown = int(ini.GetSetting("Settings", "Cooldown"))
+        if time is None:
+            DataStore.Add("HomeSys3CD", id, 7)
+            time = 7
+        systick = System.Environment.TickCount
+        if int(systick - int(time)) < 0 or math.isnan(int(systick - int(time))) or math.isnan(time):
+            DataStore.Add("HomeSys3CD", id, 7)
+            time = 7
+        calc = systick - int(time)
+        if calc >= cooldown or time == 7 or cooldown == 0:
+            beds= self.PlayersIni()
+            h = beds.GetSetting("Homes", id)
+            h = self.Replace(h)
+            home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
+            Player.SafeTeleportTo(home)
+            Player.MessageFrom(sys, self.green + "Teleported to your home.")
+            DataStore.Add("HomeSys3CD", id, System.Environment.TickCount)
+        else:
+            Player.MessageFrom(sys, "Your home teleportation is on cooldown.")
+            done = round((calc / 1000) / 60, 2)
+            done2 = round((cooldown / 1000) / 60, 2)
+            Player.MessageFrom(sys, self.green + "Time: " + str(done) + "/" + str(done2))
+            randomloc = int(ini.GetSetting("Settings", "Randoms"))
+            rand = random.randrange(0, randomloc)
+            deff = self.DefaultLocations()
+            randp = deff.GetSetting("DefaultLoc", str(rand))
+            randp = self.Replace(randp)
+            location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
+            Player.TeleportTo(location)
+            Player.MessageFrom(sys, self.green + "Teleported to a random location.")
+
+    def SendPlayerToHome(self, Player, id):
+        DataStore.Remove("HomeSys3JCD", id)
+        if not Plugin.GetTimer("HomeTimer"):
+            Plugin.CreateTimer("HomeTimer", 2000).Start()
+        epoch = Plugin.GetTimestamp()
+        exectime = int(epoch) + 10
+        DataStore.Add(self.TimerStore, id, exectime)
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
             return
         jtime = DataStore.Get("HomeSys3JCD", id)
-        Plugin.Log("asd", "asd1")
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
-        Plugin.Log("asd", "asd12")
         cooldown = int(ini.GetSetting("Settings", "JoinCooldown"))
-        Plugin.Log("asd", "asd13")
-        Plugin.Log("asd", "asd14")
+        if jtime is None:
+            self.SendPlayerToHome(Player, id)
+            return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
             DataStore.Remove("HomeSys3JCD", id)
-            jtime = 0
+            self.SendPlayerToHome(Player, id)
+            return
         calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
-        Plugin.Log("asd", "asd15")
-        #if System.Environment.TickCount <= jtime + cooldown * 1000:
-        if calc > 0:
-            Plugin.Log("asd", "asd16")
+        if System.Environment.TickCount <= jtime + cooldown * 1000:
             calc2 = cooldown * 1000
-            calc2 = round((calc2 - calc) / 1000, 2)
+            calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
             Player.MessageFrom(sys, self.red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
             Player.Disconnect()
             return
-        #elif System.Environment.TickCount > jtime + cooldown * 1000 or jtime is 0:
-        else:
-            DataStore.Remove("HomeSys3JCD", id)
-            if not self.HasHome(id):
-                randomloc = int(ini.GetSetting("Settings", "Randoms"))
-                rand = random.randrange(0, randomloc)
-                deff = self.DefaultLocations()
-                randp = deff.GetSetting("DefaultLoc", str(rand))
-                randp = self.Replace(randp)
-                location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
-                Player.SafeTeleportTo(location)
-                Player.MessageFrom(sys, self.red + "Teleported to a random location.")
-                Player.MessageFrom(sys, self.red + "Type /home to get the commands.")
-            else:
-                time = DataStore.Get("HomeSys3CD", id)
-                if time is None:
-                    DataStore.Add("HomeSys3CD", id, 7)
-                systick = System.Environment.TickCount
-                if int(systick - int(time)) < 0 or math.isnan(int(systick - int(time))) or math.isnan(time):
-                    DataStore.Add("HomeSys3CD", id, 7)
-                calc = systick - int(time)
-                if calc >= cooldown or time == 7:
-                    beds = self.PlayersIni()
-                    h = beds.GetSetting("Homes", id)
-                    h = self.Replace(h)
-                    home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
-                    Player.SafeTeleportTo(home)
-                    Player.MessageFrom(sys, self.green + "Teleported to your home.")
-                    DataStore.Add("HomeSys3CD", id, System.Environment.TickCount)
-                else:
-                    Player.MessageFrom(sys, "You are on cooldown.")
-                    done = round((calc / 1000) / 60, 2)
-                    done2 = round((cooldown / 1000) / 60, 2)
-                    Player.MessageFrom(sys, self.green + "Time: " + str(done) + "/" + str(done2))
-                    randomloc = int(ini.GetSetting("Settings", "Randoms"))
-                    rand = random.randrange(0, randomloc)
-                    deff = self.DefaultLocations()
-                    randp = deff.GetSetting("DefaultLoc", str(rand))
-                    randp = self.Replace(randp)
-                    location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
-                    Player.SafeTeleportTo(location)
-                    Player.MessageFrom(sys, self.green + "Teleported to a random location.")
+        elif System.Environment.TickCount > jtime + (cooldown * 1000):
+            self.SendPlayerToHome(Player, id)
+
 
     def On_PlayerDisconnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
             return
-        DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
+        if Player.Admin or self.isMod(id):
+            return
+        if not DataStore.ContainsKey("HomeSys3JCD", id):
+            DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
 
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None and Player is not None:
             if Entity.Name == "SleepingBagA" or Entity.Name == "SingleBed":
-                id = Player.GameID
+                id = Player.SteamID
                 ini = self.Config()
                 max = float(ini.GetSetting("Settings", "Distance"))
                 loc = Util.CreateVector(Entity.X, Entity.Y, Entity.Z)
