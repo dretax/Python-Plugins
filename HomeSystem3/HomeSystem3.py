@@ -75,7 +75,7 @@ class HomeSystem3:
                     return pl
             return None
         except:
-            Plugin.Log("SpikeDamage", "Error caught at getPlayer method. Player was null.")
+            Plugin.Log("HomeSystemErr", "Error caught at getPlayer method. Player was null.")
             return None
 
     # Method provided by Spoock. Converted to Python by DreTaX
@@ -145,9 +145,17 @@ class HomeSystem3:
             return True
         return False
 
-    def FriendOf(self, Owner, Id):
+    def GetFriends(self, id):
         beds = self.PlayersIni()
-        if beds.GetSetting(Owner, Id):
+        ids = beds.EnumSection(id)
+        list = []
+        for id in ids:
+            list.append(id)
+        return list
+
+    def IsFriend(self, OwnerID, ID):
+        beds = self.PlayersIni()
+        if beds.GetSetting(OwnerID, ID):
             return True
         return False
 
@@ -157,7 +165,7 @@ class HomeSystem3:
         id = Player.SteamID
         beds = self.PlayersIni()
         if cmd == "home":
-            Player.MessageFrom(sys, self.green + "HomeSystem3" + self.white + " by " + __author__)
+            Player.MessageFrom(sys, self.green + "HomeSystem3 " + self.white + " by " + __author__)
             Player.MessageFrom(sys, "/setdefaulthome - Sets home, If standing on a bed or bag.")
             Player.MessageFrom(sys, "/delhome - Deletes your Default Home")
             Player.MessageFrom(sys, "/addfriendh name - Adds Player To Foundation Whitelist")
@@ -167,10 +175,18 @@ class HomeSystem3:
             loc = Player.Location
             if not self.HasHome(id):
                 for x in World.Entities:
-                    if x.Name == "SleepingBagA" or x.Name == "SingleBed":
+                    if x.Name == "SleepingBagA":
                         eloc = Util.CreateVector(x.X, x.Y, x.Z)
                         dist = round(Util.GetVectorsDistance(loc, eloc), 2)
                         if dist <= 2:
+                            beds.AddSetting("Homes", id, str(loc))
+                            beds.Save()
+                            Player.MessageFrom(sys, "Home Set.")
+                            return
+                    elif x.Name == "SingleBed":
+                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
+                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
+                        if dist <= 3.5:
                             beds.AddSetting("Homes", id, str(loc))
                             beds.Save()
                             Player.MessageFrom(sys, "Home Set.")
@@ -198,6 +214,9 @@ class HomeSystem3:
                     return
                 idr = playerr.SteamID
                 nrr = str(playerr.Name)
+                if beds.GetSetting(id, idr) is not None:
+                    Player.MessageFrom(sys, nrr + " is already on your list.")
+                    return
                 beds.AddSetting(id, idr, nrr)
                 beds.Save()
                 Player.MessageFrom(sys, nrr + " was added to your list.")
@@ -219,10 +238,10 @@ class HomeSystem3:
                     i += 1
                     nameof = beds.GetSetting(id, playerid)
                     lowered = nameof.lower()
-                    if lowered == name:
-                        ini.DeleteSetting(id, playerid)
-                        ini.Save()
-                        Player.MessageFrom(sys, "Player Removed from Whitelist")
+                    if lowered == name or name in lowered:
+                        beds.DeleteSetting(id, playerid)
+                        beds.Save()
+                        Player.MessageFrom(sys, str(nameof) + " Removed from Whitelist")
                         return
                     if i == counted:
                         Player.MessageFrom(sys, "Player doesn't exist!")
@@ -234,7 +253,7 @@ class HomeSystem3:
             for playerid in players:
                 nameof = beds.GetSetting(id, playerid)
                 if nameof:
-                    Player.MesssageFrom(sys, "- " + str(nameof))
+                    Player.MessageFrom(sys, "- " + str(nameof))
 
     def HomeTimerCallback(self):
         epoch = Plugin.GetTimestamp()
@@ -316,7 +335,7 @@ class HomeSystem3:
         if not Plugin.GetTimer("HomeTimer"):
             Plugin.CreateTimer("HomeTimer", 2000).Start()
         epoch = Plugin.GetTimestamp()
-        exectime = int(epoch) + 10
+        exectime = int(epoch) + 12
         DataStore.Add(self.TimerStore, id, exectime)
 
     def On_PlayerConnected(self, Player):
@@ -364,19 +383,24 @@ class HomeSystem3:
                 sys = ini.GetSetting("Settings", "SysName")
                 msg = ini.GetSetting("Settings", "Message")
                 for x in World.Entities:
-                    if x.Name == "WoodFoundation" or x.Name == "MetalFoundation":
+                    if x.Name == "WoodFoundation" or x.Name == "MetalFoundation" or x.Name == "WoodCeiling" or x.Name == "MetalCeiling":
                         eloc = Util.CreateVector(x.X, x.Y, x.Z)
                         dist = round(Util.GetVectorsDistance(loc, eloc), 2)
-                        if dist >= max:
+                        if dist <= max:
                             ownerid = self.GetIt(x)
                             if ownerid is None:
                                 try:
-                                    Plugin.Log("HomeSystem3Error", str(eloc) + " | " + str(x.Name))
+                                    Entity.Destroy()
+                                    Plugin.Log("HomeSystemErr", str(eloc) + " | " + str(x.Name))
                                 except:
                                     pass
                                 continue
-                            if ownerid == id:
+                            if str(ownerid) == str(id):
                                 continue
-                            if not self.FriendOf(ownerid, id):
+                            friends = self.IsFriend(str(ownerid), str(id))
+                            if friends:
+                                continue
+                            else:
+                                Entity.Destroy()
                                 Player.MessageFrom(sys, msg)
                                 return
