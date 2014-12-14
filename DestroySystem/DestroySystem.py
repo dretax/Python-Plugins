@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -87,7 +87,12 @@ class DestroySystem:
         'Metal Bars Window': 'Metal Window Bars',
         'CampFire': 'Camp Fire',
         'Wood Spike Wall': 'Spike Wall',
-        'Large Wood Spike Wall': 'Large Spike Wall'
+        'Large Wood Spike Wall': 'Large Spike Wall',
+        'Workbench': 'Workbench',
+        'WoodGate': 'Wood Gate',
+        'WoodGateway': 'Wood Gateway',
+        'RepairBench': 'Repair Bench',
+        'Furnace': 'Furnace'
     }
 
 

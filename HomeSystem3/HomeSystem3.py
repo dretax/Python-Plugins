@@ -64,7 +64,7 @@ class HomeSystem3:
         return Plugin.GetIni("Config")
 
     def argsToText(self, args):
-        text = String.Join(" ", args)
+        text = str.join(" ", args)
         return text
 
     def GetPlayerName(self, name):
