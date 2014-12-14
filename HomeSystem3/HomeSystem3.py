@@ -281,6 +281,9 @@ class HomeSystem3:
     def SendRandom(self, Player):
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
         randomloc = int(ini.GetSetting("Settings", "Randoms"))
         rand = random.randrange(0, randomloc)
         deff = self.DefaultLocations()
@@ -288,6 +291,7 @@ class HomeSystem3:
         randp = self.Replace(randp)
         location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
         Player.TeleportTo(location)
+        DataStore.Add("homesystemautoban", id, "none")
         Player.MessageFrom(sys, self.red + "Teleported to a random location.")
         Player.MessageFrom(sys, self.red + "Type /home to get the commands.")
 
@@ -314,6 +318,7 @@ class HomeSystem3:
             h = self.Replace(h)
             home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
             Player.SafeTeleportTo(home)
+            DataStore.Add("homesystemautoban", id, "none")
             Player.MessageFrom(sys, self.green + "Teleported to your home.")
             DataStore.Add("HomeSys3CD", id, System.Environment.TickCount)
         else:
@@ -328,6 +333,7 @@ class HomeSystem3:
             randp = self.Replace(randp)
             location = Util.CreateVector(float(randp[0]), float(randp[1]), float(randp[2]))
             Player.TeleportTo(location)
+            DataStore.Add("homesystemautoban", id, "none")
             Player.MessageFrom(sys, self.green + "Teleported to a random location.")
 
     def SendPlayerToHome(self, Player, id):
@@ -336,6 +342,7 @@ class HomeSystem3:
             Plugin.CreateTimer("HomeTimer", 2000).Start()
         epoch = Plugin.GetTimestamp()
         exectime = int(epoch) + 12
+        DataStore.Add("homesystemautoban", id, "using")
         DataStore.Add(self.TimerStore, id, exectime)
 
     def On_PlayerConnected(self, Player):
