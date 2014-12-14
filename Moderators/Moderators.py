@@ -4,7 +4,8 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-
+import System
+from System import *
 
 """
     Class
@@ -35,16 +36,7 @@ class Moderators:
             return None
 
     def argsToText(self, args):
-        text = ""
-        if len(args) == 1:
-            text = args[0]
-        else:
-            for l in xrange(0, len(args)):
-                l += 1
-                if l == (len(args) - 1):
-                    text += args[l]
-                else:
-                    text += args[l] + " "
+        text = String.Join(" ", args)
         return text
 
     # Method provided by Spoock. Converted to Python by DreTaX
