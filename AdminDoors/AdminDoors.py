@@ -13,8 +13,6 @@ class AdminDoors:
     """
         Methods
     """
-    red = "[color #FF0000]"
-    green = "[color #009900]"
 
     def On_PluginInit(self):
         Util.ConsoleLog("AdminDoors by" + __author__ + " Version: " + __version__ + " loaded.", False)
