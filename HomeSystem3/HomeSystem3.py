@@ -179,20 +179,29 @@ class HomeSystem3:
                         eloc = Util.CreateVector(x.X, x.Y, x.Z)
                         dist = round(Util.GetVectorsDistance(loc, eloc), 2)
                         if dist <= 2:
-                            beds.AddSetting("Homes", id, str(loc))
-                            beds.Save()
-                            Player.MessageFrom(sys, "Home Set.")
-                            return
+                            ownerid = self.GetIt(x)
+                            if ownerid is None:
+                                continue
+                            if int(id) == int(ownerid):
+                                beds.AddSetting("Homes", id, str(loc))
+                                beds.Save()
+                                Player.MessageFrom(sys, "Home Set.")
+                                return
                     elif x.Name == "SingleBed":
                         eloc = Util.CreateVector(x.X, x.Y, x.Z)
                         dist = round(Util.GetVectorsDistance(loc, eloc), 2)
                         if dist <= 3.5:
-                            beds.AddSetting("Homes", id, str(loc))
-                            beds.Save()
-                            Player.MessageFrom(sys, "Home Set.")
-                            return
-                Player.MessageFrom(sys, "Couldn't find a bed placed within 1m.")
+                            ownerid = self.GetIt(x)
+                            if ownerid is None:
+                                continue
+                            if int(id) == int(ownerid):
+                                beds.AddSetting("Homes", id, str(loc))
+                                beds.Save()
+                                Player.MessageFrom(sys, "Home Set.")
+                                return
+                Player.MessageFrom(sys, "Couldn't find a bed placed within 1m / 3.5m.")
                 Player.MessageFrom(sys, "Stand on a bed or sleeping bag.")
+                Player.MessageFrom(sys, self.red + "Make sure the bed is yours.")
             else:
                 Player.MessageFrom(sys, "You already have a home. Delete It first.")
         elif cmd == "delhome":
@@ -228,14 +237,12 @@ class HomeSystem3:
                 name = self.argsToText(args)
                 id = Player.SteamID
                 players = beds.EnumSection(id)
-                i = 0
                 counted = len(players)
                 if counted == 0:
                     Player.MessageFrom(sys, "You have never whitelisted anyone.")
                     return
                 name = name.lower()
                 for playerid in players:
-                    i += 1
                     nameof = beds.GetSetting(id, playerid)
                     lowered = nameof.lower()
                     if lowered == name or name in lowered:
@@ -243,9 +250,7 @@ class HomeSystem3:
                         beds.Save()
                         Player.MessageFrom(sys, str(nameof) + " Removed from Whitelist")
                         return
-                    if i == counted:
-                        Player.MessageFrom(sys, "Player doesn't exist!")
-                        return
+                Player.MessageFrom(sys, name + " is not on your list!")
         elif cmd == "listwlh":
             id = Player.SteamID
             players = beds.EnumSection(id)
@@ -336,7 +341,7 @@ class HomeSystem3:
             DataStore.Add("homesystemautoban", id, "none")
             Player.MessageFrom(sys, self.green + "Teleported to a random location.")
 
-    def SendPlayerToHome(self, Player, id):
+    def SendPlayerToHome(self, id):
         DataStore.Remove("HomeSys3JCD", id)
         if not Plugin.GetTimer("HomeTimer"):
             Plugin.CreateTimer("HomeTimer", 2000).Start()
@@ -354,11 +359,11 @@ class HomeSystem3:
         sys = ini.GetSetting("Settings", "SysName")
         cooldown = int(ini.GetSetting("Settings", "JoinCooldown"))
         if jtime is None:
-            self.SendPlayerToHome(Player, id)
+            self.SendPlayerToHome(id)
             return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
             DataStore.Remove("HomeSys3JCD", id)
-            self.SendPlayerToHome(Player, id)
+            self.SendPlayerToHome(id)
             return
         calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
         if System.Environment.TickCount <= jtime + cooldown * 1000:
@@ -368,7 +373,7 @@ class HomeSystem3:
             Player.Disconnect()
             return
         elif System.Environment.TickCount > jtime + (cooldown * 1000):
-            self.SendPlayerToHome(Player, id)
+            self.SendPlayerToHome(id)
 
 
     def On_PlayerDisconnected(self, Player):
@@ -402,7 +407,7 @@ class HomeSystem3:
                                 except:
                                     pass
                                 continue
-                            if str(ownerid) == str(id):
+                            if int(ownerid) == int(id):
                                 continue
                             friends = self.IsFriend(str(ownerid), str(id))
                             if friends:
