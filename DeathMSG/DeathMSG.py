@@ -165,7 +165,7 @@ class DeathMSG:
         if DataStore.ContainsKey("DeathMSGBAN", id):
             get = DataStore.Get("DeathMSGBAN", id)
             loc = self.Replace(get)
-            newloc = Util.CreateVector(loc[0], loc[1], loc[2])
+            newloc = Util.CreateVector(float(loc[0]), float(loc[1]), float(loc[2]))
             Player.TeleportTo(newloc)
             config = self.DeathMSGConfig()
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
