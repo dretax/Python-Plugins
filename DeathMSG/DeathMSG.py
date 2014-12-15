@@ -22,6 +22,32 @@ class DeathMSG:
     def On_PluginInit(self):
         Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
 
+    def On_Command(self, Player, cmd, args):
+        if cmd == "uautoban":
+            if len(args) == 0:
+                Player.Message("---DeathMSG 3.0---")
+                Player.Message("/uautoban name - Unbans player")
+            else:
+                config = self.DeathMSGConfig()
+                deathmsgname = config.GetSetting("Settings", "deathmsgname")
+                if not Player.Admin and not self.isMod(Player.SteamID):
+                    Player.MessageFrom(deathmsgname, "You aren't an admin!")
+                    return
+                ini = self.DMB()
+                pl = self.argsToText(args)
+                id = self.GetPlayerUnBannedID(pl)
+                ip = self.GetPlayerUnBannedIP(pl)
+                if id is None:
+                    Player.Message("Target: " + pl + " isn't in the database, or you misspelled It!")
+                    return
+                iprq = ini.GetSetting("NameIps", ip)
+                idrq = ini.GetSetting("NameIds", id)
+                ini.DeleteSetting("Ips", iprq)
+                ini.DeleteSetting("Ids", idrq)
+                ini.DeleteSetting("NameIps", ip)
+                ini.DeleteSetting("NameIds", id)
+                ini.Save()
+                Player.MessageFrom(deathmsgname, "Player " + pl + " unbanned!")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
@@ -185,6 +211,9 @@ class DeathMSG:
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
 
+    def argsToText(self, args):
+        text = str.join(" ", args)
+        return text
 
     def Log(self, killer, weapon, dist, victim, body, dmg, tp):
         if tp is None:
