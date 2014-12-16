@@ -93,7 +93,7 @@ class DeathMSG:
                         if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
                             id = DeathEvent.Attacker.SteamID
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
-                            hometeleport = DataStore.Add("homesystemautoban", id)
+                            hometeleport = DataStore.Get("homesystemautoban", id)
                             if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
                                 z = config.GetSetting("Settings", "banmsg")
                                 z = z.replace("killer", killer)
@@ -133,7 +133,7 @@ class DeathMSG:
                             if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
                                 id = DeathEvent.Attacker.SteamID
                                 tpfriendteleport = DataStore.Get("tpfriendautoban", id)
-                                hometeleport = DataStore.Add("homesystemautoban", id)
+                                hometeleport = DataStore.Get("homesystemautoban", id)
                                 if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
                                     z = config.GetSetting("Settings", "banmsg")
                                     z = z.replace("killer", killer)
@@ -230,9 +230,9 @@ class DeathMSG:
 
     def Log(self, killer, weapon, dist, victim, body, dmg, tp):
         if tp is None:
-            Plugin.Log("KillLog", str(System.DateTime.Now), "Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg))
+            Plugin.Log("KillLog", str(System.DateTime.Now) + " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg))
         else:
-            Plugin.Log("KillLog", str(System.DateTime.Now), "Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg) + " WAS TELEPORTING")
+            Plugin.Log("KillLog", str(System.DateTime.Now) + " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
     def IsAnimal(self, killer):
         if killer == 'Wolf' or killer == 'Bear' or killer == 'MutantWolf' or killer == 'MutantBear':
