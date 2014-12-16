@@ -86,7 +86,7 @@ class DeathMSG:
                     n = n.replace("weapon", weapon)
                     n = n.replace("damage", str(damage))
                     n = n.replace("number", str(distance))
-                    n = n.replace("bodyPart", bodyPart)
+                    n = n.replace("bodyPart", str(bodyPart))
                     Server.BroadcastFrom(deathmsgname, n)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
@@ -106,7 +106,7 @@ class DeathMSG:
                                 ini.AddSetting("Ids", id, "1")
                                 ini.AddSetting("NameIps", killer, ip)
                                 ini.AddSetting("NameIds", killer, id)
-                                ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + bodyPart + " DMG: " + damage)
+                                ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + damage)
                                 ini.Save()
                                 DeathEvent.Attacker.Disconnect()
                                 DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -115,10 +115,10 @@ class DeathMSG:
                                 t = t.replace("killer", killer)
                                 Server.BroadcastFrom(deathmsgname, t)
                                 if kl == 1:
-                                    self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                                    self.Log(killer, weapon, distance, victim, str(bodyPart), damage, 1)
                             return
                     if kl == 1:
-                        self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
+                        self.Log(killer, weapon, distance, victim, str(bodyPart), damage, None)
                 elif bleed == "Melee":
                     if damage == 75:
                         hn = config.GetSetting("Settings", "huntingbow")
@@ -126,7 +126,7 @@ class DeathMSG:
                         hn = hn.replace("killer", killer)
                         hn = hn.replace("damage", str(damage))
                         hn = hn.replace("number", str(distance))
-                        hn = hn.replace("bodyPart", bodyPart)
+                        hn = hn.replace("bodyPart", str(bodyPart))
                         Server.BroadcastFrom(deathmsgname, hn)
                         autoban = int(config.GetSetting("Settings", "autoban"))
                         if autoban == 1:
@@ -146,7 +146,7 @@ class DeathMSG:
                                     ini.AddSetting("Ids", id, "1")
                                     ini.AddSetting("NameIps", killer, ip)
                                     ini.AddSetting("NameIds", killer, id)
-                                    ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + bodyPart + " DMG: " + damage)
+                                    ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + damage)
                                     ini.Save()
                                     DeathEvent.Attacker.Disconnect()
                                     DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -155,10 +155,10 @@ class DeathMSG:
                                     t = t.replace("killer", killer)
                                     Server.BroadcastFrom(deathmsgname, t)
                                     if kl == 1:
-                                        self.Log(killer, "Hunting Bow", distance, victim, bodyPart, damage, 1)
+                                        self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, 1)
                                 return
                         if kl == 1:
-                            self.Log(killer, "Hunting Bow", distance, victim, bodyPart, damage, None)
+                            self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
                     elif damage == 10 or damage == 15:
                         s = config.GetSetting("Settings", "spike")
                         s = s.replace("victim", victim)
@@ -172,7 +172,7 @@ class DeathMSG:
                         n = n.replace("weapon", weapon)
                         n = n.replace("damage", str(damage))
                         n = n.replace("number", str(distance))
-                        n = n.replace("bodyPart", bodyPart)
+                        n = n.replace("bodyPart", str(bodyPart))
                         Server.BroadcastFrom(deathmsgname, n)
                 elif bleed == "Explosion":
                     x = config.GetSetting("Settings", "explosionmsg")
@@ -200,16 +200,29 @@ class DeathMSG:
 
     def On_PlayerConnected(self, Player):
         ini = self.DMB()
-        ip = Player.IP
-        id = Player.SteamID
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            try:
+                Player.Disconnect()
+            except:
+                pass
+            return
         config = self.DeathMSGConfig()
         deathmsgname = config.GetSetting("Settings", "deathmsgname")
+        ip = Player.IP
         if ini.GetSetting("Ips", ip) is not None and int(ini.GetSetting("Ips", ip)) == 1:
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
         elif ini.GetSetting("Ids", id) is not None and int(ini.GetSetting("Ids", id)) == 1:
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
+
+    def TrytoGrabID(self, Player):
+        try:
+            id = Player.SteamID
+            return id
+        except:
+            return None
 
     def argsToText(self, args):
         text = str.join(" ", args)
