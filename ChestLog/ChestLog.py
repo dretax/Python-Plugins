@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -31,7 +31,7 @@ class ChestLog:
             return None
 
     def On_EntityHurt(self, HurtEvent):
-        if HurtEvent.Attacker != None and HurtEvent.Entity != None and not HurtEvent.IsDecay:
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
