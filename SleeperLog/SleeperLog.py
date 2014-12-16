@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -45,8 +45,39 @@ class SleeperLog:
         except:
             return None
 
+    Items = {
+        'WoodFoundation': 'Wood Foundation',
+        'WoodDoorFrame': 'Wood Doorway',
+        'WoodWall': 'Wood Wall',
+        'WoodPillar': 'Wood Pillar',
+        'WoodCeiling': 'Wood Ceiling',
+        'MetalDoor': 'Metal Door',
+        'WoodStairs': 'Wood Stairs',
+        'WoodWindowFrame': 'Wood Window',
+        'MetalFoundation': 'Metal Foundation',
+        'MetalDoorFrame': 'Metal Doorway',
+        'MetalWall': 'Metal Wall',
+        'MetalPillar': 'Metal Pillar',
+        'MetalCeiling': 'Metal Stairs',
+        'MetalStairs': 'Metal Stairs',
+        'MetalWindowFrame': 'Metal Window',
+        'Wood_Shelter': 'Wood Shelter',
+        'Barricade_Fence_Deployable': 'Wood Barricade',
+        'Wood Box': 'Wood Storage Box',
+        'Wood Box Large': 'Large Wood Storage',
+        'Metal Bars Window': 'Metal Window Bars',
+        'CampFire': 'Camp Fire',
+        'Wood Spike Wall': 'Spike Wall',
+        'Large Wood Spike Wall': 'Large Spike Wall',
+        'Workbench': 'Workbench',
+        'WoodGate': 'Wood Gate',
+        'WoodGateway': 'Wood Gateway',
+        'RepairBench': 'Repair Bench',
+        'Furnace': 'Furnace'
+    }
 
-    def IsIn(self, EntityName):
+
+    """def IsIn(self, EntityName):
         # Okay seriously DreTaX It's 0:03, It's about time to use something else and more logical
         if EntityName == 'WoodFoundation':
             return True
@@ -115,7 +146,7 @@ class SleeperLog:
         elif EntityName == 'WoodRamp':
             return True
         else:
-            return False
+            return False"""
 
 
     def On_PlayerConnected(self, Player):
@@ -129,13 +160,14 @@ class SleeperLog:
 
 
     def On_EntityHurt(self, HurtEvent):
-        if (HurtEvent.Attacker != None and HurtEvent.Entity != None and not HurtEvent.IsDecay):
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             #On Entity hurt the attacker is an NPC and a Player for some reason. We will try to grab his ID
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
             entityname = HurtEvent.Entity.Name
-            if self.IsIn(entityname):
+            item = self.Items.get(entityname, None)
+            if item is not None:
                 return
             else:
                 #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
@@ -146,7 +178,7 @@ class SleeperLog:
                 ini = self.SleeperId()
                 name = ini.GetSetting("Sleeper", str(OwnerID))
                 exist = ini.GetSetting("SleeperLog", str(entityloc))
-                if name != None and exist == None:
+                if name is not None and exist is None:
                     attacker = HurtEvent.Attacker.Name
                     time = str(System.DateTime.Now)
                     ini.AddSetting("SleeperLog", str(entityloc), attacker + "|<- Attacker|" + id + "|" + name + "|" + time)
