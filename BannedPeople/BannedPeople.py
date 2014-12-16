@@ -87,7 +87,6 @@ class BannedPeople:
             id = Player.SteamID
             return id
         except:
-            Plugin.Log("BannedPErr", "Error caught at TrytoGrabID method.")
             return None
 
     def argsToText(self, args):
