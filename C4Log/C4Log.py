@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -34,7 +34,7 @@ class C4Log:
             return None
 
     def On_EntityHurt(self, HurtEvent):
-        if HurtEvent.Attacker != None and HurtEvent.Entity != None and not HurtEvent.IsDecay:
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             #On Entity hurt the attacker is an NPC and a Player for some reason. We will try to grab his ID
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
@@ -45,13 +45,13 @@ class C4Log:
                     ini = self.C4Log()
                     cexist = ini.GetSetting("C4Log", str(HurtEvent.Attacker.Location))
                     gexist = ini.GetSetting("GrenadeLog", str(HurtEvent.Attacker.Location))
-                    if (HurtEvent.DamageAmount == 600):
-                        if cexist != None:
+                    if HurtEvent.DamageAmount == 600:
+                        if cexist is not None:
                             return
                         ini.AddSetting("C4Log", str(HurtEvent.Attacker.Location), HurtEvent.Attacker.Name + "|" + str(System.DateTime.Now) + "| C4")
                         ini.Save()
                     elif HurtEvent.DamageAmount < 100 and HurtEvent.DamageAmount > 60:
-                        if gexist != None:
+                        if gexist is not None:
                             return
                         ini.AddSetting("GrenadeLog", str(HurtEvent.Attacker.Location) , HurtEvent.Attacker.Name + "|" + str(System.DateTime.Now) + "| Grenade")
                         ini.Save()
