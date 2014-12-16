@@ -251,7 +251,7 @@ class DeathMSG:
 
     def BD(self, bodyp):
         ini = self.Bodies()
-        name = ini.GetSetting("bodyparts", bodyp)
+        name = ini.GetSetting("bodyparts", str(bodyp))
         return name
 
     def Bodies(self):
