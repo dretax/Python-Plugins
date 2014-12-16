@@ -4,8 +4,6 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-import System
-from System import DateTime
 import re
 
 """
