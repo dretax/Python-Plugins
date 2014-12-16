@@ -75,7 +75,7 @@ class DeathMSG:
                 killerloc = DeathEvent.Attacker.Location
                 location = DeathEvent.Victim.Location
                 distance = round(Util.GetVectorsDistance(killerloc, location), 2)
-                bleed = DeathEvent.DamageType
+                bleed = str(DeathEvent.DamageType)
                 kl = int(config.GetSetting("Settings", "killog"))
                 if bleed == "Bullet":
                     message = config.GetSetting("Settings", "msg")
