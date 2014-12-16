@@ -88,7 +88,7 @@ class DeathMSG:
                     Server.BroadcastFrom(deathmsgname, n)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
-                        if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
+                        if distance > self.RangeOf(weapon) > 0:
                             id = DeathEvent.Attacker.SteamID
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
@@ -104,7 +104,7 @@ class DeathMSG:
                                 ini.AddSetting("Ids", id, "1")
                                 ini.AddSetting("NameIps", killer, ip)
                                 ini.AddSetting("NameIds", killer, id)
-                                ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + damage)
+                                ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + bodyPart + " DMG: " + str(damage))
                                 ini.Save()
                                 DeathEvent.Attacker.Disconnect()
                                 DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -113,10 +113,10 @@ class DeathMSG:
                                 t = t.replace("killer", killer)
                                 Server.BroadcastFrom(deathmsgname, t)
                                 if kl == 1:
-                                    self.Log(killer, weapon, distance, victim, str(bodyPart), damage, 1)
+                                    self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
                             return
                     if kl == 1:
-                        self.Log(killer, weapon, distance, victim, str(bodyPart), damage, None)
+                        self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
                 elif bleed == "Melee":
                     if damage == 75:
                         hn = config.GetSetting("Settings", "huntingbow")
@@ -129,7 +129,7 @@ class DeathMSG:
                         autoban = int(config.GetSetting("Settings", "autoban"))
                         if autoban == 1:
                             if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
-                                id = DeathEvent.Attacker.SteamID
+                                id = str(DeathEvent.Attacker.SteamID)
                                 tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                                 hometeleport = DataStore.Get("homesystemautoban", id)
                                 if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
@@ -139,12 +139,12 @@ class DeathMSG:
                                     Server.BroadcastFrom(deathmsgname, self.red + z)
                                     ini = self.DMB()
                                     ip = DeathEvent.Attacker.IP
-                                    vid = DeathEvent.Victim.SteamID
+                                    vid = str(DeathEvent.Victim.SteamID)
                                     ini.AddSetting("Ips", ip, "1")
                                     ini.AddSetting("Ids", id, "1")
                                     ini.AddSetting("NameIps", killer, ip)
                                     ini.AddSetting("NameIds", killer, id)
-                                    ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + damage)
+                                    ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + str(damage))
                                     ini.Save()
                                     DeathEvent.Attacker.Disconnect()
                                     DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -228,9 +228,9 @@ class DeathMSG:
 
     def Log(self, killer, weapon, dist, victim, body, dmg, tp):
         if tp is None:
-            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg))
+            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg))
         else:
-            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + body + " DMG: " + str(dmg) + " WAS TELEPORTING")
+            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
     def IsAnimal(self, killer):
         if killer == 'Wolf' or killer == 'Bear' or killer == 'MutantWolf' or killer == 'MutantBear':
@@ -249,8 +249,9 @@ class DeathMSG:
 
     def BD(self, bodyp):
         ini = self.Bodies()
-        name = ini.GetSetting("bodyparts", str(bodyp))
-        return name
+        bodyp = str(bodyp)
+        name = ini.GetSetting("bodyparts", bodyp)
+        return str(name)
 
     def Bodies(self):
         return Plugin.GetIni("bodyparts")
@@ -268,7 +269,7 @@ class DeathMSG:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIps", pl)
             if nameid is not None and pl.lower() == name:
-                return pl
+                return str(pl)
         return None
 
     def GetPlayerUnBannedID(self, name):
@@ -278,7 +279,7 @@ class DeathMSG:
         for pl in checkdist:
             nameid = ini.GetSetting("NameIds", pl)
             if nameid is not None and pl.lower() == name:
-                return pl
+                return str(pl)
         return None
 
     def RangeOf(self, weapon):
