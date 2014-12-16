@@ -3,7 +3,10 @@ __version__ = '3.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
+clr.AddReferenceByPartialName("UnityEngine")
 import Fougerite
+import UnityEngine
+from UnityEngine import *
 import math
 import System
 from System import *
@@ -178,31 +181,26 @@ class HomeSystem3:
         elif cmd == "setdefaulthome":
             loc = Player.Location
             if not self.HasHome(id):
-                for x in World.Entities:
+                objects = UnityEngine.Physics.OverlapSphere(loc, 3.5)
+                for x in objects:
                     if x.Name == "SleepingBagA":
-                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
-                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
-                        if dist <= 2:
-                            ownerid = self.GetIt(x)
-                            if ownerid is None:
-                                continue
-                            if int(id) == int(ownerid):
-                                beds.AddSetting("Homes", id, str(loc))
-                                beds.Save()
-                                Player.MessageFrom(sys, "Home Set.")
-                                return
+                        ownerid = self.GetIt(x)
+                        if ownerid is None:
+                            continue
+                        if int(id) == int(ownerid):
+                            beds.AddSetting("Homes", id, str(loc))
+                            beds.Save()
+                            Player.MessageFrom(sys, "Home Set.")
+                            return
                     elif x.Name == "SingleBed":
-                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
-                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
-                        if dist <= 3.5:
-                            ownerid = self.GetIt(x)
-                            if ownerid is None:
-                                continue
-                            if int(id) == int(ownerid):
-                                beds.AddSetting("Homes", id, str(loc))
-                                beds.Save()
-                                Player.MessageFrom(sys, "Home Set.")
-                                return
+                        ownerid = self.GetIt(x)
+                        if ownerid is None:
+                            continue
+                        if int(id) == int(ownerid):
+                            beds.AddSetting("Homes", id, str(loc))
+                            beds.Save()
+                            Player.MessageFrom(sys, "Home Set.")
+                            return
                 Player.MessageFrom(sys, "Couldn't find a bed placed within 1m / 3.5m.")
                 Player.MessageFrom(sys, "Stand on a bed or sleeping bag.")
                 Player.MessageFrom(sys, self.red + "Make sure the bed is yours.")
@@ -406,25 +404,18 @@ class HomeSystem3:
                 loc = Util.CreateVector(Entity.X, Entity.Y, Entity.Z)
                 sys = ini.GetSetting("Settings", "SysName")
                 msg = ini.GetSetting("Settings", "Message")
-                for x in World.Entities:
+                objects = UnityEngine.Physics.OverlapSphere(loc, max)
+                for x in objects:
                     if x.Name == "WoodFoundation" or x.Name == "MetalFoundation" or x.Name == "WoodCeiling" or x.Name == "MetalCeiling":
-                        eloc = Util.CreateVector(x.X, x.Y, x.Z)
-                        dist = round(Util.GetVectorsDistance(loc, eloc), 2)
-                        if dist <= max:
-                            ownerid = self.GetIt(x)
-                            if ownerid is None:
-                                try:
-                                    Entity.Destroy()
-                                    Plugin.Log("HomeSystemErr", str(eloc) + " | " + str(x.Name))
-                                except:
-                                    pass
-                                continue
-                            if int(ownerid) == int(id):
-                                continue
-                            friends = self.IsFriend(str(ownerid), str(id))
-                            if friends:
-                                continue
-                            else:
-                                Entity.Destroy()
-                                Player.MessageFrom(sys, msg)
-                                return
+                        ownerid = self.GetIt(x)
+                        if ownerid is None:
+                            continue
+                        if int(ownerid) == int(id):
+                            continue
+                        friends = self.IsFriend(str(ownerid), str(id))
+                        if friends:
+                            continue
+                        else:
+                            Entity.Destroy()
+                            Player.MessageFrom(sys, msg)
+                            return
