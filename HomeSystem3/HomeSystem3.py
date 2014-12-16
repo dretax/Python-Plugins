@@ -31,6 +31,7 @@ class HomeSystem3:
     green = "[color #009900]"
     white = "[color #FFFFFF]"
     TimerStore = "HomeTimer"
+    Restart = True
 
     def On_PluginInit(self):
         Util.ConsoleLog("HomeSystem3 by " + __author__ + " Version: " + __version__ + " loaded.", False)
@@ -39,6 +40,9 @@ class HomeSystem3:
         DataStore.Flush("HomeSys3JCD")
         DataStore.Flush("HomeTimer")
         DataStore.Flush("HomeSys3CD")
+
+    def On_ServerInit(self):
+        Plugin.CreateTimer("RestartC", 15000).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -283,6 +287,10 @@ class HomeSystem3:
         else:
             Plugin.KillTimer("HomeTimer")
 
+    def RestartCCallback(self):
+        Plugin.KillTimer("RestartC")
+        self.Restart = False
+
     def SendRandom(self, Player):
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
@@ -351,6 +359,8 @@ class HomeSystem3:
         DataStore.Add(self.TimerStore, id, exectime)
 
     def On_PlayerConnected(self, Player):
+        if self.Restart:
+            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -377,6 +387,8 @@ class HomeSystem3:
 
 
     def On_PlayerDisconnected(self, Player):
+        if self.Restart:
+            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
