@@ -58,8 +58,7 @@ class IdIdentifier:
         if sid is None:
             return
         banini = self.ManualBan()
-        isbanned = banini.GetSetting("Banned", sid)
-        if str(isbanned) == "1":
+        if banini.GetSetting("Banned", sid) and int(banini.GetSetting("Banned", sid)) == 1:
             Player.Disconnect()
             return
         name = str(Player.Name)
@@ -67,7 +66,7 @@ class IdIdentifier:
         location = str(Player.Location)
         dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if ini.GetSetting("Track", sid) and ini.GetSetting("LastJoin", name):
+        if ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None:
             ini.SetSetting("Track", sid, name)
             ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
@@ -85,14 +84,12 @@ class IdIdentifier:
         location = str(Player.Location)
         ini = self.PlayersIni()
         dt = str(System.DateTime.Now)
-        try:
-            if ini.GetSetting("Track", name):
-                ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
-            else:
-                ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
+        if ini.GetSetting("Track", name) is not None:
+            ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
             ini.Save()
-        except:
-            Plugin.Log("IdIdentError", "Error caught at quit method.")
+        else:
+            ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
+            ini.Save()
 
     def On_Command(self, Player, cmd, args):
         if cmd == "owner":
@@ -141,7 +138,7 @@ class IdIdentifier:
                         HurtEvent.DamageAmount = 0
                         OwnerID = HurtEvent.Entity.OwnerID
                         name = self.PlayersIni().GetSetting("Track", OwnerID)
-                        if (name is not None):
+                        if name is not None:
                             HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
                         else:
                             HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
