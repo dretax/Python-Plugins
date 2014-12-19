@@ -28,7 +28,7 @@ class SpikeDamage:
     def FriendOf(self, id, selfid):
         ini = self.SpikeL()
         check = ini.GetSetting(id, selfid)
-        if (check != None):
+        if check is not None:
             return True
         return False
 
@@ -40,7 +40,6 @@ class SpikeDamage:
                     return pl
             return None
         except:
-            Plugin.Log("SpikeDamage", "Error caught at getPlayer method. Player was null.")
             return None
 
     # Method provided by Spoock. Converted to Python by DreTaX
@@ -78,18 +77,14 @@ class SpikeDamage:
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
             if HurtEvent.Attacker.SteamID == HurtEvent.Victim.SteamID:
-                bleed = HurtEvent.DamageType
                 damage = HurtEvent.DamageAmount
-                if bleed == "Melee":
-                    if damage == 10 or damage == 15:
-                        HurtEvent.DamageAmount = 0
+                if damage == 10 or damage == 15:
+                    HurtEvent.DamageAmount = 0
             else:
                 if self.FriendOf(HurtEvent.Attacker.SteamID, HurtEvent.Victim.SteamID):
-                    bleed = HurtEvent.DamageType
                     damage = HurtEvent.DamageAmount
-                    if (bleed == "Melee"):
-                        if damage == 10 or damage == 15:
-                            HurtEvent.DamageAmount = 0
+                    if damage == 10 or damage == 15:
+                        HurtEvent.DamageAmount = 0
 
     def On_Command(self, Player, cmd, args):
         if cmd == "spikedmg":
@@ -121,21 +116,15 @@ class SpikeDamage:
                 ini = self.SpikeL()
                 id = Player.SteamID
                 players = ini.EnumSection(id)
-                i = 0
-                counted = len(players)
                 name = name.lower()
                 for playerid in players:
-                    i += 1
                     nameof = ini.GetSetting(id, playerid)
-                    lowered = nameof.lower()
-                    if lowered == name:
+                    if nameof.lower() == name:
                         ini.DeleteSetting(id, playerid)
                         ini.Save()
                         Player.Message("Player Removed from Whitelist")
                         return
-                    if i == counted:
-                        Player.Message("Player doesn't exist!")
-                        return
+                Player.Message("Player doesn't exist!")
         elif cmd == "spikedmgl":
             ini = self.SpikeL()
             id = Player.SteamID
