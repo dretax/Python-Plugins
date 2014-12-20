@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.3.1'
 
 import clr
 
@@ -70,7 +70,7 @@ class BannedPeople:
                     target = self.GetPlayerName(found)
                     return target
                 elif cc > 1:
-                    Player.MessageFrom(systemname, "Found [color#FF0000]" + cc + " players[/color] with similar names. [color#FF0000]Use more correct name !")
+                    Player.MessageFrom(systemname, "Found [color#FF0000]" + str(cc) + " players[/color] with similar names. [color#FF0000]Use more correct name !")
                     return None
                 elif cc == 0:
                     Player.MessageFrom(systemname, "Player [color#00FF00]" + Nickname + "[/color] not found")
