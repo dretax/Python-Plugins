@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.0'
+__version__ = '3.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -34,7 +34,6 @@ class HomeSystem3:
     green = "[color #009900]"
     white = "[color #FFFFFF]"
     TimerStore = "HomeTimer"
-    Restart = True
 
     def On_PluginInit(self):
         Util.ConsoleLog("HomeSystem3 by " + __author__ + " Version: " + __version__ + " loaded.", False)
@@ -43,9 +42,6 @@ class HomeSystem3:
         DataStore.Flush("HomeSys3JCD")
         DataStore.Flush("HomeTimer")
         DataStore.Flush("HomeSys3CD")
-
-    def On_ServerInit(self):
-        Plugin.CreateTimer("RestartC", 15000).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -181,26 +177,28 @@ class HomeSystem3:
         elif cmd == "setdefaulthome":
             loc = Player.Location
             if not self.HasHome(id):
-                objects = UnityEngine.Physics.OverlapSphere(loc, 3.5)
+                type = Util.TryFindReturnType("DeployableObject")
+                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
                 for x in objects:
-                    if x.Name == "SleepingBagA":
-                        ownerid = self.GetIt(x)
-                        if ownerid is None:
-                            continue
-                        if int(id) == int(ownerid):
-                            beds.AddSetting("Homes", id, str(loc))
-                            beds.Save()
-                            Player.MessageFrom(sys, "Home Set.")
-                            return
-                    elif x.Name == "SingleBed":
-                        ownerid = self.GetIt(x)
-                        if ownerid is None:
-                            continue
-                        if int(id) == int(ownerid):
-                            beds.AddSetting("Homes", id, str(loc))
-                            beds.Save()
-                            Player.MessageFrom(sys, "Home Set.")
-                            return
+                    name = str(x.name).lower()
+                    if "sleeping" in name:
+                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        if dist < 2:
+                            ownerid = long(x.ownerID)
+                            if long(id) == ownerid:
+                                beds.AddSetting("Homes", id, str(loc))
+                                beds.Save()
+                                Player.MessageFrom(sys, "Home Set.")
+                                return
+                    elif "single" in name:
+                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        if dist < 3.5:
+                            ownerid = long(x.ownerID)
+                            if long(id) == ownerid:
+                                beds.AddSetting("Homes", id, str(loc))
+                                beds.Save()
+                                Player.MessageFrom(sys, "Home Set.")
+                                return
                 Player.MessageFrom(sys, "Couldn't find a bed placed within 1m / 3.5m.")
                 Player.MessageFrom(sys, "Stand on a bed or sleeping bag.")
                 Player.MessageFrom(sys, self.red + "Make sure the bed is yours.")
@@ -285,10 +283,6 @@ class HomeSystem3:
         else:
             Plugin.KillTimer("HomeTimer")
 
-    def RestartCCallback(self):
-        Plugin.KillTimer("RestartC")
-        self.Restart = False
-
     def SendRandom(self, Player):
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
@@ -357,8 +351,6 @@ class HomeSystem3:
         DataStore.Add(self.TimerStore, id, exectime)
 
     def On_PlayerConnected(self, Player):
-        if self.Restart:
-            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -385,8 +377,6 @@ class HomeSystem3:
 
 
     def On_PlayerDisconnected(self, Player):
-        if self.Restart:
-            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -404,13 +394,15 @@ class HomeSystem3:
                 loc = Util.CreateVector(Entity.X, Entity.Y, Entity.Z)
                 sys = ini.GetSetting("Settings", "SysName")
                 msg = ini.GetSetting("Settings", "Message")
-                objects = UnityEngine.Physics.OverlapSphere(loc, max)
+                type = Util.TryFindReturnType("StructureComponent")
+                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
                 for x in objects:
-                    if x.Name == "WoodFoundation" or x.Name == "MetalFoundation" or x.Name == "WoodCeiling" or x.Name == "MetalCeiling":
-                        ownerid = self.GetIt(x)
-                        if ownerid is None:
+                    if "Foundation" in x.name or "Ceiling" in x.name:
+                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        if dist > max:
                             continue
-                        if int(ownerid) == int(id):
+                        ownerid = long(x._master.ownerID)
+                        if ownerid == long(id):
                             continue
                         friends = self.IsFriend(str(ownerid), str(id))
                         if friends:

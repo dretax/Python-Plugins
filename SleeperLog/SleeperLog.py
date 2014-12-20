@@ -151,7 +151,7 @@ class SleeperLog:
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
-        if id == None:
+        if id is None:
             return
         name = Player.Name
         ini = self.SleeperId()
@@ -177,9 +177,6 @@ class SleeperLog:
                 entityloc = Util.CreateVector(HurtEvent.Entity.X, HurtEvent.Entity.Y, HurtEvent.Entity.Z)
                 ini = self.SleeperId()
                 name = ini.GetSetting("Sleeper", str(OwnerID))
-                exist = ini.GetSetting("SleeperLog", str(entityloc))
-                if name is not None and exist is None:
+                if name is not None:
                     attacker = HurtEvent.Attacker.Name
-                    time = str(System.DateTime.Now)
-                    ini.AddSetting("SleeperLog", str(entityloc), attacker + "|<- Attacker|" + id + "|" + name + "|" + time)
-                    ini.Save()
+                    Plugin.Log("SleeperLog", str(entityloc) + "|" + attacker + "|<- Attacker|" + id + "|" + name)

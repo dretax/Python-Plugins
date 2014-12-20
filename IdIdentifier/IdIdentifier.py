@@ -4,7 +4,6 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-import System
 
 """
     Class
@@ -64,16 +63,14 @@ class IdIdentifier:
         name = str(Player.Name)
         ip = str(Player.IP)
         location = str(Player.Location)
-        dt = str(System.DateTime.Now)
         ini = self.PlayersIni()
-        if ini.GetSetting("Track", sid) is not None and ini.GetSetting("LastJoin", name) is not None:
+        if ini.GetSetting("Track", sid) is not None:
             ini.SetSetting("Track", sid, name)
-            ini.SetSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
         else:
             ini.AddSetting("Track", sid, name)
-            ini.AddSetting("LastJoin", name, "|" + sid + "|" + ip + "|" + dt + "|" + location)
             ini.Save()
+        Plugin.Log("LastJoin", str(name) + "|" + sid + "|" + ip  + "|" + location)
 
 
     def On_PlayerDisconnected(self, Player):
@@ -82,14 +79,7 @@ class IdIdentifier:
         if id is None:
             return
         location = str(Player.Location)
-        ini = self.PlayersIni()
-        dt = str(System.DateTime.Now)
-        if ini.GetSetting("Track", name) is not None:
-            ini.SetSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
-            ini.Save()
-        else:
-            ini.AddSetting("LastQuit", name, "|" + id + "|" + dt + "|" + location)
-            ini.Save()
+        Plugin.Log("LastQuit", str(name) + "|" + id + "|" + location)
 
     def On_Command(self, Player, cmd, args):
         if cmd == "owner":

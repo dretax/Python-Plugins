@@ -4,7 +4,6 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-import System
 
 """
     Class
@@ -35,12 +34,8 @@ class ChestLog:
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
-            entityname = HurtEvent.Entity.Name
-            if entityname == "WoodBoxLarge" or entityname == "WoodBox" or entityname == "SmallStash":
+            if HurtEvent.Entity.Name == "WoodBoxLarge" or HurtEvent.Entity.Name == "WoodBox" or HurtEvent.Entity.Name == "SmallStash":
                 name = HurtEvent.Attacker.Name
-                time = str(System.DateTime.Now)
                 loc = str(HurtEvent.Attacker.Location)
-                ini = self.ChestLog()
                 entityloc = Util.CreateVector(HurtEvent.Entity.X, HurtEvent.Entity.Y, HurtEvent.Entity.Z)
-                ini.AddSetting("ChestLog", str(entityloc), entityname + "|" + id + "|" + name + "|" + time + "|" + loc)
-                ini.Save()
+                Plugin.Log("ChestLog", str(entityloc) + " | " + HurtEvent.Entity.Name + "|" + id + "|" + name + "|" + loc)

@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.0'
+__version__ = '3.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -23,7 +23,7 @@ class DeathMSG:
     def On_Command(self, Player, cmd, args):
         if cmd == "uautoban":
             if len(args) == 0:
-                Player.Message("---DeathMSG 3.0---")
+                Player.Message("---DeathMSG 3.1---")
                 Player.Message("/uautoban name - Unbans player")
             else:
                 config = self.DeathMSGConfig()
@@ -53,15 +53,16 @@ class DeathMSG:
             killer = str(DeathEvent.Attacker.Name)
             victim = str(DeathEvent.Victim.Name)
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
-            if self.WasSuicide(killer, victim):
+            id = str(self.TrytoGrabID(DeathEvent.Attacker))
+            vid = str(self.TrytoGrabID(DeathEvent.Victim))
+            if self.WasSuicide(int(id), int(vid)):
                 e = int(config.GetSetting("Settings", "enablesuicidemsg"))
                 if e == 1:
-                    victim = DeathEvent.Victim.Name
                     n = config.GetSetting("Settings", "suicide")
                     n = n.replace("victim", victim)
                     Server.BroadcastFrom(deathmsgname, n)
                 return
-            if self.IsAnimal(killer):
+            if self.IsAnimal(killer) and id is None:
                 e = int(config.GetSetting("Settings", "enableanimalmsg"))
                 if e == 1:
                     a = config.GetSetting("Settings", "animalkill")
@@ -89,7 +90,6 @@ class DeathMSG:
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
                         if distance > self.RangeOf(weapon) > 0:
-                            id = DeathEvent.Attacker.SteamID
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
                             if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
@@ -99,7 +99,6 @@ class DeathMSG:
                                 Server.BroadcastFrom(deathmsgname, self.red + z)
                                 ini = self.DMB()
                                 ip = DeathEvent.Attacker.IP
-                                vid = DeathEvent.Victim.SteamID
                                 ini.AddSetting("Ips", ip, "1")
                                 ini.AddSetting("Ids", id, "1")
                                 ini.AddSetting("NameIps", killer, ip)
@@ -129,7 +128,6 @@ class DeathMSG:
                         autoban = int(config.GetSetting("Settings", "autoban"))
                         if autoban == 1:
                             if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
-                                id = str(DeathEvent.Attacker.SteamID)
                                 tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                                 hometeleport = DataStore.Get("homesystemautoban", id)
                                 if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
@@ -139,7 +137,6 @@ class DeathMSG:
                                     Server.BroadcastFrom(deathmsgname, self.red + z)
                                     ini = self.DMB()
                                     ip = DeathEvent.Attacker.IP
-                                    vid = str(DeathEvent.Victim.SteamID)
                                     ini.AddSetting("Ips", ip, "1")
                                     ini.AddSetting("Ids", id, "1")
                                     ini.AddSetting("NameIps", killer, ip)
@@ -237,8 +234,8 @@ class DeathMSG:
             return True
         return False
 
-    def WasSuicide(self, killer, victim):
-        if killer == victim:
+    def WasSuicide(self, killerid, victimid):
+        if killerid == victimid:
             return True
         return False
 
