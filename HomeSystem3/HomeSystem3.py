@@ -148,14 +148,6 @@ class HomeSystem3:
             return True
         return False
 
-    def GetFriends(self, id):
-        beds = self.PlayersIni()
-        ids = beds.EnumSection(id)
-        list = []
-        for id in ids:
-            list.append(id)
-        return list
-
     def IsFriend(self, OwnerID, ID):
         beds = self.PlayersIni()
         if beds.GetSetting(OwnerID, ID):
