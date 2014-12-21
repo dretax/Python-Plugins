@@ -40,11 +40,9 @@ class JZap:
         arr = World.Entities.ToArray()
         return [e for e in arr if long(e.OwnerID) == long(OwnerID)]
 
-
     """
         Events
     """
-
 
     def On_ServerShutdown(self):
         DataStore.Flush(JZapDB)
@@ -93,7 +91,9 @@ class JZap:
 
 
     def On_EntityHurt(self, he):
-        if he.Attacker is None or he.Entity is None:
+        if DataStore.Get(JZapDB, 'Active') is None:
+            return
+        if he.Attacker is None or he.Entity is None or he.IsDecay:
             return
         OwnerID = DataStore.Get(JZapDB, 'Target')
         emon = '[color#FFA500]'
@@ -102,14 +102,12 @@ class JZap:
         if he.Entity.Health > 0 and (he.Attacker.Admin or self.isMod(he.Attacker.SteamID)):
             ini = self.Players()
             name = ini.GetSetting('List', he.Entity.OwnerID)
-            if DataStore.Get(JZapDB, 'Active') == he.Attacker.SteamID and OwnerID is None:
-                he.Attacker.MessageFrom('☑ ',
-                                        'This thing belongs to  ' + emon + name + noem + ' (' + he.Entity.OwnerID + ').')
-                he.Attacker.MessageFrom('☑ ☑ ',
-                                        'Hit it once more to zap  ' + emon + name + '\'s' + noem + '  stuff completely off the map.')
+            if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
                 DataStore.Add(JZapDB, 'Target', he.Entity.OwnerID)
+                he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + name + noem + ' (' + he.Entity.OwnerID + ').')
+                he.Attacker.MessageFrom('☑ ☑ ', 'Hit it once more to zap  ' + emon + name + '\'s' + noem + '  stuff completely off the map.')
                 return
-            elif OwnerID == he.Entity.OwnerID:
+            elif long(OwnerID) == long(he.Entity.OwnerID):
                 DataStore.Flush(JZapDB)
                 stuff = self.AllStuff(OwnerID)
                 for e in stuff:
@@ -121,7 +119,6 @@ class JZap:
                             Util.DestroyObject(e.Object.gameObject)
                     except:
                         pass
-
                 he.Attacker.MessageFrom('☑ ☑ ☑ ', emon + str(len(stuff)) + noem + '  objects were zapped.')
                 he.Attacker.Notice('☠', name.upper() + '\'S RUST STUFF\'S DUST!', 10)
                 he.Attacker.InventoryNotice(JZapDB + ' is de-activated!')
