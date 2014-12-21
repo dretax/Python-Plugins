@@ -94,7 +94,7 @@ class Moderators:
                     if playerr is None:
                         return
                     name = str(playerr.Name)
-                    id = str(playerr.GameID)
+                    id = str(playerr.SteamID)
                     ini = self.ModeratorsIni()
                     ini.AddSetting("Moderators", name, id)
                     ini.Save()
