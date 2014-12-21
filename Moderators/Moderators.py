@@ -105,7 +105,6 @@ class Moderators:
                 if len(args) == 0:
                     Player.Message("Usage: /delmoderator name")
                 else:
-                    Player.Message()
                     name = self.argsToText(args)
                     name = name.lower()
                     ini = self.ModeratorsIni()
