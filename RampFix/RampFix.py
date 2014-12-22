@@ -23,17 +23,16 @@ class RampFix:
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None:
             if "Ramp" in Entity.Name or "Foundation" in Entity.Name:
-                type = None
-                Util.TryFindType('LootableObject', type) # boxes, campfires, stashes, etc.
-                lob = UnityEngine.Object.FindObjectsOfType(type)
+                loott = Util.TryFindReturnType('LootableObject')
+                lob = UnityEngine.Object.FindObjectsOfType(loott)
                 for i in xrange(0, len(lob)):
                     one = lob[i].collider.bounds
                     two = Entity.Object.collider.bounds
                     if two.Intersects(one):
                         Entity.Destroy()
                         return
-                Util.TryFindType('StructureComponent', type)
-                sc = UnityEngine.Object.FindObjectsOfType(type)
+                stt = Util.TryFindReturnType('StructureComponent')
+                sc = UnityEngine.Object.FindObjectsOfType(stt)
                 for i in xrange(0, len(sc)):
                     if sc[i].name.index("Foundation") != -1 or sc[i] == Entity.Object:
                         continue
