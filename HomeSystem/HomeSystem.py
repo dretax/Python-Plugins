@@ -1,3 +1,5 @@
+import math
+
 __author__ = 'DreTaX'
 __version__ = '2.5.0'
 import clr
@@ -6,6 +8,8 @@ clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
 import sys
+import System
+from System import Environment
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
 
@@ -73,6 +77,24 @@ class HomeSystem:
             return c
         return None
 
+    def HasHome(self, id):
+        ini = self.Homes()
+        enum = ini.EnumSection(id)
+        if len(enum) == 0 or enum is None:
+            return False
+        return True
+
+    def GetHomeNumber(self, id):
+        ini = self.Homes()
+        enum = len(ini.EnumSection(id))
+        return enum
+
+    def GetListofHomes(self, id):
+        ini = self.Homes()
+        homes = ini.GetSetting("HomeNames", id)
+        homes = homes.replace(' ')
+        return homes.split(',')
+
     def CheckIfEmpty(self, id):
         ini = self.Homes()
         checkdist = ini.EnumSection(id)
@@ -108,7 +130,7 @@ class HomeSystem:
         Timer Functions
     """
 
-    def addJob(self, id, xtime, location, callbacknumber, PlayerLoc):
+    def addJob(self, id, xtime, location, callbacknumber, PlayerLoc = None):
         if id and xtime and location and callbacknumber:
             epoch = Plugin.GetTimestamp()
             exectime = int(epoch) + int(xtime)
@@ -138,11 +160,9 @@ class HomeSystem:
 
     def getPlayer(self, d):
         try:
-            id = long(d)
-            for player in Server.Players:
-                if long(player.SteamID) == id:
-                    return player
-            return None
+            id = str(d)
+            pl = Server.FindPlayer(id)
+            return pl
         except:
             return None
 
@@ -222,14 +242,136 @@ class HomeSystem:
                         r = random.randrange(0, randomloc)
                         ini = self.Homes()
                         getdfhome = ini.GetSetting("DefaultHome", )
-                        checkn = config.GetSetting("Settings", "safetpcheck")
-                        tpdelay = config.GetSetting("Settings", "jointpdelay")
+                        tpdelay = int(config.GetSetting("Settings", "jointpdelay"))
                         if getdfhome is not None:
                             home = self.HomeOf(player, getdfhome)
-                            j = []
-                            j.append(str(params[0]))
-                            j.append(str(home[0]))
-                            j.append(str(home[1]))
-                            j.append(str(home[2]))
-                            #todo: Continue
-                    DataStore.Add("homesystemautoban", params[0], "none")
+                            home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
+                            # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
+                            self.addJob(id, tpdelay, home, 1)
+                        else:
+                            ini2 = self.DefaultLoc()
+                            loc = ini2.GetSetting("DefaultLoc", str(r))
+                            tp = self.Replace(loc)
+                            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
+                            self.addJob(id, tpdelay, home, 3)
+                    DataStore.Add("homesystemautoban", id, "none")
+                    DataStore.Remove(DStable, id)
+
+    def On_Command(self, Player, cmd, args):
+        config = self.HomeConfig()
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        id = Player.SteamID
+        plloc = Player.Location
+        if cmd == "cleartimers":
+            if Player.Admin:
+                self.clearTimers()
+                Player.MessageFrom(homesystemname, "All timers killed.")
+        elif cmd == "home":
+            if len(args) != 1:
+                Player.MessageFrom(homesystemname, "---HomeSystem---")
+                Player.MessageFrom(homesystemname, "/home name - Teleport to Home")
+                Player.MessageFrom(homesystemname, "/sethome name - Save Home")
+                Player.MessageFrom(homesystemname, "/delhome name - Delete Home")
+                Player.MessageFrom(homesystemname, "/setdefaulthome name - Default Spawn Point")
+                Player.MessageFrom(homesystemname, "/homes - List Homes")
+                Player.MessageFrom(homesystemname, "/addfriendh name - Adds Player To Distance Whitelist")
+                Player.MessageFrom(homesystemname, "/delfriendh name - Removes Player From Distance Whitelist")
+                Player.MessageFrom(homesystemname, "/listwlh - List Players On Distance Whitelist")
+            else:
+                home = str(args[0])
+                check = self.HomeOf(Player, home)
+                if check is None:
+                    Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
+                    return
+                cooldown = int(config.GetSetting("Settings", "Cooldown"))
+                time = DataStore.Get("home_cooldown", id)
+                tpdelay = int(config.GetSetting("Settings", "tpdelay"))
+                calc = System.Environment.TickCount - time
+                if time is None or calc < 0 or math.isnan(calc) or math.isnan(time):
+                    DataStore.Add("home_cooldown", id, 7)
+                    time = 7
+                if calc >= cooldown or time == 7:
+                    loc = Util.CreateVector(check[0], check[1], check[2])
+                    if tpdelay == 0:
+                        Player.SafeTeleportTo(loc)
+                        DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                        Player.MessageFrom(homesystemname, "Teleported to home!")
+                    else:
+                        DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                        self.addJob(id, tpdelay, loc, 2, plloc)
+                        Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
+                else:
+                    Player.Notice("You have to wait before teleporting again!")
+                    done = round((calc / 1000) / 60, 2)
+                    done2 = round((cooldown / 1000) / 60, 2)
+                    Player.MessageFrom(homesystemname, "Time: " + str(done) + "/" + str(done2))
+        elif cmd == "sethome":
+            if len(args) != 1:
+                Player.MessageFrom(homesystemname, "Usage: /sethome name")
+                return
+            ini = self.Homes()
+            maxh = self.DonatorRankCheck(id)
+            if self.GetHomeNumber(id) == int(maxh):
+                Player.MessageFrom(homesystemname, "You reached the max number of homes!")
+                return
+            home = str(args[0])
+            check = self.HomeOf(Player, home)
+            if check is not None:
+                Player.MessageFrom(homesystemname, "You already have a home called like that!")
+                return
+            checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
+            checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
+            if checkforit == 1:
+                checkdist = ini.EnumSection("HomeNames")
+                counted = len(checkdist)
+                maxdist = int(config.GetSetting("Settings", "Distance"))
+                if counted > 0:
+                    for idof in checkdist:
+                        homes = self.GetListofHomes(idof)
+                        for i in xrange(0, len(homes)):
+                            check = self.HomeOfID(idof, homes[i])
+                            if check is not None and check:
+                                vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
+                                dist = Util.GetVectorsDistance(vector, plloc)
+                                if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
+                                    Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
+                                    return
+                            else:
+                                ini.DeleteSetting("HomeNames", idof)
+                                ini.Save()
+                else:
+                    homes = ini.GetSetting("HomeNames", id)
+                    n = homes + "" + home + ","
+                    ini.AddSetting(id, home, str(plloc))
+                    ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+                    ini.Save()
+                    Player.MessageFrom(homesystemname, "Home Saved")
+                    return
+            if checkwall == 1:
+                type = Util.TryFindReturnType("StructureComponent")
+                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
+                for x in objects:
+                    if "Wall" in x.name:
+                        distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
+                        if distance <= 1.50:
+                            Player.MessageFrom(homesystemname, "You can't set home near walls!")
+                            return
+            homes = ini.GetSetting("HomeNames", id)
+            n = homes + "" + home + ","
+            ini.AddSetting(id, home, str(plloc))
+            ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+            ini.Save()
+            Player.MessageFrom(homesystemname, "Home Saved")
+        elif cmd == "setdefaulthome":
+            if len(args) != 1:
+                Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
+                return
+            home = str(args[0])
+            check = self.HomeOf(Player, home)
+            if check is None:
+                Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
+                return
+            ini = self.Homes()
+            ini.AddSetting("DefaultHome", id, home)
+            ini.Save()
+            Player.MessageFrom(homesystemname, "Default Home Set!")
