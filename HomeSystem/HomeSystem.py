@@ -20,6 +20,7 @@ except ImportError:
     pass
 
 DStable = 'BZjobs'
+red = "[color #FF0000]"
 class HomeSystem:
 
     """
@@ -125,6 +126,18 @@ class HomeSystem:
         x = ast.literal_eval(String)
         x = [n.strip() for n in x]
         return x
+
+    def TrytoGrabID(self, Player):
+        try:
+            id = Player.SteamID
+            return id
+        except:
+            return None
+
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
 
     """
         CheckV method based on Spock's method.
@@ -242,14 +255,15 @@ class HomeSystem:
                     continue
                 params = self.Parse(str(DataStore.Get(DStable, id)))
                 if epoch >= int(params[0]):
-                    callback = int(params[2])
-                    xto = self.Replace(params[1])
                     player = self.getPlayer(id)
                     if player is None:
                         DataStore.Add("homesystemautoban", id, "none")
                         self.killJob(id)
                         continue
-                    loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
+                    callback = int(params[2])
+                    if callback != 5:
+                        xto = self.Replace(params[1])
+                        loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
                     DataStore.Add("homesystemautoban", id, "using")
                     # Join Callback, this should handle the delay
                     if callback == 1:
@@ -299,8 +313,8 @@ class HomeSystem:
                             self.addJob(id, tpdelay, home, 1)
                         else:
                             ini2 = self.DefaultLoc()
-                            loc = ini2.GetSetting("DefaultLoc", str(r))
-                            tp = self.Replace(loc)
+                            locc = ini2.GetSetting("DefaultLoc", str(r))
+                            tp = self.Replace(locc)
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                             self.addJob(id, tpdelay, home, 3)
                     DataStore.Add("homesystemautoban", id, "none")
@@ -529,4 +543,73 @@ class HomeSystem:
                     inventory.AddItem("Cloth", 40)
                     inventory.AddItem("Metal Fragments", 100)
 
-    #todo: Finish other events..............
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        camp = SpawnEvent.CampUsed
+        if camp:
+            config = self.HomeConfig()
+            #checkn = int(config.GetSetting("Settings", "safetpcheck"))
+            homesystemname = config.GetSetting("Settings", "homesystemname")
+            id = Player.SteamID
+            cooldown = config.GetSetting("Settings", "Cooldown")
+            time = DataStore.Get("home_cooldown", id)
+            if time is None:
+                time = 7
+            calc = System.Environment.TickCount - time
+            if calc < 0 or math.isnan(calc):
+                DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+            if calc >= cooldown or time == 7:
+                ini = self.Homes()
+                check = ini.GetSetting("DefaultHome", id)
+                if check is not None:
+                    DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                    home = self.HomeOf(Player, check)
+                    home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
+                    Player.SafeTeleportTo(home)
+                    Player.MessageFrom(homesystemname, "Spawned at home!")
+                    #self.addJob(id, checkn, home, 4)
+
+    def On_PlayerConnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            try:
+                Player.Disconnect()
+            except:
+                pass
+            return
+        config = self.HomeConfig()
+        jointpdelay = int(config.GetSetting("Settings", "jointpdelay"))
+        jtime = DataStore.Get("home_joincooldown", id)
+        cooldown = int(config.GetSetting("Settings", "rejoincd"))
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        if jtime is None:
+            self.addJob(id, jointpdelay, None, 5)
+            return
+        if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
+            DataStore.Remove("home_joincooldown", id)
+            self.addJob(id, jointpdelay, None, 5)
+            return
+        calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
+        if System.Environment.TickCount <= jtime + cooldown * 1000:
+            calc2 = cooldown * 1000
+            calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
+            Player.MessageFrom(homesystemname, red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+            Player.Disconnect()
+            return
+        elif System.Environment.TickCount > jtime + (cooldown * 1000):
+            self.addJob(id, jointpdelay, None, 5)
+
+    def On_PlayerDisconnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            try:
+                Player.Disconnect()
+            except:
+                pass
+            return
+        config = self.HomeConfig()
+        antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
+        if antiroof == 1:
+            if not Player.Admin and not self.isMod(id):
+                time = DataStore.Get("home_joincooldown", id)
+                if time is None:
+                    DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
