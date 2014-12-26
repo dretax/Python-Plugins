@@ -127,6 +127,55 @@ class HomeSystem:
         return x
 
     """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        Can Handle Single argument and Array args.
+        V4.0
+    """
+
+    def GetPlayerName(self, namee):
+        try:
+            name = namee.lower()
+            for pl in Server.Players:
+                if pl.Name.lower() == name:
+                    return pl
+            return None
+        except:
+            return None
+
+    def CheckV(self, Player, args):
+        systemname = "HomeSystem"
+        count = 0
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(str.join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.Players:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            nargs = str(args).lower()
+            p = self.GetPlayerName(nargs)
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if nargs in pl.Name.lower():
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            return None
+
+    """
         Timer Functions
     """
 
@@ -375,3 +424,109 @@ class HomeSystem:
             ini.AddSetting("DefaultHome", id, home)
             ini.Save()
             Player.MessageFrom(homesystemname, "Default Home Set!")
+        elif cmd == "delhome":
+            if len(args) != 1:
+                Player.MessageFrom(homesystemname, "Usage: /delhome name")
+                return
+            home = str(args[0])
+            ini = self.Homes()
+            check = ini.GetSetting(id, home)
+            ifdfhome = ini.GetSetting("DefaultHome", id)
+            if check is not None:
+                if ifdfhome is not None:
+                    ini.DeleteSetting("DefaultHome", id)
+                homes = ini.GetSetting("HomeNames", id)
+                second = homes.replace(home+",", "")
+                ini.DeleteSetting(id, home);
+                if not second:
+                    ini.DeleteSetting("HomeNames", id)
+                else:
+                    ini.AddSetting("HomeNames", id, second)
+                ini.Save()
+                Player.MessageFrom(homesystemname, "Home: " + home + " Deleted")
+            else:
+                Player.MessageFrom(homesystemname, "Home: " + home + " doesn't exists!")
+        elif cmd == "homes":
+            ini = self.Homes()
+            if ini.GetSetting("HomeNames", id) is not None:
+                homes = ini.GetSetting("HomeNames", id).split(',')
+                for h in homes:
+                    Player.MessageFrom(homesystemname, "Homes: " + homes[h])
+            else:
+                Player.MessageFrom(homesystemname, "You don't have homes!")
+        elif cmd == "deletebeds":
+            antihack = int(config.GetSetting("Settings", "Antihack"))
+            if Player.Admin and antihack == 1:
+                for x in World.Entities:
+                    if x.Name == "SleepingBagA" or x.Name == "SingleBed":
+                        x.Destroy()
+                Player.MessageFrom(homesystemname, "Deleted all.")
+        elif cmd == "addfriendh":
+            if len(args) == 0:
+                Player.MessageFrom(homesystemname, "Usage: /addfriendh playername")
+                return
+            playerr = self.CheckV(Player, args[0])
+            if playerr is None:
+                return
+            if playerr == Player:
+                Player.MessageFrom(homesystemname, "This is you....")
+                return
+            ini = self.Wl()
+            ini.AddSetting(id, playerr.SteamID, playerr.Name)
+            ini.Save()
+            Player.MessageFrom(homesystemname, "Player Whitelisted")
+        elif cmd == "delfriendh":
+            if len(args) == 0:
+                Player.MessageFrom(homesystemname, "Usage: /delfriendh playername")
+                return
+            name = str(args[0])
+            ini = self.Wl()
+            players = ini.EnumSection(id)
+            if len(players) == 0:
+                Player.MessageFrom(homesystemname, "You have never added anyone...")
+                return
+            name = name.lower()
+            for playerid in players:
+                nameof = ini.GetSetting(id, playerid)
+                lowered = nameof.lower()
+                if lowered == name:
+                    ini.DeleteSetting(id, playerid)
+                    ini.Save()
+                    Player.MessageFrom(homesystemname, "Player Removed from Whitelist")
+                    return
+            Player.MessageFrom(homesystemname, "Couldn't find that player!")
+        elif cmd == "listwlh":
+            ini = self.Wl()
+            players = ini.EnumSection(id)
+            Player.MessageFrom(homesystemname, "Whitelisted Players:")
+            if len(players) == 0:
+                Player.MessageFrom(homesystemname, "You have never added anyone...")
+                return
+            for playerid in players:
+                nameof = ini.GetSetting(id, playerid)
+                Player.MessageFrom(homesystemname, "- " + nameof)
+
+    def On_EntityDeployed(self, Player, Entity):
+        if Entity is not None and Player is not None:
+            config = self.HomeConfig()
+            antihack = int(config.GetSetting("Settings", "Antihack"))
+            if antihack == 1:
+                homesystemname = config.GetSetting("Settings", "homesystemname")
+                inventory = Player.Inventory
+                if Entity.Name == "SleepingBagA":
+                    Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
+                    Player.MessageFrom(homesystemname, "Use /home")
+                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(homesystemname, "You received 15 Cloth.")
+                    Entity.Destroy()
+                    inventory.AddItem("Cloth", 15)
+                elif Entity.Name == "SingleBed":
+                    Player.MessageFrom(homesystemname, "Beds are banned from this server!")
+                    Player.MessageFrom(homesystemname, "Use /home")
+                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
+                    Entity.Destroy()
+                    inventory.AddItem("Cloth", 40)
+                    inventory.AddItem("Metal Fragments", 100)
+
+    #todo: Finish other events..............
