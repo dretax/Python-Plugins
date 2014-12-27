@@ -67,6 +67,7 @@ class DestroySystem:
     Items = {
         'WoodFoundation': 'Wood Foundation',
         'WoodDoorFrame': 'Wood Doorway',
+        'WoodDoor': 'Wood Door',
         'WoodWall': 'Wood Wall',
         'WoodPillar': 'Wood Pillar',
         'WoodCeiling': 'Wood Ceiling',
