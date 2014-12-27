@@ -193,17 +193,16 @@ class HomeSystem:
     """
 
     def addJob(self, id, xtime, location, callbacknumber, PlayerLoc = None):
-        if id and xtime and location and callbacknumber:
-            epoch = Plugin.GetTimestamp()
-            exectime = int(epoch) + int(xtime)
-            # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
-            List = []
-            List.append(str(exectime))
-            List.append(str(location))
-            List.append(str(callbacknumber))
-            List.append(str(PlayerLoc))
-            DataStore.Add(DStable, id, self.Stringify(List))
-            self.startTimer()
+        epoch = Plugin.GetTimestamp()
+        exectime = int(epoch) + int(xtime)
+        # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
+        List = []
+        List.append(str(exectime))
+        List.append(str(location))
+        List.append(str(callbacknumber))
+        List.append(str(PlayerLoc))
+        DataStore.Add(DStable, id, self.Stringify(List))
+        self.startTimer()
 
     def killJob(self, id):
         DataStore.Remove(DStable, id)
@@ -231,7 +230,7 @@ class HomeSystem:
     def clearTimers(self):
         DataStore.Flush(DStable)
 
-    HomeJobs = {'name': 'HomeSystem', 'Author': 'DreTaX', 'Version': '2.0'}
+    HomeJobs = {'Name': 'HomeSystem', 'Author': 'DreTaX', 'Version': '2.5.0'}
 
 
     """
@@ -240,7 +239,7 @@ class HomeSystem:
 
     def On_PluginInit(self):
         DataStore.Flush("BZjobs")
-        Util.ConsoleLog(self.HomeJobs['name'] + " v" + self.HomeJobs['version'] + " by " + self.HomeJobs['author'] + " loaded.", True)
+        Util.ConsoleLog(self.HomeJobs['Name'] + " v" + self.HomeJobs['Version'] + " by " + self.HomeJobs['Author'] + " loaded.", True)
 
 
     def JobTimerCallback(self):
@@ -610,6 +609,5 @@ class HomeSystem:
         antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         if antiroof == 1:
             if not Player.Admin and not self.isMod(id):
-                time = DataStore.Get("home_joincooldown", id)
-                if time is None:
+                if DataStore.Get("home_joincooldown", id) is None:
                     DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
