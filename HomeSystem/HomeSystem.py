@@ -229,6 +229,7 @@ class HomeSystem:
 
     def clearTimers(self):
         DataStore.Flush(DStable)
+        self.stopTimer()
 
     HomeJobs = {'Name': 'HomeSystem', 'Author': 'DreTaX', 'Version': '2.5.0'}
 
