@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -110,7 +110,7 @@ class DestroySystem:
             OwnerID = self.GetIt(HurtEvent.Entity)
             if OwnerID is None:
                 return
-            if str(id) == str(OwnerID) and get == "true":
+            if long(id) == long(OwnerID) and bool(get):
                 if self.IsEligible(HurtEvent):
                     EntityName = HurtEvent.Entity.Name
                     HurtEvent.Entity.Destroy()
