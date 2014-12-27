@@ -105,21 +105,19 @@ class DestroySystem:
             gun = HurtEvent.WeaponName
             if gun == "Shotgun":
                 return
-            else:
-                get = DataStore.Get("DestroySystem", str(id))
-                #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
-                OwnerID = self.GetIt(HurtEvent.Entity)
-                if OwnerID is None:
-                    return
-                if str(id) == str(OwnerID) and get == "true":
-                    if self.IsEligible(HurtEvent):
-                        EntityName = HurtEvent.Entity.Name
-                        HurtEvent.Entity.Destroy()
-                        ini = self.DestroySys()
-                        giveback = int(ini.GetSetting("options", "giveback"))
-                        if giveback == 1:
-                            item = self.Items.get(EntityName, None)
-                            if item is None:
-                                return
-                            else:
-                                HurtEvent.Attacker.Inventory.AddItem(item, 1)
+            get = DataStore.Get("DestroySystem", str(id))
+            #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
+            OwnerID = self.GetIt(HurtEvent.Entity)
+            if OwnerID is None:
+                return
+            if str(id) == str(OwnerID) and get == "true":
+                if self.IsEligible(HurtEvent):
+                    EntityName = HurtEvent.Entity.Name
+                    HurtEvent.Entity.Destroy()
+                    ini = self.DestroySys()
+                    giveback = int(ini.GetSetting("options", "giveback"))
+                    if giveback == 1:
+                        item = self.Items.get(EntityName, None)
+                        if item is None:
+                            return
+                        HurtEvent.Attacker.Inventory.AddItem(item, 1)
