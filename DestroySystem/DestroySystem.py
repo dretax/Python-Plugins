@@ -121,4 +121,4 @@ class DestroySystem:
                         item = self.Items.get(EntityName, None)
                         if item is None:
                             return
-                        HurtEvent.Attacker.Inventory.AddItem(item, 1)
+                        HurtEvent.Attacker.Inventory.AddItem(item)
