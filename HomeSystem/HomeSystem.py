@@ -310,7 +310,7 @@ class HomeSystem:
                         DataStore.Add("home_joincooldown", id, 7)
                         r = random.randrange(0, randomloc)
                         ini = self.Homes()
-                        getdfhome = ini.GetSetting("DefaultHome", )
+                        getdfhome = ini.GetSetting("DefaultHome", id)
                         tpdelay = int(config.GetSetting("Settings", "jointpdelay"))
                         if getdfhome is not None:
                             home = self.HomeOf(player, getdfhome)
@@ -354,13 +354,16 @@ class HomeSystem:
                     return
                 cooldown = int(config.GetSetting("Settings", "Cooldown"))
                 time = DataStore.Get("home_cooldown", id)
+                if time is None:
+                    DataStore.Add("home_cooldown", id, 7)
+                    time = 7
                 tpdelay = int(config.GetSetting("Settings", "tpdelay"))
                 calc = System.Environment.TickCount - time
-                if time is None or calc < 0 or math.isnan(calc) or math.isnan(time):
+                if calc < 0 or math.isnan(calc) or math.isnan(time):
                     DataStore.Add("home_cooldown", id, 7)
                     time = 7
                 if calc >= cooldown or time == 7:
-                    loc = Util.CreateVector(check[0], check[1], check[2])
+                    loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                     if tpdelay == 0:
                         Player.SafeTeleportTo(loc)
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
@@ -482,9 +485,14 @@ class HomeSystem:
         elif cmd == "homes":
             ini = self.Homes()
             if ini.GetSetting("HomeNames", id) is not None:
-                homes = ini.GetSetting("HomeNames", id).split(',')
-                for h in homes:
-                    Player.MessageFrom(homesystemname, "Homes: " + homes[h])
+                homes = str(ini.GetSetting("HomeNames", id))
+                if "," in homes:
+                    homes = homes.split(',')
+                    Player.MessageFrom(homesystemname, "Homes: ")
+                    for h in homes:
+                        Player.MessageFrom(homesystemname, "- " + str(homes[h]))
+                else:
+                    Player.MessageFrom(homesystemname, "Homes: " + str(homes))
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
         elif cmd == "deletebeds":
