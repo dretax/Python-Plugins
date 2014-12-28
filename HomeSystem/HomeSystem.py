@@ -410,12 +410,18 @@ class HomeSystem:
                                 ini.Save()
                 else:
                     homes = ini.GetSetting("HomeNames", id)
-                    n = homes + "" + home + ","
+                    if homes is not None and "," in homes:
+                        n = homes + "" + home + ","
+                        ini.AddSetting(id, home, str(plloc))
+                        ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+                        ini.Save()
+                        Player.MessageFrom(homesystemname, "Home Saved")
+                        return
+                    n = home + ","
                     ini.AddSetting(id, home, str(plloc))
-                    ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+                    ini.AddSetting("HomeNames", id, n)
                     ini.Save()
                     Player.MessageFrom(homesystemname, "Home Saved")
-                    return
             if checkwall == 1:
                 type = Util.TryFindReturnType("StructureComponent")
                 objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
@@ -426,9 +432,16 @@ class HomeSystem:
                             Player.MessageFrom(homesystemname, "You can't set home near walls!")
                             return
             homes = ini.GetSetting("HomeNames", id)
-            n = homes + "" + home + ","
+            if homes is not None and "," in homes:
+                n = homes + "" + home + ","
+                ini.AddSetting(id, home, str(plloc))
+                ini.AddSetting("HomeNames", id, n)
+                ini.Save()
+                Player.MessageFrom(homesystemname, "Home Saved")
+                return
+            n = home + ","
             ini.AddSetting(id, home, str(plloc))
-            ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+            ini.AddSetting("HomeNames", id, n)
             ini.Save()
             Player.MessageFrom(homesystemname, "Home Saved")
         elif cmd == "setdefaulthome":
