@@ -490,7 +490,7 @@ class HomeSystem:
                 homes = homes.split(',')
                 Player.MessageFrom(homesystemname, "--List of your Homes--")
                 for h in homes:
-                    Player.MessageFrom(homesystemname, "- " + str(homes[h]))
+                    Player.MessageFrom(homesystemname, "- " + str(h))
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
         elif cmd == "deletebeds":
