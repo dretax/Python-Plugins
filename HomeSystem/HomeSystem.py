@@ -1,5 +1,3 @@
-import math
-
 __author__ = 'DreTaX'
 __version__ = '2.5.0'
 import clr
@@ -9,6 +7,7 @@ import Fougerite
 import re
 import sys
 import System
+import math
 from System import Environment
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
@@ -29,6 +28,10 @@ class HomeSystem:
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
         return str.split(',')
+
+    def ReplaceToDot(self, String):
+        str = re.sub('[(\)]', '', String)
+        return str.split(':')
 
     def HomeConfig(self):
         if not Plugin.IniExists("HomeConfig"):
@@ -204,9 +207,9 @@ class HomeSystem:
         # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
         List = []
         List.append(str(exectime))
-        List.append(str(location))
+        List.append(str(location).replace(",", ":"))
         List.append(str(callbacknumber))
-        List.append(str(PlayerLoc))
+        List.append(str(PlayerLoc).replace(",", ":"))
         DataStore.Add(DStable, id, self.Stringify(List))
         self.startTimer()
 
@@ -250,7 +253,7 @@ class HomeSystem:
 
 
     def JobTimerCallback(self):
-        epoch = Plugin.GetTimestamp()
+        epoch = int(Plugin.GetTimestamp())
         if DataStore.Count(DStable) >= 1:
             pending = DataStore.Keys(DStable)
             config = self.HomeConfig()
@@ -268,7 +271,7 @@ class HomeSystem:
                         continue
                     callback = int(params[2])
                     if callback != 5:
-                        xto = self.Replace(params[1])
+                        xto = self.ReplaceToDot(params[1])
                         loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
                     DataStore.Add("homesystemautoban", id, "using")
                     # Join Callback, this should handle the delay
@@ -279,9 +282,9 @@ class HomeSystem:
                     elif callback == 2:
                         movec = int(config.GetSetting("Settings", "movecheck"))
                         if movec == 1:
-                            before = self.Replace(params[3])
+                            before = self.ReplaceToDot(params[3])
                             before = Util.CreateVector(float(before[0]), float(before[1]), float(before[2]))
-                            if before != player.Location:
+                            if int(before[0]) != int(player.X) or int(before[1]) != int(player.Y) or int(before[2]) != int(player.Z):
                                 player.Notice("You were moving!")
                                 DataStore.Add("home_cooldown", id, 7)
                                 self.killJob(id)
@@ -308,23 +311,23 @@ class HomeSystem:
                     elif callback == 5:
                         randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
                         DataStore.Add("home_joincooldown", id, 7)
-                        r = random.randrange(0, randomloc)
+                        r = random.randrange(1, randomloc)
                         ini = self.Homes()
                         getdfhome = ini.GetSetting("DefaultHome", id)
-                        tpdelay = int(config.GetSetting("Settings", "jointpdelay"))
                         if getdfhome is not None:
                             home = self.HomeOf(player, getdfhome)
                             home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                             # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
-                            self.addJob(id, tpdelay, home, 1)
+                            w = 1
                         else:
                             ini2 = self.DefaultLoc()
                             locc = ini2.GetSetting("DefaultLoc", str(r))
                             tp = self.Replace(locc)
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                            self.addJob(id, tpdelay, home, 3)
+                            w = 3
+                        self.addJob(id, 2, home, w)
                     DataStore.Add("homesystemautoban", id, "none")
-                    DataStore.Remove(DStable, id)
+                    self.killJob(id)
 
     def On_Command(self, Player, cmd, args):
         config = self.HomeConfig()
@@ -473,7 +476,7 @@ class HomeSystem:
                     ini.DeleteSetting("DefaultHome", id)
                 homes = ini.GetSetting("HomeNames", id)
                 second = homes.replace(home+",", "")
-                ini.DeleteSetting(id, home);
+                ini.DeleteSetting(id, home)
                 if not second:
                     ini.DeleteSetting("HomeNames", id)
                 else:
