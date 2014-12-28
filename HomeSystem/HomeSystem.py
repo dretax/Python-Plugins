@@ -486,13 +486,11 @@ class HomeSystem:
             ini = self.Homes()
             if ini.GetSetting("HomeNames", id) is not None:
                 homes = str(ini.GetSetting("HomeNames", id))
-                if "," in homes:
-                    homes = homes.split(',')
-                    Player.MessageFrom(homesystemname, "Homes: ")
-                    for h in homes:
-                        Player.MessageFrom(homesystemname, "- " + str(homes[h]))
-                else:
-                    Player.MessageFrom(homesystemname, "Homes: " + str(homes))
+                homes = homes[:-1]
+                homes = homes.split(',')
+                Player.MessageFrom(homesystemname, "--List of your Homes--")
+                for h in homes:
+                    Player.MessageFrom(homesystemname, "- " + str(homes[h]))
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
         elif cmd == "deletebeds":
