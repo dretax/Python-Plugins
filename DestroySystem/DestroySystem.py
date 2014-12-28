@@ -78,7 +78,7 @@ class DestroySystem:
         'MetalDoorFrame': 'Metal Doorway',
         'MetalWall': 'Metal Wall',
         'MetalPillar': 'Metal Pillar',
-        'MetalCeiling': 'Metal Stairs',
+        'MetalCeiling': 'Metal Ceiling',
         'MetalStairs': 'Metal Stairs',
         'MetalWindowFrame': 'Metal Window',
         'Wood_Shelter': 'Wood Shelter',
