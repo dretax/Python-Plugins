@@ -15,7 +15,6 @@ sys.path.append(path + "\\Save\\Lib\\")
 
 try:
     import random
-    import ast
 except ImportError:
     pass
 
@@ -119,13 +118,20 @@ class HomeSystem:
                 return maxh
 
     # exec, location, callback
-    def Stringify(self, List):
+    """def Stringify(self, List):
         return str(List).strip('[]')
 
     def Parse(self, String):
         x = ast.literal_eval(String)
         x = [n.strip() for n in x]
-        return x
+        return x"""
+
+    def Stringify(self, List):
+        s = re.sub("[[\]\'\ ]", '', str(List))
+        return str(s)
+
+    def Parse(self, String):
+        return String.split(',')
 
     def TrytoGrabID(self, Player):
         try:
