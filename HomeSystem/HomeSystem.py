@@ -413,7 +413,7 @@ class HomeSystem:
                     if homes is not None and "," in homes:
                         n = homes + "" + home + ","
                         ini.AddSetting(id, home, str(plloc))
-                        ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
+                        ini.AddSetting("HomeNames", id, n)
                         ini.Save()
                         Player.MessageFrom(homesystemname, "Home Saved")
                         return
