@@ -13,9 +13,28 @@ import re
 red = "[color #FF0000]"
 class SteamProfiler:
 
+    APIKey = None
+    AllowShared = None
+    AllowVACBanned = None
+    AllowedVACBans = None
+    MaximumDays = None
+    CheckOnlyRust = None
+    CheckForPrivate = None
+    CheckForNoProfile = None
+    sys = None
+
     def On_PluginInit(self):
         Util.ConsoleLog("SteamProfiler by" + __author__ + " Version: " + __version__ + " loaded.", False)
-        self.Ini()
+        ini = self.Ini()
+        self.APIKey = ini.GetSetting("Settings", "APIKey")
+        self.AllowShared = int(ini.GetSetting("Settings", "AllowShared"))
+        self.AllowVACBanned = int(ini.GetSetting("Settings", "AllowVACBanned"))
+        self.AllowedVACBans = int(ini.GetSetting("Settings", "AllowedVACBans"))
+        self.MaximumDays = int(ini.GetSetting("Settings", "MaximumDays"))
+        self.CheckOnlyRust = int(ini.GetSetting("Settings", "CheckForOnlyRust"))
+        self.CheckForPrivate = int(ini.GetSetting("Settings", "CheckForPrivate"))
+        self.CheckForNoProfile = int(ini.GetSetting("Settings", "CheckForNoProfile"))
+        self.sys = ini.GetSetting("Settings", "Sys")
 
     def Ini(self):
         if not Plugin.IniExists("Ini"):
@@ -64,60 +83,51 @@ class SteamProfiler:
                 pass
             return
         ini = self.Ini()
-        APIKey = ini.GetSetting("Settings", "APIKey")
-        AllowShared = int(ini.GetSetting("Settings", "AllowShared"))
-        AllowVACBanned = int(ini.GetSetting("Settings", "AllowVACBanned"))
-        AllowedVACBans = int(ini.GetSetting("Settings", "AllowedVACBans"))
-        MaximumDays = int(ini.GetSetting("Settings", "MaximumDays"))
-        CheckOnlyRust = int(ini.GetSetting("Settings", "CheckForOnlyRust"))
-        CheckForPrivate = int(ini.GetSetting("Settings", "CheckForPrivate"))
-        CheckForNoProfile = int(ini.GetSetting("Settings", "CheckForNoProfile"))
-        sys = ini.GetSetting("Settings", "Sys")
-        if AllowShared == 0:
-            url = Web.GET("http://api.steampowered.com/IPlayerService/IsPlayingSharedGame/v0001/?key=" + APIKey + "&steamid=" + id + "&appid_playing=252490")
+        if self.AllowShared == 0:
+            url = Web.GET("http://api.steampowered.com/IPlayerService/IsPlayingSharedGame/v0001/?key=" + self.APIKey + "&steamid=" + id + "&appid_playing=252490")
             data = self.GetSteamDatas(url, 1)
             if int(data[1]) != 0:
                 msg = ini.GetSetting("Settings", "UsingShared")
-                Player.MessageFrom(sys, red + msg)
+                Player.MessageFrom(self.sys, red + msg)
                 Player.Disconnect()
                 return
-        if AllowVACBanned == 0:
-            url = Web.GET("http://api.steampowered.com/ISteamUser/GetPlayerBans/v0001/?key=" + APIKey + "&steamid=" + id)
+        if self.AllowVACBanned == 0:
+            url = Web.GET("http://api.steampowered.com/ISteamUser/GetPlayerBans/v0001/?key=" + self.APIKey + "&steamid=" + id)
             data = self.GetSteamDatas(url, 2)
             numv = data[3].split(':')
             numv = int(numv[1])
             ldays = data[4].split(':')
             ldays = int(ldays[1])
-            if (numv > AllowedVACBans and ldays < MaximumDays) or MaximumDays == 0:
+            if (numv > self.AllowedVACBans and ldays < self.MaximumDays) or self.MaximumDays == 0:
                 msg = ini.GetSetting("Settings", "VacBans")
-                Player.MessageFrom(sys, red + msg)
+                Player.MessageFrom(self.sys, red + msg)
                 Player.Disconnect()
                 return
-        if CheckOnlyRust == 1:
-            url = Web.GET("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" + APIKey + "&steamid=" + id)
+        if self.CheckOnlyRust == 1:
+            url = Web.GET("http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=" + self.APIKey + "&steamid=" + id)
             listofappids = re.findall(r'"appid":.*,', url)
             gamecount = re.findall(r'"game_count":.*,', url)
             gamecount = re.sub('["\,\ \'\[\]]', '', str(gamecount)).split(':')
             if int(gamecount[1]) == 1 and "252490" in listofappids:
                 msg = ini.GetSetting("Settings", "OnlyRust")
-                Player.MessageFrom(sys, red + msg)
+                Player.MessageFrom(self.sys, red + msg)
                 Player.Disconnect()
                 return
-        if CheckForPrivate == 1 or CheckForNoProfile == 1:
-            url = Web.GET("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + APIKey + "&steamid=" + id)
-            if CheckForNoProfile == 1:
+        if self.CheckForPrivate == 1 or self.CheckForNoProfile == 1:
+            url = Web.GET("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + self.APIKey + "&steamid=" + id)
+            if self.CheckForNoProfile == 1:
                 comm = re.findall(r'"profilestate":.*,', url)
                 comm = re.sub('["\,\ \'\[\]]', '', str(comm)).split(':')
                 if int(comm[1]) != 1:
                     msg = ini.GetSetting("Settings", "NoProfile")
-                    Player.MessageFrom(sys, red + msg)
+                    Player.MessageFrom(self.sys, red + msg)
                     Player.Disconnect()
                     return
-            if CheckForPrivate == 1:
+            if self.CheckForPrivate == 1:
                 comm = re.findall(r'"communityvisibilitystate":.*,', url)
                 comm = re.sub('["\,\ \'\[\]]', '', str(comm)).split(':')
                 if int(comm[1]) == 1:
                     msg = ini.GetSetting("Settings", "Private")
-                    Player.MessageFrom(sys, red + msg)
+                    Player.MessageFrom(self.sys, red + msg)
                     Player.Disconnect()
                     return
