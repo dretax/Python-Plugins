@@ -13,6 +13,10 @@ import re
 red = "[color #FF0000]"
 class SteamProfiler:
 
+    def On_PluginInit(self):
+        Util.ConsoleLog("SteamProfiler by" + __author__ + " Version: " + __version__ + " loaded.", False)
+        self.Ini()
+
     def Ini(self):
         if not Plugin.IniExists("Ini"):
             ini = Plugin.CreateIni("Ini")
