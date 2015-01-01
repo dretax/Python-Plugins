@@ -15,7 +15,7 @@ class AdminDoors:
     """
 
     def On_PluginInit(self):
-        Util.ConsoleLog("AdminDoors by" + __author__ + " Version: " + __version__ + " loaded.", False)
+        Util.ConsoleLog("AdminDoors by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def argsToText(self, args):
         text = str.join(" ", args)
@@ -31,47 +31,55 @@ class AdminDoors:
             Plugin.CreateIni("toggled")
         return Plugin.GetIni("toggled")
 
-    def GetPlayerName(self, name):
+
+    """
+        CheckV method based on Spock's method.
+        Upgraded by DreTaX
+        Can Handle Single argument and Array args.
+        V4.0
+    """
+
+    def GetPlayerName(self, namee):
         try:
-            namee = name.lower()
+            name = namee.lower()
             for pl in Server.Players:
-                if pl.Name.lower() == namee:
+                if pl.Name.lower() == name:
                     return pl
             return None
         except:
             return None
 
-    # Method provided by Spoock. Converted to Python by DreTaX
     def CheckV(self, Player, args):
         systemname = "AdminDoors"
-        Nickname = ""
-        for i in xrange(-1, len(args)):
-            i += 1
-            Nickname += args[i] + " "
-            Nickname = Data.Substring(Nickname, 0, len(Nickname) - 1)
-            target = self.GetPlayerName(Nickname)
-            if target is not None:
-                return target
-
-            else:
-                cc = 0
-                found = None
-                for all in Server.Players:
-                    name = all.Name.lower()
-                    check = args[0].lower()
-                    if check in name:
-                        found = all.Name
-                        cc += 1
-
-                if cc == 1:
-                    target = self.GetPlayerName(found)
-                    return target
-                elif cc > 1:
-                    Player.MessageFrom(systemname, "Found [color#FF0000]" + cc + " players[/color] with similar names. [color#FF0000]Use more correct name !")
-                    return None
-                elif cc == 0:
-                    Player.MessageFrom(systemname, "Player [color#00FF00]" + Nickname + "[/color] not found")
-                    return None
+        count = 0
+        if hasattr(args, '__len__') and (not isinstance(args, str)):
+            p = self.GetPlayerName(str.join(" ", args))
+            if p is not None:
+                return p
+            for pl in Server.Players:
+                for namePart in args:
+                    if namePart.lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                        continue
+        else:
+            nargs = str(args).lower()
+            p = self.GetPlayerName(nargs)
+            if p is not None:
+                return p
+            for pl in Server.ActivePlayers:
+                if nargs in pl.Name.lower():
+                    p = pl
+                    count += 1
+                    continue
+        if count == 0:
+            Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
+            return None
+        elif count == 1 and p is not None:
+            return p
+        else:
+            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            return None
 
     def allowed(self, target):
         ini = self.Allows()
