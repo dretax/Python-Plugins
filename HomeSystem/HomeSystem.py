@@ -8,7 +8,7 @@ import re
 import sys
 import System
 import math
-from System import Environment
+from System import *
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
 
@@ -249,6 +249,9 @@ class HomeSystem:
 
     def On_PluginInit(self):
         DataStore.Flush("BZjobs")
+        DataStore.Flush("home_joincooldown")
+        DataStore.Flush("homesystemautoban")
+        DataStore.Flush("home_cooldown")
         Util.ConsoleLog(self.HomeJobs['Name'] + " v" + self.HomeJobs['Version'] + " by " + self.HomeJobs['Author'] + " loaded.", True)
 
 
@@ -270,6 +273,7 @@ class HomeSystem:
                         self.killJob(id)
                         continue
                     callback = int(params[2])
+                    self.killJob(id)
                     if callback != 5:
                         xto = self.ReplaceToDot(params[1])
                         loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
@@ -277,7 +281,7 @@ class HomeSystem:
                     # Join Callback, this should handle the delay
                     if callback == 1:
                         player.SafeTeleportTo(loc)
-                        #BZHJ.addJob('jointp', checkn, jobxData.params);
+                        player.MessageFrom(homesystemname, "You have been teleported to your home")
                     # Home Teleport Callback
                     elif callback == 2:
                         movec = int(config.GetSetting("Settings", "movecheck"))
@@ -295,14 +299,12 @@ class HomeSystem:
                         else:
                             player.SafeTeleportTo(loc)
                             player.Notice("You have been teleported home.")
-                            #BZHJ.addJob('mytestt', checkn, jobxData.params);
                     # Random Teleportation Delay
                     elif callback == 3:
                         player.SafeTeleportTo(loc)
                         player.MessageFrom(homesystemname, "You have been teleported to a random location!")
                         player.MessageFrom(homesystemname, "Type /setdefaulthome HOMENAME")
                         player.MessageFrom(homesystemname, "To spawn at your home!")
-                        #BZHJ.addJob('randomtp', checkn, jobxData.params);
                     # Spawn Delay (Camp Used)
                     elif callback == 4:
                         player.SafeTeleportTo(loc)
@@ -327,7 +329,6 @@ class HomeSystem:
                             w = 3
                         self.addJob(id, 2, home, w)
                     DataStore.Add("homesystemautoban", id, "none")
-                    self.killJob(id)
 
     def On_Command(self, Player, cmd, args):
         config = self.HomeConfig()
@@ -497,8 +498,7 @@ class HomeSystem:
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
         elif cmd == "deletebeds":
-            antihack = int(config.GetSetting("Settings", "Antihack"))
-            if Player.Admin and antihack == 1:
+            if Player.Admin:
                 for x in World.Entities:
                     if x.Name == "SleepingBagA" or x.Name == "SingleBed":
                         x.Destroy()
@@ -594,7 +594,6 @@ class HomeSystem:
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.SafeTeleportTo(home)
                     Player.MessageFrom(homesystemname, "Spawned at home!")
-                    #self.addJob(id, checkn, home, 4)
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -624,19 +623,13 @@ class HomeSystem:
             Player.Disconnect()
             return
         elif System.Environment.TickCount > jtime + (cooldown * 1000):
+            DataStore.Remove("home_joincooldown", id)
             self.addJob(id, jointpdelay, None, 5)
 
     def On_PlayerDisconnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.SteamID
         config = self.HomeConfig()
         antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         if antiroof == 1:
             if not Player.Admin and not self.isMod(id):
-                if DataStore.Get("home_joincooldown", id) is None:
-                    DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
+                DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
