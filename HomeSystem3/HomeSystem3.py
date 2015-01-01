@@ -350,7 +350,6 @@ class HomeSystem3:
             self.SendPlayerToHome(id)
             return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
-            DataStore.Remove("HomeSys3JCD", id)
             self.SendPlayerToHome(id)
             return
         calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
@@ -362,6 +361,7 @@ class HomeSystem3:
             return
         elif System.Environment.TickCount > jtime + (cooldown * 1000):
             self.SendPlayerToHome(id)
+        DataStore.Remove("HomeSys3JCD", id)
 
 
     def On_PlayerDisconnected(self, Player):
