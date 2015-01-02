@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -16,11 +16,15 @@ class ChestLog:
     def On_PluginInit(self):
         Util.ConsoleLog("ChestLog by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
-    def ChestLog(self):
-        if not Plugin.IniExists("ChestLog"):
-            ChestLog = Plugin.CreateIni("ChestLog")
-            ChestLog.Save()
-        return Plugin.GetIni("ChestLog")
+    #There is an error while converting ownerid to string in C#. Hax it.
+    def GetIt(self, Entity):
+        try:
+            if Entity.IsDeployableObject():
+                return Entity.Object.ownerID
+            if Entity.IsStructure():
+                return Entity.Object._master.ownerID
+        except:
+            return None
 
     def TrytoGrabID(self, Player):
         try:
@@ -37,5 +41,6 @@ class ChestLog:
             if HurtEvent.Entity.Name == "WoodBoxLarge" or HurtEvent.Entity.Name == "WoodBox" or HurtEvent.Entity.Name == "SmallStash":
                 name = HurtEvent.Attacker.Name
                 loc = str(HurtEvent.Attacker.Location)
+                entityid = str(self.GetIt(HurtEvent.Entity))
                 entityloc = Util.CreateVector(HurtEvent.Entity.X, HurtEvent.Entity.Y, HurtEvent.Entity.Z)
-                Plugin.Log("ChestLog", str(entityloc) + " | " + HurtEvent.Entity.Name + "|" + id + "|" + name + "|" + loc)
+                Plugin.Log("ChestLog", str(entityloc) + " | " + HurtEvent.Entity.Name + " | " + entityid + " | PlayerDatas: " + id + "|" + name + "|" + loc)
