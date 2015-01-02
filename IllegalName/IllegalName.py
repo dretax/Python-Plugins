@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -29,7 +29,23 @@ class IllegalName:
         return Plugin.GetIni("IllegalNameConfig")
 
 
+    def TrytoGrabID(self, Player):
+        try:
+            id = Player.SteamID
+            return id
+        except:
+            return None
+
+
     def On_PlayerConnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            if Player is not None:
+                try:
+                    Player.Disconnect()
+                except:
+                    pass
+            return
         name = Player.Name
         n = len(name)
         ini = self.getIllegal()
