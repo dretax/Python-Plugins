@@ -22,7 +22,6 @@ class SteamProfiler:
     CheckForPrivate = None
     CheckForNoProfile = None
     sys = None
-    Debug = None
 
     def On_PluginInit(self):
         Util.ConsoleLog("SteamProfiler by " + __author__ + " Version: " + __version__ + " loaded.", False)
@@ -36,7 +35,6 @@ class SteamProfiler:
         self.CheckForPrivate = int(ini.GetSetting("Settings", "CheckForPrivate"))
         self.CheckForNoProfile = int(ini.GetSetting("Settings", "CheckForNoProfile"))
         self.sys = ini.GetSetting("Settings", "Sys")
-        self.Debug = int(ini.GetSetting("Settings", "Debug"))
 
     def Ini(self):
         if not Plugin.IniExists("Ini"):
@@ -59,11 +57,6 @@ class SteamProfiler:
             ini.Save()
         return Plugin.GetIni("Ini")
 
-    def Log(self, String):
-        if self.Debug == 0:
-            return
-        Plugin.Log("Debug", str(String))
-
     def TrytoGrabID(self, Player):
         try:
             id = Player.SteamID
@@ -85,7 +78,7 @@ class SteamProfiler:
 
     def RunRequest(self, Player, id):
         ini = self.Ini()
-        self.Log("ID: " + str(id) + " Name: " + str(Player.Name))
+        url = None
         if self.AllowShared == 0:
             t = True
             try:
@@ -94,7 +87,6 @@ class SteamProfiler:
                 t = False
             if t:
                 data = self.GetSteamDatas(url, 1)
-                self.Log("Data: " + str(data) + " Number which should be NOT 0, so It would kick players: " +str(data[1]))
                 if int(data[1]) != 0:
                     msg = ini.GetSetting("Settings", "UsingShared")
                     Player.MessageFrom(self.sys, red + msg)
@@ -112,7 +104,6 @@ class SteamProfiler:
                 numv = int(numv[1])
                 ldays = data[4].split(':')
                 ldays = int(ldays[1])
-                self.Log("Data2: " + str(data) + " | " + str(numv) + " | " + str(ldays))
                 if (numv > self.AllowedVACBans and ldays < self.MinimumDays) or self.MinimumDays == 0:
                     msg = ini.GetSetting("Settings", "VacBans")
                     Player.MessageFrom(self.sys, red + msg)
@@ -129,7 +120,6 @@ class SteamProfiler:
                 listofappids = re.findall(r'"appid":.*,', url)
                 gamecount = re.findall(r'"game_count":.*,', url)
                 gamecount = re.sub('["\,\ \'\[\]]', '', str(gamecount)).split(':')
-                self.Log("Data3: " + str(listofappids) + " | " + str(gamecount) + " | " + str(gamecount[1]))
                 if int(gamecount[1]) == 1 and "252490" in listofappids:
                     msg = ini.GetSetting("Settings", "OnlyRust")
                     Player.MessageFrom(self.sys, red + msg)
@@ -146,7 +136,6 @@ class SteamProfiler:
             if self.CheckForNoProfile == 1:
                 comm = re.findall(r'"profilestate":.*,', url)
                 comm = re.sub('["\,\ \'\[\]]', '', str(comm)).split(':')
-                self.Log("Data4: " + str(comm))
                 if int(comm[1]) != 1:
                     msg = ini.GetSetting("Settings", "NoProfile")
                     Player.MessageFrom(self.sys, red + msg)
@@ -155,7 +144,6 @@ class SteamProfiler:
             if self.CheckForPrivate == 1:
                 comm = re.findall(r'"communityvisibilitystate":.*,', url)
                 comm = re.sub('["\,\ \'\[\]]', '', str(comm)).split(':')
-                self.Log("Data5: " + str(comm) + " | " + str(comm[1]))
                 if int(comm[1]) == 1:
                     Plugin.Log("Check", Player.Name + "'s  void went forward at the check. He should be disconnected?!")
                     msg = ini.GetSetting("Settings", "Private")
