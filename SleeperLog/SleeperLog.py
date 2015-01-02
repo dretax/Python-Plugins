@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -48,6 +48,7 @@ class SleeperLog:
     Items = {
         'WoodFoundation': 'Wood Foundation',
         'WoodDoorFrame': 'Wood Doorway',
+        'WoodDoor': 'Wood Door',
         'WoodWall': 'Wood Wall',
         'WoodPillar': 'Wood Pillar',
         'WoodCeiling': 'Wood Ceiling',
@@ -58,13 +59,13 @@ class SleeperLog:
         'MetalDoorFrame': 'Metal Doorway',
         'MetalWall': 'Metal Wall',
         'MetalPillar': 'Metal Pillar',
-        'MetalCeiling': 'Metal Stairs',
+        'MetalCeiling': 'Metal Ceiling',
         'MetalStairs': 'Metal Stairs',
         'MetalWindowFrame': 'Metal Window',
         'Wood_Shelter': 'Wood Shelter',
         'Barricade_Fence_Deployable': 'Wood Barricade',
-        'Wood Box': 'Wood Storage Box',
-        'Wood Box Large': 'Large Wood Storage',
+        'WoodBox': 'Wood Storage Box',
+        'WoodBoxLarge': 'Large Wood Storage',
         'Metal Bars Window': 'Metal Window Bars',
         'CampFire': 'Camp Fire',
         'Wood Spike Wall': 'Spike Wall',
