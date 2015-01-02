@@ -38,14 +38,16 @@ class HighPing:
         Players.append(Player)
 
     def On_PlayerDisconnected(self, Player):
-        Players.remove(Player)
+        try:
+            Players.remove(Player)
+        except:
+            pass
 
     def PingCheckCallback(self):
         Plugin.KillTimer("PingCheck")
         ini = self.PingConfig()
         MaxPing = int(ini.GetSetting("Settings", "MaxPing"))
         for pl in Players:
-            Server.Broadcast(pl.Name + " ping: " + str(pl.Ping))
             if int(pl.Ping) >= MaxPing:
                 pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Max: " + str(MaxPing) +".")
                 pl.Disconnect()
