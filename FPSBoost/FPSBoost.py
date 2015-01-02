@@ -21,6 +21,7 @@ class FPSBoost:
     def On_PluginInit(self):
         Util.ConsoleLog("FPSBOOSTER by " + __author__ + " Version: " + __version__ + " loaded.", False)
         DataStore.Flush("FPSBoost")
+        self.FPSINI()
 
     def TrytoGrabID(self, Player):
         try:
