@@ -53,6 +53,6 @@ class HighPing:
         Plugin.KillTimer("PingCheck")
         for pl in Players:
             if int(pl.Ping) >= self.MaxPing:
-                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Maximum you can have: " + str(self.MaxPing) +".")
+                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Maximum you can have: " + str(self.MaxPing) + ".")
                 pl.Disconnect()
         Plugin.CreateTimer("PingCheck", self.Timer).Start()
