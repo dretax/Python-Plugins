@@ -229,11 +229,10 @@ class BannedPeople:
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
-            if Player is not None:
-                try:
-                    Player.Disconnect()
-                except:
-                    pass
+            try:
+                Player.Disconnect()
+            except:
+                pass
             return
         ip = str(Player.IP)
         ini = self.BannedPeopleConfig()
