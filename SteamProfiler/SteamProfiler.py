@@ -144,7 +144,6 @@ class SteamProfiler:
                 comm = re.findall(r'"communityvisibilitystate":.*,', url)
                 comm = re.sub('["\,\ \'\[\]]', '', str(comm)).split(':')
                 if int(comm[1]) == 1:
-                    Plugin.Log("Check", Player.Name + "'s  void went forward at the check. He should be disconnected?!")
                     msg = ini.GetSetting("Settings", "Private")
                     Player.MessageFrom(self.sys, red + msg)
                     Player.Disconnect()
