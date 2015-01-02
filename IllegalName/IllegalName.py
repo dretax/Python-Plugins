@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -64,15 +64,15 @@ class IllegalName:
                 return
         if f == 1:
             if space == 0:
-                a = re.compile("^(a-zA-Z0-9!@#\$%\^\&*\[\]\)\<\>\(+=._-)*$")
-                if not a.match(name):
+                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                if not a:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
                     Player.Message("Spaces are not allowed")
                     Player.Disconnect()
             else:
-                a = re.compile("^(a-zA-Z0-9!@#\$%\^\&*\[\]\)\ \<\>\(+=._-)*$")
-                if not a.match(name) or n <= 1:
+                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                if not a or n <= 1:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
                     Player.Disconnect()
@@ -83,15 +83,15 @@ class IllegalName:
                 Player.Disconnect()
         elif f == 3:
             if space == 0:
-                a = re.compile("^(a-zA-Z0-9!@#\$%\^\&*\[\]\)\<\>\(+=._-)*$")
-                if not a.match(name) or n <= 1:
+                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                if not a or n <= 1:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
                     Player.Message("Spaces are not allowed")
                     Player.Disconnect()
             else:
-                a = re.compile("^(a-zA-Z0-9!@#\$%\^\&*\[\]\)\ \<\>\(+=._-)*$")
-                if not a.match(name) or n <= 1:
+                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                if not a or n <= 1:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
                     Player.Disconnect()
