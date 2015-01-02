@@ -43,7 +43,7 @@ class HighPing:
     def PingCheckCallback(self):
         Plugin.KillTimer("PingCheck")
         ini = self.PingConfig()
-        MaxPing = int(ini.GetSetting("Setting", "MaxPing"))
+        MaxPing = int(ini.GetSetting("Settings", "MaxPing"))
         for pl in Players:
             Server.Broadcast(pl.Name + " ping: " + str(pl.Ping))
             if int(pl.Ping) >= MaxPing:
