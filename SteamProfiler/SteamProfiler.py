@@ -53,7 +53,6 @@ class SteamProfiler:
             ini.AddSetting("Settings", "OnlyRust", "People only having Rust are not allowed to join.")
             ini.AddSetting("Settings", "NoProfile", "Only People who have setup their community profile can join.")
             ini.AddSetting("Settings", "Private", "Only People who are having public profile can join.")
-            ini.AddSetting("Settings", "Debug", "1")
             ini.Save()
         return Plugin.GetIni("Ini")
 
