@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = ''
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
