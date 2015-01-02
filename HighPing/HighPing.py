@@ -9,14 +9,20 @@ Players = []
 
 class HighPing:
 
+    Timer = None
+    MaxPing = None
+
     def On_PluginInit(self):
-        self.PingConfig()
-        Plugin.CreateTimer("PingCheck", 120000).Start()
+        ini = self.PingConfig()
+        self.Timer = int(ini.GetSetting("Settings", "Timer"))
+        self.MaxPing = int(ini.GetSetting("Settings", "MaxPing"))
+        Plugin.CreateTimer("PingCheck", self.Timer).Start()
 
     def PingConfig(self):
         if not Plugin.IniExists("PingConfig"):
             ini = Plugin.CreateIni("PingConfig")
             ini.AddSetting("Settings", "MaxPing", "250")
+            ini.AddSetting("Settings", "Timer", "120000")
             ini.Save()
         return Plugin.GetIni("PingConfig")
 
@@ -45,10 +51,8 @@ class HighPing:
 
     def PingCheckCallback(self):
         Plugin.KillTimer("PingCheck")
-        ini = self.PingConfig()
-        MaxPing = int(ini.GetSetting("Settings", "MaxPing"))
         for pl in Players:
-            if int(pl.Ping) >= MaxPing:
-                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Max: " + str(MaxPing) +".")
+            if int(pl.Ping) >= self.MaxPing:
+                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Maximum you can have: " + str(self.MaxPing) +".")
                 pl.Disconnect()
-        Plugin.CreateTimer("PingCheck", 120000).Start()
+        Plugin.CreateTimer("PingCheck", self.Timer).Start()
