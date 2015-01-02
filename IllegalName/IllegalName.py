@@ -64,17 +64,17 @@ class IllegalName:
                 return
         if f == 1:
             if space == 0:
-                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?()<>/@#,.\[\]\\-]+$', name)
                 if not a:
                     Player.Message(reason2)
-                    Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
+                    Player.Message("Allowed Chars: a-z,0-9,!@#$/\[]<>+=.-")
                     Player.Message("Spaces are not allowed")
                     Player.Disconnect()
             else:
-                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?()<>/@#,.\\s\[\]\\-]+$', name)
                 if not a or n <= 1:
                     Player.Message(reason2)
-                    Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
+                    Player.Message("Allowed Chars: a-z,0-9,!@#$/\[]<>+=.-")
                     Player.Disconnect()
         elif f == 2:
             if n <= 1:
@@ -83,14 +83,14 @@ class IllegalName:
                 Player.Disconnect()
         elif f == 3:
             if space == 0:
-                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?()<>/@#,.\[\]\\-]+$', name)
                 if not a or n <= 1:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
                     Player.Message("Spaces are not allowed")
                     Player.Disconnect()
             else:
-                a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
+                a = re.match('^[a-zA-Z0-9_!+?()<>/@#,.\\s\[\]\\-]+$', name)
                 if not a or n <= 1:
                     Player.Message(reason2)
                     Player.Message("Allowed Chars: a-z,0-9,!@#$%/\[]<>+=.-")
