@@ -332,7 +332,10 @@ class iConomy:
 
     def On_NPCKilled(self, NPCDeathEvent):
         NPC = NPCDeathEvent.Victim
-        attacker = Server.GetPlayer(NPCDeathEvent.Attacker)
+        try:
+            attacker = Server.GetPlayer(NPCDeathEvent.Attacker)
+        except:
+            return
         ini = self.iConomy()
         name = str(NPC.Name)
         name = name.replace('(Clone)', '')
