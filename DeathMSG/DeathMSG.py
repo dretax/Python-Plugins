@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.1'
+__version__ = '3.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -53,15 +53,8 @@ class DeathMSG:
             killer = str(DeathEvent.Attacker.Name)
             victim = str(DeathEvent.Victim.Name)
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
-            id = str(self.TrytoGrabID(DeathEvent.Attacker))
-            vid = str(self.TrytoGrabID(DeathEvent.Victim))
-            if self.WasSuicide(int(id), int(vid)):
-                e = int(config.GetSetting("Settings", "enablesuicidemsg"))
-                if e == 1:
-                    n = config.GetSetting("Settings", "suicide")
-                    n = n.replace("victim", victim)
-                    Server.BroadcastFrom(deathmsgname, n)
-                return
+            id = self.TrytoGrabID(DeathEvent.Attacker)
+            vid = self.TrytoGrabID(DeathEvent.Victim)
             if self.IsAnimal(killer) and id is None:
                 e = int(config.GetSetting("Settings", "enableanimalmsg"))
                 if e == 1:
@@ -69,27 +62,72 @@ class DeathMSG:
                     a = a.replace("victim", victim)
                     a = a.replace("killer", killer)
                     Server.BroadcastFrom(deathmsgname, a)
-            else:
-                bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
-                weapon = DeathEvent.WeaponName
-                damage = round(DeathEvent.DamageAmount, 2)
-                killerloc = DeathEvent.Attacker.Location
-                location = DeathEvent.Victim.Location
-                distance = round(Util.GetVectorsDistance(killerloc, location), 2)
-                bleed = str(DeathEvent.DamageType)
-                kl = int(config.GetSetting("Settings", "killog"))
-                if bleed == "Bullet":
-                    message = config.GetSetting("Settings", "msg")
-                    n = message.replace("victim", victim)
-                    n = n.replace("killer", killer)
-                    n = n.replace("weapon", weapon)
-                    n = n.replace("damage", str(damage))
-                    n = n.replace("number", str(distance))
-                    n = n.replace("bodyPart", str(bodyPart))
+                return
+            if self.WasSuicide(int(id), int(vid)):
+                e = int(config.GetSetting("Settings", "enablesuicidemsg"))
+                if e == 1:
+                    n = config.GetSetting("Settings", "suicide")
+                    n = n.replace("victim", victim)
                     Server.BroadcastFrom(deathmsgname, n)
+                return
+            bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
+            weapon = DeathEvent.WeaponName
+            damage = round(DeathEvent.DamageAmount, 2)
+            killerloc = DeathEvent.Attacker.Location
+            location = DeathEvent.Victim.Location
+            distance = round(Util.GetVectorsDistance(killerloc, location), 2)
+            bleed = str(DeathEvent.DamageType)
+            kl = int(config.GetSetting("Settings", "killog"))
+            if bleed == "Bullet":
+                message = config.GetSetting("Settings", "msg")
+                n = message.replace("victim", victim)
+                n = n.replace("killer", killer)
+                n = n.replace("weapon", weapon)
+                n = n.replace("damage", str(damage))
+                n = n.replace("number", str(distance))
+                n = n.replace("bodyPart", str(bodyPart))
+                Server.BroadcastFrom(deathmsgname, n)
+                autoban = int(config.GetSetting("Settings", "autoban"))
+                if autoban == 1:
+                    if distance > self.RangeOf(weapon) > 0:
+                        tpfriendteleport = DataStore.Get("tpfriendautoban", id)
+                        hometeleport = DataStore.Get("homesystemautoban", id)
+                        if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
+                            z = config.GetSetting("Settings", "banmsg")
+                            z = z.replace("killer", killer)
+                            DeathEvent.Attacker.Kill()
+                            Server.BroadcastFrom(deathmsgname, self.red + z)
+                            ini = self.DMB()
+                            ip = DeathEvent.Attacker.IP
+                            ini.AddSetting("Ips", ip, "1")
+                            ini.AddSetting("Ids", id, "1")
+                            ini.AddSetting("NameIps", killer, ip)
+                            ini.AddSetting("NameIds", killer, id)
+                            ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + bodyPart + " DMG: " + str(damage))
+                            ini.Save()
+                            DeathEvent.Attacker.Disconnect()
+                            DataStore.Add("DeathMSGBAN", vid, str(location))
+                        else:
+                            t = config.GetSetting("Settings", "TpaMsg")
+                            t = t.replace("killer", killer)
+                            Server.BroadcastFrom(deathmsgname, t)
+                            if kl == 1:
+                                self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                        return
+                if kl == 1:
+                    self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
+            elif bleed == "Melee":
+                if damage == 75:
+                    hn = config.GetSetting("Settings", "huntingbow")
+                    hn = hn.replace("victim", victim)
+                    hn = hn.replace("killer", killer)
+                    hn = hn.replace("damage", str(damage))
+                    hn = hn.replace("number", str(distance))
+                    hn = hn.replace("bodyPart", str(bodyPart))
+                    Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
-                        if distance > self.RangeOf(weapon) > 0:
+                        if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
                             if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
@@ -103,7 +141,7 @@ class DeathMSG:
                                 ini.AddSetting("Ids", id, "1")
                                 ini.AddSetting("NameIps", killer, ip)
                                 ini.AddSetting("NameIds", killer, id)
-                                ini.AddSetting("Logistical", killer, "Gun: " + weapon + " Dist: " + str(distance) + " BodyP: " + bodyPart + " DMG: " + str(damage))
+                                ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + str(damage))
                                 ini.Save()
                                 DeathEvent.Attacker.Disconnect()
                                 DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -112,74 +150,36 @@ class DeathMSG:
                                 t = t.replace("killer", killer)
                                 Server.BroadcastFrom(deathmsgname, t)
                                 if kl == 1:
-                                    self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                                    self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, 1)
                             return
                     if kl == 1:
-                        self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
-                elif bleed == "Melee":
-                    if damage == 75:
-                        hn = config.GetSetting("Settings", "huntingbow")
-                        hn = hn.replace("victim", victim)
-                        hn = hn.replace("killer", killer)
-                        hn = hn.replace("damage", str(damage))
-                        hn = hn.replace("number", str(distance))
-                        hn = hn.replace("bodyPart", str(bodyPart))
-                        Server.BroadcastFrom(deathmsgname, hn)
-                        autoban = int(config.GetSetting("Settings", "autoban"))
-                        if autoban == 1:
-                            if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
-                                tpfriendteleport = DataStore.Get("tpfriendautoban", id)
-                                hometeleport = DataStore.Get("homesystemautoban", id)
-                                if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
-                                    z = config.GetSetting("Settings", "banmsg")
-                                    z = z.replace("killer", killer)
-                                    DeathEvent.Attacker.Kill()
-                                    Server.BroadcastFrom(deathmsgname, self.red + z)
-                                    ini = self.DMB()
-                                    ip = DeathEvent.Attacker.IP
-                                    ini.AddSetting("Ips", ip, "1")
-                                    ini.AddSetting("Ids", id, "1")
-                                    ini.AddSetting("NameIps", killer, ip)
-                                    ini.AddSetting("NameIds", killer, id)
-                                    ini.AddSetting("Logistical", killer, "Gun: Hunting Bow Dist: " + str(distance) + " BodyP: " + str(bodyPart) + " DMG: " + str(damage))
-                                    ini.Save()
-                                    DeathEvent.Attacker.Disconnect()
-                                    DataStore.Add("DeathMSGBAN", vid, str(location))
-                                else:
-                                    t = config.GetSetting("Settings", "TpaMsg")
-                                    t = t.replace("killer", killer)
-                                    Server.BroadcastFrom(deathmsgname, t)
-                                    if kl == 1:
-                                        self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, 1)
-                                return
-                        if kl == 1:
-                            self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
-                    elif damage == 10 or damage == 15:
-                        s = config.GetSetting("Settings", "spike")
-                        s = s.replace("victim", victim)
-                        s = s.replace("killer", killer)
-                        s = s.replace("weapon", "Spike Wall")
-                        Server.BroadcastFrom(deathmsgname, s)
-                    else:
-                        n = config.GetSetting("Settings", "msg")
-                        n = n.replace("victim", victim)
-                        n = n.replace("killer", killer)
-                        n = n.replace("weapon", weapon)
-                        n = n.replace("damage", str(damage))
-                        n = n.replace("number", str(distance))
-                        n = n.replace("bodyPart", str(bodyPart))
-                        Server.BroadcastFrom(deathmsgname, n)
-                elif bleed == "Explosion":
-                    x = config.GetSetting("Settings", "explosionmsg")
-                    x = x.replace("killer", killer)
-                    x = x.replace("victim", victim)
-                    x = x.replace("weapon", "C4/F1 Grenade")
-                    Server.BroadcastFrom(deathmsgname, x)
-                elif bleed == "Bleeding":
-                    n = config.GetSetting("Settings", "bmsg")
+                        self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
+                elif damage == 10 or damage == 15:
+                    s = config.GetSetting("Settings", "spike")
+                    s = s.replace("victim", victim)
+                    s = s.replace("killer", killer)
+                    s = s.replace("weapon", "Spike Wall")
+                    Server.BroadcastFrom(deathmsgname, s)
+                else:
+                    n = config.GetSetting("Settings", "msg")
                     n = n.replace("victim", victim)
                     n = n.replace("killer", killer)
+                    n = n.replace("weapon", weapon)
+                    n = n.replace("damage", str(damage))
+                    n = n.replace("number", str(distance))
+                    n = n.replace("bodyPart", str(bodyPart))
                     Server.BroadcastFrom(deathmsgname, n)
+            elif bleed == "Explosion":
+                x = config.GetSetting("Settings", "explosionmsg")
+                x = x.replace("killer", killer)
+                x = x.replace("victim", victim)
+                x = x.replace("weapon", "C4/F1 Grenade")
+                Server.BroadcastFrom(deathmsgname, x)
+            elif bleed == "Bleeding":
+                n = config.GetSetting("Settings", "bmsg")
+                n = n.replace("victim", victim)
+                n = n.replace("killer", killer)
+                Server.BroadcastFrom(deathmsgname, n)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         id = Player.SteamID
