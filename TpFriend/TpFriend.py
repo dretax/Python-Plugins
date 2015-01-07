@@ -20,8 +20,8 @@ TpJobs = {'Name': 'TpFriend', 'Author': 'DreTaX', 'Version': '3.0'}
     Class
 """
 
-class TpFriend:
 
+class TpFriend:
     """
         Methods
     """
@@ -29,8 +29,9 @@ class TpFriend:
     def On_PluginInit(self):
         DataStore.Flush("TpTimer")
         DataStore.Flush("tpfriendautoban")
-        DataStore.Flush("homesystemautoban")
-        DataStore.Flush("home_cooldown")
+        DataStore.Flush("tpfriendpending")
+        DataStore.Flush("tpfriendpending2")
+        DataStore.Flush("tpfriendcooldown")
         Util.ConsoleLog(TpJobs['Name'] + " v" + TpJobs['Version'] + " by " + TpJobs['Author'] + " loaded.", True)
 
     def TpFriendConfig(self):
@@ -57,7 +58,8 @@ class TpFriend:
             return None
 
     def CheckV(self, Player, args):
-        systemname = "[TpFriend]"
+        config = self.TpFriendConfig()
+        systemname = config.GetSetting("Settings", "sysname")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.join(" ", args))
@@ -170,12 +172,12 @@ class TpFriend:
                     if callback == 1:
                         if PlayerFrom is None or PlayerTo is None:
                             DataStore.Add("tpfriendautoban", id, "none")
-                            self.killJob(id)
                             continue
                         PlayerFrom.SafeTeleportTo(PlayerTo.Location)
                         PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
+                    # AutoKill
                     elif callback == 2:
-                        ispend = DataStore.Get("tpfriendpending", params[0])
+                        ispend = DataStore.Get("tpfriendpending", id)
                         ispend2 = DataStore.Get("tpfriendpending2", params[1])
                         if ispend is not None and ispend2 is not None:
                             DataStore.Remove("tpfriendpending", id)
@@ -194,4 +196,163 @@ class TpFriend:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 Player.MessageFrom(systemname, "Cleared!")
-        #todo:..................................
+
+        elif cmd == "tpa":
+            if len(args) == 0:
+                config = self.TpFriendConfig()
+                systemname = config.GetSetting("Settings", "sysname")
+                Player.MessageFrom(systemname, "Teleport Usage:")
+                Player.MessageFrom(systemname, "This will teleport you to another player.")
+                Player.MessageFrom(systemname, "\"/tpa [PlayerName]\" to request a teleport.")
+                Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
+                Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
+                Player.MessageFrom(systemname, "\"/tpcount\" to see how many requests you have remaining.")
+            else:
+                config = self.TpFriendConfig()
+                systemname = config.GetSetting("Settings", "sysname")
+                playertor = self.CheckV(Player, args)
+                if playertor is None:
+                    Player.Message("Player " + playertor + " not found!")
+                    return
+                if playertor == Player:
+                    Player.MessageFrom(systemname, "Cannot teleport to yourself!")
+                    return
+                id = Player.SteamID
+                maxuses = int(config.GetSetting("Settings", "Maxuses"))
+                cooldown = int(config.GetSetting("Settings", "cooldown"))
+                stuff = int(config.GetSetting("Settings", "timeoutr"))
+                time = DataStore.Get("tpfriendcooldown", id)
+                usedtp = DataStore.Get("tpfriendusedtp", id)
+                if time is None:
+                    DataStore.Add("tpfriendcooldown", id, 7)
+                    time = 7
+                calc = System.Environment.TickCount - time
+                if calc < 0 or math.isnan(calc):
+                    DataStore.Add("tpfriendcooldown", id, 7)
+                    time = 7
+                if calc >= cooldown or time == 7:
+                    idt = playertor.SteamID
+                    if usedtp is None:
+                        DataStore.Add("tpfriendusedtp", id, 0)
+                        usedtp = 0
+                    if maxuses > 0:
+                        if maxuses >= int(usedtp):
+                            Player.MessageFrom(systemname, "Reached max number of teleport requests!")
+                            return
+                    if DataStore.Get("tpfriendpending2", idt) is not None:
+                        Player.MessageFrom(systemname, "This player is pending a request. Wait a bit.")
+                        return
+                    if DataStore.Get("tpfriendpending", id):
+                        Player.MessageFrom(systemname, "You are pending a request. Wait a bit or cancel It")
+                        return
+
+                    DataStore.Add("tpfriendcooldown", id, System.Environment.TickCount)
+                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to accept write /tpaccept")
+                    Player.MessageFrom(systemname, "Teleport request sent to " + playertor.Name)
+                    DataStore.Add("tpfriendpending", id, idt)
+                    DataStore.Add("tpfriendpending2", idt, id)
+                    self.addJob(stuff, id, idt, 2)
+                else:
+                    Player.MessageFrom(systemname, "You have to wait before teleporting again!")
+                    done = round((calc / 1000) / 60, 2)
+                    done2 = round((cooldown / 1000) / 60, 2)
+                    Player.MessageFrom(systemname, "Time Remaining: " + str(done) + "/" + str(done2) + " mins")
+
+        elif cmd == "tpaccept":
+            id = Player.SteamID
+            pending = DataStore.Get("tpfriendpending2", id)
+            config = self.TpFriendConfig()
+            systemname = config.GetSetting("Settings", "sysname")
+            if pending is not None:
+                playerfromm = self.getPlayer(pending)
+                if playerfromm is not None:
+                    self.killJob(pending)
+                    maxtpnumber = config.GetSetting("Settings", "Maxuses")
+                    playertpuse = DataStore.Get("tpfriendusedtp", pending)
+                    tpdelayy = int(config.GetSetting("Settings", "tpdelay"))
+                    if maxtpnumber > 0:
+                        playertpuse = int(playertpuse) + 1
+                        DataStore.Add("tpfriendusedtp", pending, playertpuse)
+                        playerfromm.MessageFrom(systemname, "Teleport requests used " + str(playertpuse) + " / " + str(maxtpnumber))
+                    else:
+                        playerfromm.MessageFrom(systemname, "You have unlimited requests remaining!")
+
+                    idt = playerfromm.SteamID
+                    if tpdelayy > 0:
+                        playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelayy) + " second(s)")
+                        self.addJob(tpdelayy, idt, id, 1)
+
+                    else:
+                        DataStore.Add("tpfriendautoban", idt, "using")
+                        playerfromm.SafeTeleportTo(Player.Location)
+                        playerfromm.MessageFrom(systemname, "Teleported!")
+                        DataStore.Add("tpfriendautoban", idt, "none")
+
+                    DataStore.Remove("tpfriendpending", idt)
+                    DataStore.Remove("tpfriendpending2", id)
+                    Player.MessageFrom(systemname, "Teleport Request Accepted!")
+
+                else:
+                    Player.MessageFrom(systemname, "Player isn't online!")
+            else:
+                Player.MessageFrom(systemname, "Your request was timed out, or you don't have any.")
+
+        elif cmd == "tpdeny":
+            id = Player.SteamID
+            pending = DataStore.Get("tpfriendpending2", id)
+            config = self.TpFriendConfig()
+            systemname = config.GetSetting("Settings", "sysname")
+            if pending is not None:
+                playerfromm = self.getPlayer(pending)
+                if playerfromm is not None:
+                    playerfromm.MessageFrom(systemname, "Your request was denied!")
+                self.killJob(pending)
+                DataStore.Remove("tpfriendpending", pending)
+                DataStore.Add("tpfriendcooldown", pending, 7)
+                DataStore.Remove("tpfriendpending2", id)
+                Player.MessageFrom(systemname, "Request denied!")
+            else:
+                Player.MessageFrom(systemname, "No request to deny.")
+
+        elif cmd == "tpcancel":
+            id = Player.SteamID
+            pending = DataStore.Get("tpfriendpending", id)
+            config = self.TpFriendConfig()
+            systemname = config.GetSetting("Settings", "sysname")
+            if pending is not None:
+                playerto = self.getPlayer(pending)
+                if playerto is not None:
+                    playerto.MessageFrom(systemname, Player.Name + " Cancelled the request!")
+                self.killJob(id)
+                DataStore.Remove("tpfriendpending", id)
+                DataStore.Add("tpfriendcooldown", id, 7)
+                DataStore.Remove("tpfriendpending2", pending)
+                Player.MessageFrom(systemname, "Request Cancelled!")
+            else:
+                Player.MessageFrom(systemname, "There is nothing to cancel.")
+
+        elif cmd == "tpcount":
+            config = self.TpFriendConfig()
+            systemname = config.GetSetting("Settings", "sysname")
+            maxuses = config.GetSetting("Settings", "Maxuses")
+            if maxuses > 0:
+                uses = DataStore.Get("tpfriendusedtp", Player.Name)
+                if uses is None:
+                    uses = 0
+                Player.MessageFrom(systemname, "Teleport requests used " + str(uses) + " / " + str(maxuses))
+            else:
+                Player.MessageFrom(systemname, "You have unlimited requests remaining!")
+
+        elif cmd == "tpresettime":
+            id = Player.SteamID
+            if Player.Admin or self.isMod(id):
+                DataStore.Add("tpfriendcooldown", id, 7)
+                Player.Message("Time for you, Reset!")
+
+        elif cmd == "clearuses":
+            id = Player.SteamID
+            if Player.Admin or self.isMod(id):
+                config = self.TpFriendConfig()
+                systemname = config.GetSetting("Settings", "sysname")
+                DataStore.Flush("tpfriendusedtp")
+                Player.MessageFrom(systemname, "Flushed!")
