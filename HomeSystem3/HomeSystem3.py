@@ -142,8 +142,7 @@ class HomeSystem3:
             return None
 
     def Replace(self, String):
-        c = str(String)
-        c = c.replace("(", "")
+        c = String.replace("(", "")
         c = c.replace(")", "")
         return c.split(",")
 
