@@ -143,7 +143,7 @@ class HomeSystem3:
 
     def Replace(self, String):
         c = str(String)
-        c = String.replace("(", "")
+        c = c.replace("(", "")
         c = c.replace(")", "")
         return c.split(",")
 
