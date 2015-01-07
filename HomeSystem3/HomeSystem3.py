@@ -70,6 +70,14 @@ class HomeSystem3:
         text = str.join(" ", args)
         return text
 
+    def getPlayer(self, d):
+        try:
+            id = str(d)
+            pl = Server.FindPlayer(id)
+            return pl
+        except:
+            return None
+
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
@@ -256,13 +264,13 @@ class HomeSystem3:
                 time = int(DataStore.Get(self.TimerStore, id))
                 if epoch >= time:
                     if not self.HasHome(id):
-                        Player = Server.FindPlayer(id)
+                        Player = self.getPlayer(id)
                         if Player is None:
                             DataStore.Remove(self.TimerStore, id)
                             continue
                         self.SendRandom(Player)
                     else:
-                        Player = Server.FindPlayer(id)
+                        Player = self.getPlayer(id)
                         if Player is None:
                             DataStore.Remove(self.TimerStore, id)
                             continue
