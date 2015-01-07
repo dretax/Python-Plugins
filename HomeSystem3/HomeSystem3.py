@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.1'
+__version__ = '3.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -142,13 +142,14 @@ class HomeSystem3:
             return None
 
     def Replace(self, String):
+        c = str(String)
         c = String.replace("(", "")
         c = c.replace(")", "")
         return c.split(",")
 
     def HasHome(self, id):
         beds = self.PlayersIni()
-        if beds.GetSetting("Homes", id):
+        if beds.GetSetting("Homes", id) and beds.GetSetting("Homes", id) is not None:
             return True
         return False
 
@@ -286,7 +287,7 @@ class HomeSystem3:
         if id is None:
             return
         randomloc = int(ini.GetSetting("Settings", "Randoms"))
-        rand = random.randrange(0, randomloc)
+        rand = random.randint(1, randomloc)
         deff = self.DefaultLocations()
         randp = deff.GetSetting("DefaultLoc", str(rand))
         randp = self.Replace(randp)
@@ -314,7 +315,7 @@ class HomeSystem3:
             time = 7
         calc = systick - int(time)
         if calc >= cooldown or time == 7 or cooldown == 0:
-            beds= self.PlayersIni()
+            beds = self.PlayersIni()
             h = beds.GetSetting("Homes", id)
             h = self.Replace(h)
             home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
@@ -328,7 +329,7 @@ class HomeSystem3:
             done2 = round((cooldown / 1000) / 60, 2)
             Player.MessageFrom(sys, self.green + "Time: " + str(done) + "/" + str(done2))
             randomloc = int(ini.GetSetting("Settings", "Randoms"))
-            rand = random.randrange(0, randomloc)
+            rand = random.randint(1, randomloc)
             deff = self.DefaultLocations()
             randp = deff.GetSetting("DefaultLoc", str(rand))
             randp = self.Replace(randp)
