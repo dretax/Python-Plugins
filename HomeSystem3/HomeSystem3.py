@@ -142,6 +142,8 @@ class HomeSystem3:
             return None
 
     def Replace(self, String):
+        if String is None:
+            return None
         c = str(String)
         c = c.replace("(", "")
         c = c.replace(")", "")
@@ -318,6 +320,9 @@ class HomeSystem3:
             beds = self.PlayersIni()
             h = beds.GetSetting("Homes", id)
             h = self.Replace(h)
+            if h is None:
+                self.SendRandom(Player)
+                return
             home = Util.CreateVector(float(h[0]), float(h[1]), float(h[2]))
             Player.SafeTeleportTo(home)
             DataStore.Add("homesystemautoban", id, "none")
