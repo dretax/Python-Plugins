@@ -287,6 +287,7 @@ class TpFriend:
                     else:
                         playerfromm.MessageFrom(systemname, "You have unlimited requests remaining!")
 
+                    check = int(config.GetSetting("Settings", "safetpcheck"))
                     idt = playerfromm.SteamID
                     if tpdelayy > 0:
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelayy) + " second(s)")
@@ -294,14 +295,15 @@ class TpFriend:
 
                     else:
                         DataStore.Add("tpfriendautoban", idt, "using")
-                        tploc = Util.CreateVector(float(Player.X), float(Player.Y), float(Player.Z))
-                        playerfromm.SafeTeleportTo(tploc)
+                        playerfromm.TeleportTo(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
 
                     DataStore.Remove("tpfriendpending", idt)
                     DataStore.Remove("tpfriendpending2", id)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
+
+                    self.addJob(check, idt, id, 3)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
