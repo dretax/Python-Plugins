@@ -211,7 +211,7 @@ class TpFriend:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 Player.MessageFrom(systemname, "Teleport Usage:")
-                Player.MessageFrom(systemname, "This will teleport you to another player.")
+                Player.MessageFrom(systemname, "TpFriend V3.0 by DreTaX")
                 Player.MessageFrom(systemname, "\"/tpa [PlayerName]\" to request a teleport.")
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
@@ -278,7 +278,7 @@ class TpFriend:
                 if playerfromm is not None:
                     self.killJob(pending)
                     maxtpnumber = int(config.GetSetting("Settings", "Maxuses"))
-                    playertpuse = DataStore.Get("tpfriendusedtp", pending)
+                    playertpuse = int(DataStore.Get("tpfriendusedtp", pending))
                     tpdelayy = int(config.GetSetting("Settings", "tpdelay"))
                     if maxtpnumber > 0:
                         playertpuse = int(playertpuse) + 1
@@ -344,11 +344,12 @@ class TpFriend:
                 Player.MessageFrom(systemname, "There is nothing to cancel.")
 
         elif cmd == "tpcount":
+            id = Player.SteamID
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
-            maxuses = config.GetSetting("Settings", "Maxuses")
+            maxuses = int(config.GetSetting("Settings", "Maxuses"))
             if maxuses > 0:
-                uses = DataStore.Get("tpfriendusedtp", Player.Name)
+                uses = int(DataStore.Get("tpfriendusedtp", id))
                 if uses is None:
                     uses = 0
                 Player.MessageFrom(systemname, "Teleport requests used " + str(uses) + " / " + str(maxuses))
