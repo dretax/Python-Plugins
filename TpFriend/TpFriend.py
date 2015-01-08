@@ -173,10 +173,10 @@ class TpFriend:
                         if PlayerFrom is None or PlayerTo is None:
                             DataStore.Add("tpfriendautoban", id, "none")
                             continue
-                        # Normal player.loc didn't work out.
-                        tploc = Util.CreateVector(float(PlayerTo.X), float(PlayerTo.Y), float(PlayerTo.Z))
-                        PlayerFrom.SafeTeleportTo(tploc)
+                        check = int(config.GetSetting("Settings", "safetpcheck"))
+                        PlayerFrom.TeleportTo(PlayerTo.Location)
                         PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
+                        self.addJob(check, id, params[1], 3)
                     # AutoKill
                     elif callback == 2:
                         ispend = DataStore.Get("tpfriendpending", id)
@@ -190,6 +190,13 @@ class TpFriend:
                                 PlayerFrom.MessageFrom(sys, "Teleport request timed out")
                             if PlayerTo is not None:
                                 PlayerTo.MessageFrom(sys, "Teleport request timed out")
+                    elif callback == 3:
+                        if PlayerFrom is None or PlayerTo is None:
+                            DataStore.Add("tpfriendautoban", id, "none")
+                            continue
+                        PlayerFrom.TeleportTo(PlayerTo.Location)
+                        PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
+                        DataStore.Add("tpfriendautoban", id, "none")
 
     def On_Command(self, Player, cmd, args):
         if cmd == "cleartpatimers":
