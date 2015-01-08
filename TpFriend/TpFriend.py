@@ -173,7 +173,9 @@ class TpFriend:
                         if PlayerFrom is None or PlayerTo is None:
                             DataStore.Add("tpfriendautoban", id, "none")
                             continue
-                        PlayerFrom.SafeTeleportTo(PlayerTo.Location)
+                        # Normal player.loc didn't work out.
+                        tploc = Util.CreateVector(float(PlayerTo.X), float(PlayerTo.Y), float(PlayerTo.Z))
+                        PlayerFrom.SafeTeleportTo(tploc)
                         PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
                     # AutoKill
                     elif callback == 2:
@@ -268,7 +270,7 @@ class TpFriend:
                 playerfromm = self.getPlayer(pending)
                 if playerfromm is not None:
                     self.killJob(pending)
-                    maxtpnumber = config.GetSetting("Settings", "Maxuses")
+                    maxtpnumber = int(config.GetSetting("Settings", "Maxuses"))
                     playertpuse = DataStore.Get("tpfriendusedtp", pending)
                     tpdelayy = int(config.GetSetting("Settings", "tpdelay"))
                     if maxtpnumber > 0:
@@ -285,7 +287,8 @@ class TpFriend:
 
                     else:
                         DataStore.Add("tpfriendautoban", idt, "using")
-                        playerfromm.SafeTeleportTo(Player.Location)
+                        tploc = Util.CreateVector(float(Player.X), float(Player.Y), float(Player.Z))
+                        playerfromm.SafeTeleportTo(tploc)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
 
