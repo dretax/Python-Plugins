@@ -175,7 +175,7 @@ class TpFriend:
                             continue
                         check = int(config.GetSetting("Settings", "safetpcheck"))
                         PlayerFrom.TeleportTo(PlayerTo.Location)
-                        PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
+                        PlayerFrom.MessageFrom(sys, "You have been teleported to your friend")
                         self.addJob(check, id, params[1], 3)
                     # AutoKill
                     elif callback == 2:
@@ -195,7 +195,7 @@ class TpFriend:
                             DataStore.Add("tpfriendautoban", id, "none")
                             continue
                         PlayerFrom.TeleportTo(PlayerTo.Location)
-                        PlayerFrom.MessageFrom(sys, "You have been teleported to your home")
+                        PlayerFrom.MessageFrom(sys, "You have been teleported to your friend again.")
                         DataStore.Add("tpfriendautoban", id, "none")
 
     def On_Command(self, Player, cmd, args):
@@ -298,12 +298,11 @@ class TpFriend:
                         playerfromm.TeleportTo(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
+                        self.addJob(check, idt, id, 3)
 
                     DataStore.Remove("tpfriendpending", idt)
                     DataStore.Remove("tpfriendpending2", id)
                     Player.MessageFrom(systemname, "Teleport Request Accepted!")
-
-                    self.addJob(check, idt, id, 3)
 
                 else:
                     Player.MessageFrom(systemname, "Player isn't online!")
