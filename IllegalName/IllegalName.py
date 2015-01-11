@@ -10,7 +10,7 @@ import re
 class IllegalName:
 
     def On_PluginInit(self):
-        Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
+        Util.ConsoleLog("IllegalName by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def getIllegal(self):
         if not Plugin.IniExists("IllegalNames"):
