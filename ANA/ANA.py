@@ -1,3 +1,4 @@
+# coding=utf-8
 __author__ = 'DreTaX'
 __version__ = '1.0'
 import clr
@@ -7,17 +8,6 @@ import Fougerite
 import re
 
 RandNames = []
-
-import sys
-path = Util.GetRootFolder()
-sys.path.append(path + "\\Save\\Lib\\")
-
-Lib = True
-try:
-    import random
-except ImportError:
-    Lib = False
-
 
 class ANA:
 
@@ -31,12 +21,12 @@ class ANA:
         except:
             return None
 
-    def GetRand(self):
-        d = random.randrange(0, 550)
-        while d in RandNames:
-            d = random.randrange(0, 550)
-        RandNames.append(d)
-        return d
+    def GetNum(self):
+        for x in xrange(0, 1000):
+            if x in RandNames:
+                continue
+            RandNames.append(x)
+            return x
 
     def CutName(self, string):
         name = re.sub(r'[^\x00-\x7F]+', '', string)
@@ -54,6 +44,7 @@ class ANA:
                 pass
             return
         name = Player.Name
+        name = self.CutName(name)
         name = re.sub(' +',' ', name)
         name = re.sub('[\t]+','', name)
         starts = name.startswith(' ')
@@ -69,7 +60,6 @@ class ANA:
         n = len(name)
         if n <= 1:
             name = "Stranger"
-            if Lib:
-                rand = self.GetRand()
-                name = name + str(rand)
+            rand = self.GetNum()
+            name = name + str(rand)
         Player.Name = name
