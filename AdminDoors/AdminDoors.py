@@ -31,6 +31,10 @@ class AdminDoors:
             Plugin.CreateIni("toggled")
         return Plugin.GetIni("toggled")
 
+    def On_DoorUse(self, Player, DoorUseEvent):
+        if Player.Admin or self.allowed(Player):
+            if self.toggled(Player):
+                DoorUseEvent.Open = True
 
     """
         CheckV method based on Spock's method.
