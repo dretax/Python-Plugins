@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.2'
+__version__ = '3.2b'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -50,7 +50,10 @@ class DeathMSG:
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
             config = self.DeathMSGConfig()
-            killer = str(DeathEvent.Attacker.Name)
+            try:
+                killer = str(DeathEvent.Attacker.Name)
+            except:
+                return
             victim = str(DeathEvent.Victim.Name)
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
             id = self.TrytoGrabID(DeathEvent.Attacker)
