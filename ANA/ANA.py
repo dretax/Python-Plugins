@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -53,7 +53,8 @@ class ANA:
             name = name.replace(name[0], '')
         if ends is True:
             n = len(name)
-            name = name.replace(name[n-1], '')
+            if n > 1:
+                name = name.replace(name[n-1], '')
         a = re.match('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', name)
         if not a:
             name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
