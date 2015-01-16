@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -32,7 +32,6 @@ class SleeperLog:
             id = Player.SteamID
             return id
         except:
-            Plugin.Log("SleeperErr", "Error caught at TrytoGrabID method.")
             return None
 
     #There is an error while converting ownerid to string in C#. Hax it.
@@ -77,87 +76,18 @@ class SleeperLog:
         'Furnace': 'Furnace'
     }
 
-
-    """def IsIn(self, EntityName):
-        # Okay seriously DreTaX It's 0:03, It's about time to use something else and more logical
-        if EntityName == 'WoodFoundation':
-            return True
-        elif EntityName == 'WoodDoorFrame':
-            return True
-        elif EntityName == 'WoodWall':
-            return True
-        elif EntityName == 'WoodPillar':
-            return True
-        elif EntityName == 'WoodCeiling':
-            return True
-        elif EntityName == 'MetalDoor':
-            return True
-        elif EntityName == 'WoodDoor':
-            return True
-        elif EntityName == 'WoodStairs':
-            return True
-        elif EntityName == 'WoodWindowFrame':
-            return True
-        elif EntityName == 'MetalFoundation':
-            return True
-        elif EntityName == 'MetalDoorFrame':
-            return True
-        elif EntityName == 'MetalWall':
-            return True
-        elif EntityName == 'MetalPillar':
-            return True
-        elif EntityName == 'MetalCeiling':
-            return True
-        elif EntityName == 'MetalStairs':
-            return True
-        elif EntityName == 'MetalWindowFrame':
-            return True
-        elif EntityName == 'Wood_Shelter':
-            return True
-        elif EntityName == 'Barricade_Fence_Deployable':
-            return True
-        elif EntityName == 'Metal Bars Window':
-            return True
-        elif EntityName == 'CampFire':
-            return True
-        elif EntityName == 'Wood Spike Wall':
-            return True
-        elif EntityName == 'WoodBoxLarge':
-            return True
-        elif EntityName == 'WoodBox':
-            return True
-        elif EntityName == 'SmallStash':
-            return True
-        elif EntityName == 'Campfire':
-            return True
-        elif EntityName == 'Furnace':
-            return True
-        elif EntityName == 'RepairBench':
-            return True
-        elif EntityName == 'Workbench':
-            return True
-        elif EntityName == 'Large Wood Spike Wall':
-            return True
-        elif EntityName == 'WoodGate':
-            return True
-        elif EntityName == 'WoodGateway':
-            return True
-        elif EntityName == 'MetalRamp':
-            return True
-        elif EntityName == 'WoodRamp':
-            return True
-        else:
-            return False"""
-
-
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
             return
         name = Player.Name
         ini = self.SleeperId()
-        ini.AddSetting("Sleeper", id, name)
-        ini.Save()
+        if ini.GetSetting("Sleeper", id) is None:
+            ini.AddSetting("Sleeper", id, name)
+            ini.Save()
+        else:
+            ini.SetSetting("Sleeper", id, name)
+            ini.Save()
 
 
     def On_EntityHurt(self, HurtEvent):
