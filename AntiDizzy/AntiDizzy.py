@@ -95,11 +95,9 @@ class AntiDizzy:
                     loc = self.Replace(loc)
                     #Player.TeleportTo(float(loc[0]), float(loc[1]) + float(2.5), float(loc[2]))
                     vec = Util.CreateVector(float(loc[0]), float(loc[1]), float(loc[2]))
-                    dist = Util.GetVectorsDistance(Player.Location, vec)
                     Server.Broadcast("Current: " + str(float(Player.Y)) + " Last: " + str(float(loc[1])))
                     Server.Broadcast("Y dist: " + str(float(Player.Y) - float(loc[1])))
-                    Server.Broadcast("Dist should be current-last : " + str(dist))
-                    if dist > 3.0:
+                    if float(Player.Y) - float(loc[1]) > -4.0:
                         Server.Broadcast("This fag had dizzy.")
                     DataStore.Remove("LastLoc", id)
                     Server.Broadcast("Tp2")
