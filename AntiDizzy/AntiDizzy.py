@@ -106,4 +106,5 @@ class AntiDizzy:
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
         loc = Player.Location
+        DataStore.Remove("LastLoc", id)
         DataStore.Add("LastLoc", id, str(loc))
