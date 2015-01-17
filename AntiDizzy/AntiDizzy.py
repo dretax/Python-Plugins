@@ -97,7 +97,8 @@ class AntiDizzy:
                     vec = Util.CreateVector(float(loc[0]), float(loc[1]), float(loc[2]))
                     Server.Broadcast("Current: " + str(float(Player.Y)) + " Last: " + str(float(loc[1])))
                     Server.Broadcast("Y dist: " + str(float(Player.Y) - float(loc[1])))
-                    if float(Player.Y) - float(loc[1]) > -4.0:
+                    d = float(Player.Y) - float(loc[1])
+                    if d < (0 - float(3.8)) and d < 0.0:
                         Server.Broadcast("This fag had dizzy.")
                     DataStore.Remove("LastLoc", id)
                     Server.Broadcast("Tp2")
