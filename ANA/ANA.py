@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -64,3 +64,14 @@ class ANA:
             rand = self.GetNum()
             name = name + str(rand)
         Player.Name = name
+
+    def On_PlayerDisconnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
+        name = Player.Name
+        if "Stranger" in name:
+            ssw = [int(s) for s in name if s.isdigit()]
+            ssw = int(''.join(str(e) for e in ssw))
+            if int(ssw) in RandNames:
+                RandNames.remove(int(ssw))
