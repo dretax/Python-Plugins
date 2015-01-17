@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -77,7 +77,10 @@ class JZap:
 
 
     def On_Command(self, Player, cmd, args):
-        if (Player.Admin or self.isMod(Player.SteamID)) and cmd.upper() == JZapDB.upper():
+        if cmd.upper() == JZapDB.upper():
+            if not Player.Admin and not self.isMod(Player.SteamID):
+                Player.Message("You aren't an admin.")
+                return
             get = DataStore.Get(JZapDB, 'Active')
             if get is not None and get != Player.SteamID:
                 Player.MessageFrom('☒ ', 'Wait a moment, someone else is zapping stuff.')
@@ -90,6 +93,7 @@ class JZap:
                 Player.InventoryNotice(JZapDB + ' is de-activated!')
 
 
+
     def On_EntityHurt(self, he):
         if DataStore.Get(JZapDB, 'Active') is None:
             return
@@ -98,8 +102,12 @@ class JZap:
         OwnerID = DataStore.Get(JZapDB, 'Target')
         emon = '[color#FFA500]'
         noem = '[color#FFFFFF]'
-
-        if he.Entity.Health > 0 and (he.Attacker.Admin or self.isMod(he.Attacker.SteamID)):
+        id = self.TrytoGrabID(he.Attacker)
+        if id is None:
+            return
+        if he.Entity.Health > 0:
+            if not he.Attacker.Admin and not self.isMod(he.Attacker.SteamID):
+                return
             ini = self.Players()
             name = ini.GetSetting('List', he.Entity.OwnerID)
             if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
