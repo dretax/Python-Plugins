@@ -44,38 +44,6 @@ class SleeperLog:
         except:
             return None
 
-    Items = {
-        'WoodFoundation': 'Wood Foundation',
-        'WoodDoorFrame': 'Wood Doorway',
-        'WoodDoor': 'Wood Door',
-        'WoodWall': 'Wood Wall',
-        'WoodPillar': 'Wood Pillar',
-        'WoodCeiling': 'Wood Ceiling',
-        'MetalDoor': 'Metal Door',
-        'WoodStairs': 'Wood Stairs',
-        'WoodWindowFrame': 'Wood Window',
-        'MetalFoundation': 'Metal Foundation',
-        'MetalDoorFrame': 'Metal Doorway',
-        'MetalWall': 'Metal Wall',
-        'MetalPillar': 'Metal Pillar',
-        'MetalCeiling': 'Metal Ceiling',
-        'MetalStairs': 'Metal Stairs',
-        'MetalWindowFrame': 'Metal Window',
-        'Wood_Shelter': 'Wood Shelter',
-        'Barricade_Fence_Deployable': 'Wood Barricade',
-        'WoodBox': 'Wood Storage Box',
-        'WoodBoxLarge': 'Large Wood Storage',
-        'Metal Bars Window': 'Metal Window Bars',
-        'CampFire': 'Camp Fire',
-        'Wood Spike Wall': 'Spike Wall',
-        'Large Wood Spike Wall': 'Large Spike Wall',
-        'Workbench': 'Workbench',
-        'WoodGate': 'Wood Gate',
-        'WoodGateway': 'Wood Gateway',
-        'RepairBench': 'Repair Bench',
-        'Furnace': 'Furnace'
-    }
-
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -97,10 +65,7 @@ class SleeperLog:
             if id is None:
                 return
             entityname = HurtEvent.Entity.Name
-            item = self.Items.get(entityname, None)
-            if item is not None:
-                return
-            else:
+            if entityname == "MaleSleeper":
                 #Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
                 OwnerID = self.GetIt(HurtEvent.Entity)
                 if OwnerID is None:
