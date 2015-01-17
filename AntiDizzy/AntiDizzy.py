@@ -71,8 +71,9 @@ class AntiDizzy:
         if DataStore.Get("LastLoc", id) is not None:
             loc = DataStore.Get("LastLoc", id)
             loc = self.Replace(loc)
-            Player.Teleport(float(loc[0]), float(loc[1]) + float(1), float(loc[2]))
+            Player.TeleportTo(float(loc[0]), float(loc[1]) + float(1), float(loc[2]))
             self.addJob(id, 2)
+            Server.Broadcast("Tp1")
 
     def AntiDizzyCallback(self):
         epoch = int(Plugin.GetTimestamp())
@@ -93,8 +94,9 @@ class AntiDizzy:
                     if loc is None:
                         continue
                     loc = self.Replace(loc)
-                    Player.Teleport(float(loc[0]), float(loc[1]) + float(1), float(loc[2]))
+                    Player.TeleportTo(float(loc[0]), float(loc[1]) + float(1), float(loc[2]))
                     DataStore.Remove("LastLoc", id)
+                    Server.Broadcast("Tp2")
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
