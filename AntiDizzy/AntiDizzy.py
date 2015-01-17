@@ -88,13 +88,17 @@ class AntiDizzy:
                     Player = self.getPlayer(id)
                     self.killJob(id)
                     if Player is None:
-                        DataStore.Add("homesystemautoban", id, "none")
                         continue
                     loc = DataStore.Get("LastLoc", id)
                     if loc is None:
                         continue
                     loc = self.Replace(loc)
-                    Player.TeleportTo(float(loc[0]), float(loc[1]) + float(2.5), float(loc[2]))
+                    #Player.TeleportTo(float(loc[0]), float(loc[1]) + float(2.5), float(loc[2]))
+                    dist = Util.GetVectorsDistance(float(Player.Y), float(loc[1]))
+                    Server.Broadcast("Current: " + str(float(Player.Y)) + " Last: " + str(float(loc[1])))
+                    Server.Broadcast("Dist should be current-last : " + str(dist))
+                    if dist > 3.0:
+                        Server.Broadcast("This fag had dizzy.")
                     DataStore.Remove("LastLoc", id)
                     Server.Broadcast("Tp2")
 
