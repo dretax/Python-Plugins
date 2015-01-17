@@ -95,7 +95,7 @@ class AntiDizzy:
                     loc = self.Replace(loc)
                     #Player.TeleportTo(float(loc[0]), float(loc[1]) + float(2.5), float(loc[2]))
                     vec = Util.CreateVector(float(loc[1]) + float(2.5), float(loc[2]))
-                    dist = Util.GetVectorsDistance(float(Player.Location), float(loc[1]))
+                    dist = Util.GetVectorsDistance(float(Player.Location), vec)
                     Server.Broadcast("Current: " + str(float(Player.Y)) + " Last: " + str(float(loc[1])))
                     Server.Broadcast("Y dist: " + str(float(Player.Y) - float(loc[1])))
                     Server.Broadcast("Dist should be current-last : " + str(dist))
