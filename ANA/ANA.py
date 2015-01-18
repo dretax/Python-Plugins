@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -21,6 +21,14 @@ class ANA:
         except:
             return None
 
+    def ANA(self):
+        if not Plugin.IniExists("ANA"):
+            ini = Plugin.CreateIni("ANA")
+            ini.AddSetting("Settings", "DontRenameAdmins", "1")
+            ini.AddSetting("Settings", "DontRenameMods", "1")
+            ini.Save()
+        return Plugin.GetIni("ANA")
+
     def GetNum(self):
         for x in xrange(0, 1000):
             if x in RandNames:
@@ -35,6 +43,11 @@ class ANA:
     def Replace(self, Old, To, Text):
         return re.sub('(?i)' + re.escape(Old), lambda m: To, Text)
 
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
+
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -42,6 +55,13 @@ class ANA:
                 Player.Disconnect()
             except:
                 pass
+            return
+        ini = self.ANA()
+        a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
+        m = int(ini.GetSetting("Settings", "DontRenameMods"))
+        if Player.Admin and a == 1:
+            return
+        if self.isMod(id) and m == 1:
             return
         name = Player.Name
         name = self.CutName(name)
