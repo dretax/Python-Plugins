@@ -1,5 +1,5 @@
 __author__ = 'Converted By DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -51,12 +51,12 @@ class KillingSpree:
             except:
                 pass
             return
-        LastSeen = int(self.GetLastSeen(id))
-        TimeStamp = int(round(time.time()))
-        CurrentSpree = int(self.GetCurrentKillingSpree(id))
+        LastSeen = self.GetLastSeen(id)
+        TimeStamp = round(time.time())
+        CurrentSpree = self.GetCurrentKillingSpree(id)
 
         if LastSeen is not None:
-            if CurrentSpree > 0 and (TimeStamp - LastSeen) >= 900:
+            if int(CurrentSpree) > 0 and (TimeStamp - int(LastSeen)) >= 900:
                 self.SetKillingSpree(Player.SteamID, 0)
                 Player.Message("Your killing spree has been reset.")
 
