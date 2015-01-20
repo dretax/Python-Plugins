@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.0'
+__version__ = '3.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -14,7 +14,7 @@ green = "[color #009900]"
 white = "[color #FFFFFF]"
 DStable = "TpTimer"
 
-TpJobs = {'Name': 'TpFriend', 'Author': 'DreTaX', 'Version': '3.0'}
+TpJobs = {'Name': 'TpFriend'}
 
 """
     Class
@@ -32,7 +32,7 @@ class TpFriend:
         DataStore.Flush("tpfriendpending")
         DataStore.Flush("tpfriendpending2")
         DataStore.Flush("tpfriendcooldown")
-        Util.ConsoleLog(TpJobs['Name'] + " v" + TpJobs['Version'] + " by " + TpJobs['Author'] + " loaded.", True)
+        Util.ConsoleLog(TpJobs['Name'] + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     def TpFriendConfig(self):
         if not Plugin.IniExists("TpFriendConfig"):
@@ -161,9 +161,9 @@ class TpFriend:
                 if DataStore.Get(DStable, id) is None:
                     DataStore.Remove(DStable, id)
                     continue
-                DataStore.Add("tpfriendautoban", id, "using")
                 params = self.Parse(str(DataStore.Get(DStable, id)))
                 if epoch >= int(params[0]):
+                    DataStore.Add("tpfriendautoban", id, "using")
                     PlayerFrom = self.getPlayer(id)
                     PlayerTo = self.getPlayer(params[1])
                     callback = int(params[2])
@@ -196,11 +196,13 @@ class TpFriend:
                             continue
                         PlayerFrom.TeleportTo(PlayerTo.Location)
                         PlayerFrom.MessageFrom(sys, "You have been teleported to your friend again.")
+                        self.addJob(4, id, params[1], 4)
+                    elif callback == 4:
                         DataStore.Add("tpfriendautoban", id, "none")
 
     def On_Command(self, Player, cmd, args):
         if cmd == "cleartpatimers":
-            if Player.Admin and self.isMod(Player.SteamID):
+            if Player.Admin or self.isMod(Player.SteamID):
                 self.clearTimers()
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
@@ -227,7 +229,10 @@ class TpFriend:
                 if playertor == Player:
                     Player.MessageFrom(systemname, "Cannot teleport to yourself!")
                     return
+                name = Player.Name
                 id = Player.SteamID
+                idt = playertor.SteamID
+                namet = playertor.Name
                 maxuses = int(config.GetSetting("Settings", "Maxuses"))
                 cooldown = int(config.GetSetting("Settings", "cooldown"))
                 stuff = int(config.GetSetting("Settings", "timeoutr"))
@@ -241,7 +246,6 @@ class TpFriend:
                     DataStore.Add("tpfriendcooldown", id, 7)
                     time = 7
                 if calc >= cooldown or time == 7:
-                    idt = playertor.SteamID
                     if usedtp is None:
                         DataStore.Add("tpfriendusedtp", id, 0)
                         usedtp = 0
@@ -257,8 +261,8 @@ class TpFriend:
                         return
 
                     DataStore.Add("tpfriendcooldown", id, System.Environment.TickCount)
-                    playertor.MessageFrom(systemname, "Teleport request from " + Player.Name + " to accept write /tpaccept")
-                    Player.MessageFrom(systemname, "Teleport request sent to " + playertor.Name)
+                    playertor.MessageFrom(systemname, "Teleport request from " + name + " to accept write /tpaccept")
+                    Player.MessageFrom(systemname, "Teleport request sent to " + namet)
                     DataStore.Add("tpfriendpending", id, idt)
                     DataStore.Add("tpfriendpending2", idt, id)
                     self.addJob(stuff, id, idt, 2)
