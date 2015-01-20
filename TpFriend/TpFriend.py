@@ -137,7 +137,12 @@ class TpFriend:
             pass
 
     def stopTimer(self):
-        Plugin.KillTimer("TpJobTimer")
+        #Plugin.KillTimer("TpJobTimer")
+        timer = Plugin.GetTimer("TpJobTimer")
+        if timer is None:
+            return
+        timer.Stop()
+        Plugin.Timers.Remove("TpJobTimer")
 
     def getPlayer(self, d):
         try:
@@ -199,6 +204,8 @@ class TpFriend:
                         self.addJob(4, id, params[1], 4)
                     elif callback == 4:
                         DataStore.Add("tpfriendautoban", id, "none")
+        else:
+            self.stopTimer()
 
     def On_Command(self, Player, cmd, args):
         if cmd == "cleartpatimers":
