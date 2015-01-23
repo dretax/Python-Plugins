@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.2'
+__version__ = '3.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -42,6 +42,7 @@ class HomeSystem3:
         DataStore.Flush("HomeSys3JCD")
         DataStore.Flush("HomeTimer")
         DataStore.Flush("HomeSys3CD")
+        DataStore.Flush("homesystemautoban")
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -380,6 +381,7 @@ class HomeSystem3:
             return
         if not DataStore.ContainsKey("HomeSys3JCD", id):
             DataStore.Add("HomeSys3JCD", id, System.Environment.TickCount)
+        DataStore.Add("homesystemautoban", id, "none")
 
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None and Player is not None:
