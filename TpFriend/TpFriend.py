@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.2'
+__version__ = '3.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -206,6 +206,12 @@ class TpFriend:
                         DataStore.Add("tpfriendautoban", id, "none")
         else:
             self.stopTimer()
+
+    def On_PlayerDisconnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
+        DataStore.Add("tpfriendautoban", id, "none")
 
     def On_Command(self, Player, cmd, args):
         if cmd == "cleartpatimers":
