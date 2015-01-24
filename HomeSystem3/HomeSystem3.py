@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.3'
+__version__ = '3.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -61,8 +61,10 @@ class HomeSystem3:
             ini.AddSetting("Settings", "Message", "No Derppassing ask the owner if you can live here")
             ini.AddSetting("Settings", "Distance", "25")
             ini.AddSetting("Settings", "SysName", "HomeSystem")
+            ini.AddSetting("Settings", "EJoinCooldown", "1")
             ini.AddSetting("Settings", "JoinCooldown", "30")
             ini.AddSetting("Settings", "Cooldown", "300000")
+            ini.AddSetting("Settings", "SendPlayertoHomeorRandom", "1")
             ini.AddSetting("Settings", "Randoms", "8156")
             ini.Save()
         return Plugin.GetIni("Config")
@@ -355,21 +357,27 @@ class HomeSystem3:
         ini = self.Config()
         sys = ini.GetSetting("Settings", "SysName")
         cooldown = int(ini.GetSetting("Settings", "JoinCooldown"))
+        sendhome = int(ini.GetSetting("Settings", "SendPlayertoHomeorRandom"))
+        ecooldown = int(ini.GetSetting("Settings", "EJoinCooldown"))
         if jtime is None:
-            self.SendPlayerToHome(id)
+            if sendhome == 1:
+                self.SendPlayerToHome(id)
             return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
-            self.SendPlayerToHome(id)
+            if sendhome == 1:
+                self.SendPlayerToHome(id)
             return
-        calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
-        if System.Environment.TickCount <= jtime + cooldown * 1000:
-            calc2 = cooldown * 1000
-            calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
-            Player.MessageFrom(sys, self.red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
-            Player.Disconnect()
-            return
-        elif System.Environment.TickCount > jtime + (cooldown * 1000):
-            self.SendPlayerToHome(id)
+        if ecooldown == 1:
+            calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
+            if System.Environment.TickCount <= jtime + cooldown * 1000:
+                calc2 = cooldown * 1000
+                calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
+                Player.MessageFrom(sys, self.red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+                Player.Disconnect()
+                return
+            elif System.Environment.TickCount > jtime + (cooldown * 1000):
+                if sendhome == 1:
+                    self.SendPlayerToHome(id)
         DataStore.Remove("HomeSys3JCD", id)
 
 
