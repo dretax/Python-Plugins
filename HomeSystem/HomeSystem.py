@@ -411,7 +411,7 @@ class HomeSystem:
                 if counted > 0:
                     for idof in checkdist:
                         homes = self.GetListofHomes(idof)
-                        for i in xrange(0, len(homes) + 1):
+                        for i in xrange(0, len(homes)):
                             check = self.HomeOfID(idof, homes[i])
                             if check is not None:
                                 vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
@@ -419,9 +419,7 @@ class HomeSystem:
                                 if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
                                     Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                     return
-                            else:
-                                ini.DeleteSetting("HomeNames", idof)
-                                ini.Save()
+                            #Note: I removed the home here if it was null
             if checkwall == 1:
                 type = Util.TryFindReturnType("StructureComponent")
                 objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
