@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.0'
+__version__ = '2.5.1'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 
@@ -212,6 +212,11 @@ class HomeSystem:
         List.append(str(PlayerLoc).replace(",", ":"))
         DataStore.Add(DStable, id, self.Stringify(List))
         self.startTimer()
+
+    def isInjob(self, id):
+        if DataStore.Get(DStable, id) is not None:
+            return True
+        return False
 
     def killJob(self, id):
         DataStore.Remove(DStable, id)
@@ -571,6 +576,21 @@ class HomeSystem:
                     inventory.AddItem("Cloth", 40)
                     inventory.AddItem("Metal Fragments", 100)
 
+    def On_PlayerHurt(self, HurtEvent):
+        if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
+            config = self.HomeConfig()
+            checkdamage = int(config.GetSetting("Settings", "checkdamage"))
+            if checkdamage == 0:
+                return
+            homesystemname = config.GetSetting("Settings", "homesystemname")
+            id = self.TrytoGrabID(HurtEvent.Attacker)
+            if id is not None:
+                vid = self.TrytoGrabID(HurtEvent.Victim)
+                if self.isInjob(vid):
+                    self.killJob(vid)
+                    HurtEvent.Victim.MessageFrom(homesystemname, "Teleportation Cancelled. You received damage.")
+                    DataStore.Remove("home_cooldown", vid)
+
     def On_PlayerSpawned(self, Player, SpawnEvent):
         camp = SpawnEvent.CampUsed
         if camp:
@@ -608,23 +628,29 @@ class HomeSystem:
         jtime = DataStore.Get("home_joincooldown", id)
         cooldown = int(config.GetSetting("Settings", "rejoincd"))
         homesystemname = config.GetSetting("Settings", "homesystemname")
+        sendhome = int(config.GetSetting("Settings", "SendPlayertoHomeorRandom"))
+        ecooldown = int(config.GetSetting("Settings", "EJoinCooldown"))
         if jtime is None:
-            self.addJob(id, jointpdelay, None, 5)
+            if sendhome == 1:
+                self.addJob(id, jointpdelay, None, 5)
             return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
             DataStore.Remove("home_joincooldown", id)
-            self.addJob(id, jointpdelay, None, 5)
+            if sendhome == 1:
+                self.addJob(id, jointpdelay, None, 5)
             return
-        calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
-        if System.Environment.TickCount <= jtime + cooldown * 1000:
-            calc2 = cooldown * 1000
-            calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
-            Player.MessageFrom(homesystemname, red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
-            Player.Disconnect()
-            return
-        elif System.Environment.TickCount > jtime + (cooldown * 1000):
-            DataStore.Remove("home_joincooldown", id)
-            self.addJob(id, jointpdelay, None, 5)
+        if ecooldown == 1:
+            calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
+            if System.Environment.TickCount <= jtime + cooldown * 1000:
+                calc2 = cooldown * 1000
+                calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
+                Player.MessageFrom(homesystemname, red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+                Player.Disconnect()
+                return
+            elif System.Environment.TickCount > jtime + (cooldown * 1000):
+                DataStore.Remove("home_joincooldown", id)
+                if sendhome == 1:
+                    self.addJob(id, jointpdelay, None, 5)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
@@ -633,3 +659,4 @@ class HomeSystem:
         if antiroof == 1:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
+        DataStore.Add("homesystemautoban", id, "none")
