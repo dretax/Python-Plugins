@@ -422,20 +422,6 @@ class HomeSystem:
                             else:
                                 ini.DeleteSetting("HomeNames", idof)
                                 ini.Save()
-                else:
-                    homes = ini.GetSetting("HomeNames", id)
-                    if homes is not None and "," in homes:
-                        n = homes + "" + home + ","
-                        ini.AddSetting(id, home, str(plloc))
-                        ini.AddSetting("HomeNames", id, n)
-                        ini.Save()
-                        Player.MessageFrom(homesystemname, "Home Saved")
-                        return
-                    n = home + ","
-                    ini.AddSetting(id, home, str(plloc))
-                    ini.AddSetting("HomeNames", id, n)
-                    ini.Save()
-                    Player.MessageFrom(homesystemname, "Home Saved")
             if checkwall == 1:
                 type = Util.TryFindReturnType("StructureComponent")
                 objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
