@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -55,12 +55,23 @@ class IdIdentifier:
     def On_PlayerConnected(self, Player):
         sid = self.TrytoGrabID(Player)
         if sid is None:
+            try:
+                Player.Disconnect()
+            except:
+                pass
+            return
+        try:
+            name = Player.Name
+        except:
+            try:
+                Player.Disconnect()
+            except:
+                pass
             return
         banini = self.ManualBan()
         if banini.GetSetting("Banned", sid) and int(banini.GetSetting("Banned", sid)) == 1:
             Player.Disconnect()
             return
-        name = str(Player.Name)
         ip = str(Player.IP)
         location = str(Player.Location)
         ini = self.PlayersIni()
@@ -70,7 +81,7 @@ class IdIdentifier:
         else:
             ini.AddSetting("Track", sid, name)
             ini.Save()
-        Plugin.Log("LastJoin", str(name) + "|" + sid + "|" + ip  + "|" + location)
+        Plugin.Log("LastJoin", str(name) + "|" + sid + "|" + ip + "|" + location)
 
 
     def On_PlayerDisconnected(self, Player):
