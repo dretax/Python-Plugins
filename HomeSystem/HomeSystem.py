@@ -2,8 +2,10 @@ __author__ = 'DreTaX'
 __version__ = '2.5.1'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
-
+clr.AddReferenceByPartialName("UnityEngine")
 import Fougerite
+import UnityEngine
+from UnityEngine import *
 import re
 import sys
 import System
