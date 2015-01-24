@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.2b'
+__version__ = '3.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -50,14 +50,21 @@ class DeathMSG:
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
             config = self.DeathMSGConfig()
-            try:
-                killer = str(DeathEvent.Attacker.Name)
-            except:
-                return
             victim = str(DeathEvent.Victim.Name)
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
             id = self.TrytoGrabID(DeathEvent.Attacker)
             vid = self.TrytoGrabID(DeathEvent.Victim)
+            if self.WasSuicide(long(id), long(vid)):
+                e = int(config.GetSetting("Settings", "enablesuicidemsg"))
+                if e == 1:
+                    n = config.GetSetting("Settings", "suicide")
+                    n = n.replace("victim", victim)
+                    Server.BroadcastFrom(deathmsgname, n)
+                return
+            try:
+                killer = str(DeathEvent.Attacker.Name)
+            except:
+                return
             if self.IsAnimal(killer) and id is None:
                 e = int(config.GetSetting("Settings", "enableanimalmsg"))
                 if e == 1:
@@ -65,13 +72,6 @@ class DeathMSG:
                     a = a.replace("victim", victim)
                     a = a.replace("killer", killer)
                     Server.BroadcastFrom(deathmsgname, a)
-                return
-            if self.WasSuicide(int(id), int(vid)):
-                e = int(config.GetSetting("Settings", "enablesuicidemsg"))
-                if e == 1:
-                    n = config.GetSetting("Settings", "suicide")
-                    n = n.replace("victim", victim)
-                    Server.BroadcastFrom(deathmsgname, n)
                 return
             bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
             weapon = DeathEvent.WeaponName
