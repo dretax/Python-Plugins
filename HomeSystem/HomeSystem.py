@@ -95,7 +95,7 @@ class HomeSystem:
     def GetListofHomes(self, id):
         ini = self.Homes()
         homes = ini.GetSetting("HomeNames", id)
-        homes = homes.replace(' ')
+        homes = homes.replace(' ', '')
         return homes.split(',')
 
     def CheckIfEmpty(self, id):
@@ -481,7 +481,7 @@ class HomeSystem:
                 if ifdfhome is not None:
                     ini.DeleteSetting("DefaultHome", id)
                 homes = ini.GetSetting("HomeNames", id)
-                second = homes.replace(home+",", "")
+                second = homes.replace(home + ",", "")
                 ini.DeleteSetting(id, home)
                 if not second:
                     ini.DeleteSetting("HomeNames", id)
