@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.1'
+__version__ = '2.5.2'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -411,9 +411,9 @@ class HomeSystem:
                 if counted > 0:
                     for idof in checkdist:
                         homes = self.GetListofHomes(idof)
-                        for i in xrange(0, len(homes)):
+                        for i in xrange(0, len(homes) + 1):
                             check = self.HomeOfID(idof, homes[i])
-                            if check is not None and check:
+                            if check is not None:
                                 vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                                 dist = Util.GetVectorsDistance(vector, plloc)
                                 if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
@@ -466,7 +466,7 @@ class HomeSystem:
             check = ini.GetSetting(id, home)
             ifdfhome = ini.GetSetting("DefaultHome", id)
             if check is not None:
-                if ifdfhome is not None:
+                if ifdfhome is not None and ifdfhome == home:
                     ini.DeleteSetting("DefaultHome", id)
                 homes = ini.GetSetting("HomeNames", id)
                 second = homes.replace(home + ",", "")
