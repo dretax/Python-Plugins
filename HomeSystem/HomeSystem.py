@@ -398,6 +398,10 @@ class HomeSystem:
                 Player.MessageFrom(homesystemname, "You reached the max number of homes!")
                 return
             home = str(args[0])
+            a = re.match('^[a-zA-Z0-9]+$', home)
+            if not a:
+                Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                return
             check = self.HomeOf(Player, home)
             if check is not None:
                 Player.MessageFrom(homesystemname, "You already have a home called like that!")
