@@ -150,6 +150,10 @@ class HomeSystem:
             return True
         return False
 
+    def CutName(self, string):
+        name = re.sub(r'[^\x00-\x7F]+', '', string)
+        return name
+
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
@@ -398,6 +402,10 @@ class HomeSystem:
                 Player.MessageFrom(homesystemname, "You reached the max number of homes!")
                 return
             home = str(args[0])
+            home = self.CutName(home)
+            if len(home) == 0:
+                Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                return
             a = re.match('^[a-zA-Z0-9]+$', home)
             if not a:
                 Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
