@@ -387,6 +387,13 @@ class HomeSystem:
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         self.addJob(id, tpdelay, loc, 2, plloc)
                         Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
+                        movec = int(config.GetSetting("Settings", "movecheck"))
+                        dmg = int(config.GetSetting("Settings", "checkdamage"))
+                        if movec == 1:
+                            Player.MessageFrom(homesystemname, "You can't move while teleporting.")
+                        if dmg == 1:
+                            Player.MessageFrom(homesystemname, "You can't take damage while teleporting.")
+
                 else:
                     Player.Notice("You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
