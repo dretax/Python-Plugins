@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.2'
+__version__ = '2.5.3'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -305,11 +305,11 @@ class HomeSystem:
                                 self.killJob(id)
                             else:
                                 player.SafeTeleportTo(loc)
-                                player.Notice("You have been teleported home.")
+                                player.MessageFrom(homesystemname, "You have been teleported home.")
                                 #BZHJ.addJob('mytestt', checkn, jobxData.params);
                         else:
                             player.SafeTeleportTo(loc)
-                            player.Notice("You have been teleported home.")
+                            player.MessageFrom(homesystemname, "You have been teleported home.")
                     # Random Teleportation Delay
                     elif callback == 3:
                         player.SafeTeleportTo(loc)
