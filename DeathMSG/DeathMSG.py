@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.3'
+__version__ = '3.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -54,7 +54,7 @@ class DeathMSG:
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
             id = self.TrytoGrabID(DeathEvent.Attacker)
             vid = self.TrytoGrabID(DeathEvent.Victim)
-            if self.WasSuicide(long(id), long(vid)):
+            if self.WasSuicide(id, vid):
                 e = int(config.GetSetting("Settings", "enablesuicidemsg"))
                 if e == 1:
                     n = config.GetSetting("Settings", "suicide")
@@ -65,7 +65,8 @@ class DeathMSG:
                 killer = str(DeathEvent.Attacker.Name)
             except:
                 return
-            if self.IsAnimal(killer) and id is None:
+            weapon = DeathEvent.WeaponName
+            if self.IsAnimal(weapon) and id is None:
                 e = int(config.GetSetting("Settings", "enableanimalmsg"))
                 if e == 1:
                     a = config.GetSetting("Settings", "animalkill")
@@ -74,7 +75,6 @@ class DeathMSG:
                     Server.BroadcastFrom(deathmsgname, a)
                 return
             bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
-            weapon = DeathEvent.WeaponName
             damage = round(DeathEvent.DamageAmount, 2)
             killerloc = DeathEvent.Attacker.Location
             location = DeathEvent.Victim.Location
@@ -232,8 +232,8 @@ class DeathMSG:
         else:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
-    def IsAnimal(self, killer):
-        if killer == 'Wolf' or killer == 'Bear' or killer == 'MutantWolf' or killer == 'MutantBear':
+    def IsAnimal(self, gun):
+        if gun == 'Mutant Bear Claw' or gun == 'Bear Claw' or gun == 'Mutant Wolf Claw' or gun == 'Wolf Claw':
             return True
         return False
 
