@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.3'
+__version__ = '3.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -237,7 +237,6 @@ class TpFriend:
                 systemname = config.GetSetting("Settings", "sysname")
                 playertor = self.CheckV(Player, args)
                 if playertor is None:
-                    Player.Message("Player " + playertor + " not found!")
                     return
                 if playertor == Player:
                     Player.MessageFrom(systemname, "Cannot teleport to yourself!")
