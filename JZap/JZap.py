@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -110,9 +110,11 @@ class JZap:
                 return
             ini = self.Players()
             name = ini.GetSetting('List', he.Entity.OwnerID)
+            if name is None:
+                return
             if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
                 DataStore.Add(JZapDB, 'Target', he.Entity.OwnerID)
-                he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + name + noem + ' (' + he.Entity.OwnerID + ').')
+                he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + str(name) + noem + ' (' + he.Entity.OwnerID + ').')
                 he.Attacker.MessageFrom('☑ ☑ ', 'Hit it once more to zap  ' + emon + name + '\'s' + noem + '  stuff completely off the map.')
                 return
             elif long(OwnerID) == long(he.Entity.OwnerID):
