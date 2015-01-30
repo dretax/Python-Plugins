@@ -42,7 +42,7 @@ class AutoDoorCloser:
         DataStore.Remove(DStable, id)
 
     def startTimer(self):
-        gfjfhg = 2000
+        gfjfhg = 1700
         try:
             if not Plugin.GetTimer("AutoCloser"):
                 Plugin.CreateTimer("AutoCloser", gfjfhg).Start()
@@ -50,7 +50,6 @@ class AutoDoorCloser:
             pass
 
     def stopTimer(self):
-        #Plugin.KillTimer("TpJobTimer")
         timer = Plugin.GetTimer("AutoCloser")
         if timer is None:
             return
@@ -72,7 +71,7 @@ class AutoDoorCloser:
     def On_DoorUse(self, Player, DoorUseEvent):
         if DoorUseEvent.Open:
             loc = DoorUseEvent.Entity.Location
-            self.addJob(Player.SteamID, 4, loc)
+            self.addJob(Player.SteamID, 2, loc)
 
     def AutoCloserCallback(self):
         epoch = int(Plugin.GetTimestamp())
@@ -89,4 +88,9 @@ class AutoDoorCloser:
                     door = Util.GetDooratCoords(float(xto[0]), float(xto[1]), float(xto[2]))
                     if door is None:
                         continue
-                    #todo, close the door
+                    bd = Util.TryFindReturnType("BasicDoor")
+                    if bd is not None:
+                        # Praise baluerino
+                        bd.InvokeMember("ToggleStateServer", System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, None, door, System.Linq.Enumerable.ToArray([None, Plugin.GetTimestamp().As[System.UInt64], None]))
+        else:
+            self.stopTimer()
