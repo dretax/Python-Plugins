@@ -77,7 +77,10 @@ class AutoDoorCloser:
 
     def On_DoorUse(self, Player, DoorUseEvent):
         if DoorUseEvent.Open:
-            loc = DoorUseEvent.Entity.Location
+            x = DoorUseEvent.Entity.X
+            y = DoorUseEvent.Entity.Y
+            z = DoorUseEvent.Entity.Z
+            loc = Util.CreateVector(float(x), float(y), float(z))
             self.addJob(Player.SteamID, 2, loc)
 
     def AutoCloserCallback(self):
