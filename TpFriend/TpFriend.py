@@ -214,8 +214,9 @@ class TpFriend:
         DataStore.Add("tpfriendautoban", id, "none")
 
     def On_Command(self, Player, cmd, args):
+        id = Player.SteamID
         if cmd == "cleartpatimers":
-            if Player.Admin or self.isMod(Player.SteamID):
+            if Player.Admin or self.isMod(id):
                 self.clearTimers()
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
@@ -285,7 +286,6 @@ class TpFriend:
                     Player.MessageFrom(systemname, "Time Remaining: " + str(done) + "/" + str(done2) + " mins")
 
         elif cmd == "tpaccept":
-            id = Player.SteamID
             pending = DataStore.Get("tpfriendpending2", id)
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
@@ -326,7 +326,6 @@ class TpFriend:
                 Player.MessageFrom(systemname, "Your request was timed out, or you don't have any.")
 
         elif cmd == "tpdeny":
-            id = Player.SteamID
             pending = DataStore.Get("tpfriendpending2", id)
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
@@ -343,7 +342,6 @@ class TpFriend:
                 Player.MessageFrom(systemname, "No request to deny.")
 
         elif cmd == "tpcancel":
-            id = Player.SteamID
             pending = DataStore.Get("tpfriendpending", id)
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
@@ -360,7 +358,6 @@ class TpFriend:
                 Player.MessageFrom(systemname, "There is nothing to cancel.")
 
         elif cmd == "tpcount":
-            id = Player.SteamID
             config = self.TpFriendConfig()
             systemname = config.GetSetting("Settings", "sysname")
             maxuses = int(config.GetSetting("Settings", "Maxuses"))
@@ -373,7 +370,6 @@ class TpFriend:
                 Player.MessageFrom(systemname, "You have unlimited requests remaining!")
 
         elif cmd == "tpresettime":
-            id = Player.SteamID
             if Player.Admin or self.isMod(id):
                 DataStore.Add("tpfriendcooldown", id, 7)
                 Player.Message("Reset!")
