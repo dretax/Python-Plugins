@@ -13,6 +13,11 @@ import re
 DStable = "DoorCloser"
 class AutoDoorCloser:
 
+    bd = None
+
+    def On_PluginInit(self):
+        self.bd = Util.TryFindReturnType("BasicDoor")
+
     def Stringify(self, List):
         s = re.sub("[[\]\'\ ]", '', str(List))
         return str(s)
@@ -88,9 +93,8 @@ class AutoDoorCloser:
                     door = Util.GetDooratCoords(float(xto[0]), float(xto[1]), float(xto[2]))
                     if door is None:
                         continue
-                    bd = Util.TryFindReturnType("BasicDoor")
-                    if bd is not None:
+                    if self.bd is not None:
                         # Praise baluerino
-                        bd.InvokeMember("ToggleStateServer", System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, None, door, System.Linq.Enumerable.ToArray([None, Plugin.GetTimestamp().As[System.UInt64], None]))
+                        self.bd.InvokeMember("ToggleStateServer", System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, None, door, System.Linq.Enumerable.ToArray([None, Plugin.GetTimestamp().As[System.UInt64], None]))
         else:
             self.stopTimer()
