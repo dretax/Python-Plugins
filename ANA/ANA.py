@@ -50,6 +50,12 @@ class ANA:
             return True
         return False
 
+    def HasSameName(self, name):
+        for player in Server.Players:
+            if player.Name.lower() == name.lower():
+                return True
+        return False
+
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -89,6 +95,8 @@ class ANA:
             if lowercheck in lowername:
                 n = 1
                 break
+        if self.HasSameName(name):
+            n = 1
         if n <= 1:
             name = "Stranger"
             rand = self.GetNum()
