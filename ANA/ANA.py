@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -26,6 +26,8 @@ class ANA:
             ini = Plugin.CreateIni("ANA")
             ini.AddSetting("Settings", "DontRenameAdmins", "1")
             ini.AddSetting("Settings", "DontRenameMods", "1")
+            ini.AddSetting("Restrict" "1", "DerpTeamNoob")
+            ini.AddSetting("Restrict" "2", "Changeme")
             ini.Save()
         return Plugin.GetIni("ANA")
 
@@ -79,6 +81,14 @@ class ANA:
         if not a:
             name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
         n = len(name)
+        enum = ini.EnumSection("Restrict")
+        for checkn in enum:
+            get = ini.GetSetting("Restrict", checkn)
+            lowername = name.lower()
+            lowercheck = get.lower()
+            if lowercheck in lowername:
+                n = 1
+                break
         if n <= 1:
             name = "Stranger"
             rand = self.GetNum()
