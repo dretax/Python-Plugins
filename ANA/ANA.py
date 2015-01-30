@@ -8,6 +8,7 @@ import Fougerite
 import re
 
 RandNames = []
+Names = []
 
 class ANA:
 
@@ -50,12 +51,6 @@ class ANA:
             return True
         return False
 
-    def HasSameName(self, name):
-        for player in Server.Players:
-            if player.Name.lower() == name.lower():
-                return True
-        return False
-
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -95,13 +90,14 @@ class ANA:
             if lowercheck in lowername:
                 n = 1
                 break
-        if self.HasSameName(name):
+        if name in Names:
             n = 1
         if n <= 1:
             name = "Stranger"
             rand = self.GetNum()
             name = name + str(rand)
         Player.Name = name
+        Names.append(name)
 
     def On_PlayerDisconnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -113,3 +109,7 @@ class ANA:
             ssw = int(''.join(str(e) for e in ssw))
             if int(ssw) in RandNames:
                 RandNames.remove(int(ssw))
+        try:
+            Names.remove(name)
+        except:
+            pass
