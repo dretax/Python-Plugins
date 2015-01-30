@@ -27,8 +27,8 @@ class ANA:
             ini = Plugin.CreateIni("ANA")
             ini.AddSetting("Settings", "DontRenameAdmins", "1")
             ini.AddSetting("Settings", "DontRenameMods", "1")
-            ini.AddSetting("Restrict" "1", "DerpTeamNoob")
-            ini.AddSetting("Restrict" "2", "Changeme")
+            ini.AddSetting("Restrict", "1", "DerpTeamNoob")
+            ini.AddSetting("Restrict", "2", "Changeme")
             ini.Save()
         return Plugin.GetIni("ANA")
 
