@@ -299,7 +299,8 @@ class HomeSystem:
                         if movec == 1:
                             before = self.ReplaceToDot(params[3])
                             before = Util.CreateVector(float(before[0]), float(before[1]), float(before[2]))
-                            if int(before[0]) != int(player.X) or int(before[1]) != int(player.Y) or int(before[2]) != int(player.Z):
+                            dist = Util.GetVectorsDistance(before, player.Location)
+                            if dist > 1.0:
                                 player.MessageFrom(homesystemname, "You were moving!")
                                 DataStore.Add("home_cooldown", id, 7)
                                 self.killJob(id)
