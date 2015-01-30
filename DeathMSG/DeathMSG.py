@@ -5,6 +5,7 @@ import clr
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
+import NPC
 
 """
     Class
@@ -52,6 +53,18 @@ class DeathMSG:
             config = self.DeathMSGConfig()
             victim = str(DeathEvent.Victim.Name)
             deathmsgname = config.GetSetting("Settings", "deathmsgname")
+            try:
+                killer = str(DeathEvent.Attacker.Name)
+            except:
+                return
+            if self.IsAnimal(DeathEvent.Attacker) is not None:
+                e = int(config.GetSetting("Settings", "enableanimalmsg"))
+                if e == 1:
+                    a = config.GetSetting("Settings", "animalkill")
+                    a = a.replace("victim", victim)
+                    a = a.replace("killer", killer)
+                    Server.BroadcastFrom(deathmsgname, a)
+                return
             id = self.TrytoGrabID(DeathEvent.Attacker)
             vid = self.TrytoGrabID(DeathEvent.Victim)
             if self.WasSuicide(id, vid):
@@ -61,19 +74,8 @@ class DeathMSG:
                     n = n.replace("victim", victim)
                     Server.BroadcastFrom(deathmsgname, n)
                 return
-            try:
-                killer = str(DeathEvent.Attacker.Name)
-            except:
-                return
             weapon = DeathEvent.WeaponName
-            if self.IsAnimal(weapon) and id is None:
-                e = int(config.GetSetting("Settings", "enableanimalmsg"))
-                if e == 1:
-                    a = config.GetSetting("Settings", "animalkill")
-                    a = a.replace("victim", victim)
-                    a = a.replace("killer", killer)
-                    Server.BroadcastFrom(deathmsgname, a)
-                return
+            Server.Broadcast(str(DeathEvent.Attacker))
             bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
             damage = round(DeathEvent.DamageAmount, 2)
             killerloc = DeathEvent.Attacker.Location
@@ -130,7 +132,7 @@ class DeathMSG:
                     Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
-                        if distance > self.RangeOf(weapon) and self.RangeOf(weapon) > 0:
+                        if distance > self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
                             if (tpfriendteleport == "none" or tpfriendteleport is None) and (hometeleport == "none" or hometeleport is None):
@@ -208,10 +210,10 @@ class DeathMSG:
         config = self.DeathMSGConfig()
         deathmsgname = config.GetSetting("Settings", "deathmsgname")
         ip = Player.IP
-        if ini.GetSetting("Ips", ip) is not None and int(ini.GetSetting("Ips", ip)) == 1:
+        if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip) == 1:
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
-        elif ini.GetSetting("Ids", id) is not None and int(ini.GetSetting("Ids", id)) == 1:
+        elif ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id) == 1:
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
 
@@ -232,10 +234,12 @@ class DeathMSG:
         else:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
-    def IsAnimal(self, gun):
-        if gun == 'Mutant Bear Claw' or gun == 'Bear Claw' or gun == 'Mutant Wolf Claw' or gun == 'Wolf Claw':
-            return True
-        return False
+    def IsAnimal(self, Entity):
+        try:
+            npc = NPC(Entity)
+            return npc
+        except:
+            return None
 
     def WasSuicide(self, killerid, victimid):
         if killerid == victimid:
