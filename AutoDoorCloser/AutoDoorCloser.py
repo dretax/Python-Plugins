@@ -38,7 +38,7 @@ class AutoDoorCloser:
     def addJob(self, id, xtime, location):
         epoch = Plugin.GetTimestamp()
         exectime = int(epoch) + int(xtime)
-        # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
+        # ID, EXECTIME : Location | Requires to be splited
         List = []
         List.append(str(exectime))
         List.append(str(location).replace(',', ':'))
@@ -77,10 +77,7 @@ class AutoDoorCloser:
 
     def On_DoorUse(self, Player, DoorUseEvent):
         if DoorUseEvent.Open:
-            x = DoorUseEvent.Entity.X
-            y = DoorUseEvent.Entity.Y
-            z = DoorUseEvent.Entity.Z
-            loc = Util.CreateVector(float(x), float(y), float(z))
+            loc = Util.CreateVector(float(DoorUseEvent.Entity.X), float(DoorUseEvent.Entity.Y), float(DoorUseEvent.Entity.Z))
             self.addJob(Player.SteamID, 2, loc)
 
     def AutoCloserCallback(self):
