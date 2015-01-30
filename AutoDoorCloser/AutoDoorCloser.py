@@ -4,7 +4,9 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
-clr.AddReferenceByPartialName("System.Core")
+clr.AddReferenceByPartialName("System.Core", "IronPythonModule")
+import IronPythonModule
+from IronPythonModule import Extensions
 import Fougerite
 import re
 import UnityEngine
@@ -20,6 +22,8 @@ DStable = "DoorCloser"
 class AutoDoorCloser:
 
     bd = None
+    flags = System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+    params = System.Linq.Enumerable.ToArray[System.Object]([None, System.Convert.ToUInt64(Plugin.GetTimestamp()), None])
 
     def On_PluginInit(self):
         self.bd = Util.TryFindReturnType("BasicDoor")
@@ -41,18 +45,14 @@ class AutoDoorCloser:
         Timer Functions
     """
 
-    def addJob(self, id, xtime, location):
+    def addJob(self, xtime, location):
         epoch = Plugin.GetTimestamp()
         exectime = int(epoch) + int(xtime)
-        # ID, EXECTIME : Location | Requires to be splited
-        List = []
-        List.append(str(exectime))
-        List.append(str(location).replace(',', ':'))
-        DataStore.Add(DStable, id, self.Stringify(List))
+        DataStore.Add(DStable, str(location).replace(',', ':'), exectime)
         self.startTimer()
 
-    def killJob(self, id):
-        DataStore.Remove(DStable, id)
+    def killJob(self, loc):
+        DataStore.Remove(DStable, loc)
 
     def startTimer(self):
         gfjfhg = 1700
@@ -87,32 +87,31 @@ class AutoDoorCloser:
         for door in objects:
             Distance = Util.GetVectorsDistance(loc, door.transform.position)
             if Distance < 1.5:
-            #if door.transform.position == loc:
                 return door
         return None
 
     def On_DoorUse(self, Player, DoorUseEvent):
         #if DoorUseEvent.Open:
         loc = Util.CreateVector(float(DoorUseEvent.Entity.X), float(DoorUseEvent.Entity.Y), float(DoorUseEvent.Entity.Z))
-        self.addJob(Player.SteamID, 2, loc)
+        self.addJob(2, loc)
 
     def AutoCloserCallback(self):
         epoch = int(Plugin.GetTimestamp())
         if DataStore.Count(DStable) >= 1:
             pending = DataStore.Keys(DStable)
-            for id in pending:
-                if DataStore.Get(DStable, id) is None:
-                    DataStore.Remove(DStable, id)
+            for location in pending:
+                if DataStore.Get(DStable, location) is None:
+                    DataStore.Remove(DStable, location)
                     continue
-                params = self.Parse(str(DataStore.Get(DStable, id)))
-                if epoch >= int(params[0]):
-                    self.killJob(id)
-                    xto = self.ReplaceToDot(params[1])
+                time = DataStore.Get(DStable, location)
+                if epoch >= int(time):
+                    self.killJob(location)
+                    xto = self.ReplaceToDot(location)
                     door = self.Find(float(xto[0]), float(xto[1]), float(xto[2]))
                     if door is None:
                         continue
                     if self.bd is not None:
                         # Praise baluerino
-                        self.bd.InvokeMember("ToggleStateServer", System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, None, door, System.Linq.Enumerable.ToArray([None, Plugin.GetTimestamp().As[System.UInt64], None]))
+                        self.bd.InvokeMember("ToggleStateServer", self.flags, None, door, self.params)
         else:
-            self.stopTimer()
+            self.clearTimers()
