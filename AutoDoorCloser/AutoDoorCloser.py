@@ -4,12 +4,14 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
+clr.AddReferenceByPartialName("System.Core")
 import Fougerite
 import re
 import UnityEngine
 from UnityEngine import *
 import System
 from System import Reflection
+
 """
     Class
 """
