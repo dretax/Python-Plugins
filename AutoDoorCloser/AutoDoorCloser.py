@@ -75,10 +75,18 @@ class AutoDoorCloser:
         DataStore.Flush(DStable)
         self.stopTimer()
 
+    def Find(self, x, y, z):
+        objects = UnityEngine.Resources.FindObjectsOfTypeAll(self.bd)
+        loc = Util.CreateVector(x, y, z)
+        for door in objects:
+            if door.transform.position == loc:
+                return door
+        return None
+
     def On_DoorUse(self, Player, DoorUseEvent):
-        if DoorUseEvent.Open:
-            loc = Util.CreateVector(float(DoorUseEvent.Entity.X), float(DoorUseEvent.Entity.Y), float(DoorUseEvent.Entity.Z))
-            self.addJob(Player.SteamID, 2, loc)
+        #if DoorUseEvent.Open:
+        loc = Util.CreateVector(float(DoorUseEvent.Entity.X), float(DoorUseEvent.Entity.Y), float(DoorUseEvent.Entity.Z))
+        self.addJob(Player.SteamID, 2, loc)
 
     def AutoCloserCallback(self):
         epoch = int(Plugin.GetTimestamp())
@@ -92,7 +100,7 @@ class AutoDoorCloser:
                 if epoch >= int(params[0]):
                     self.killJob(id)
                     xto = self.ReplaceToDot(params[1])
-                    door = Util.GetDooratCoords(float(xto[0]), float(xto[1]), float(xto[2]))
+                    door = self.Find(float(xto[0]), float(xto[1]), float(xto[2]))
                     if door is None:
                         continue
                     if self.bd is not None:
