@@ -55,7 +55,7 @@ class AutoDoorCloser:
         DataStore.Remove(DStable, loc)
 
     def startTimer(self):
-        gfjfhg = 1700
+        gfjfhg = 2000
         try:
             if not Plugin.GetTimer("AutoCloser"):
                 Plugin.CreateTimer("AutoCloser", gfjfhg).Start()
