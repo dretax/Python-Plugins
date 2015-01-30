@@ -3,9 +3,13 @@ __version__ = '1.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
+clr.AddReferenceByPartialName("UnityEngine")
 import Fougerite
 import re
-
+import UnityEngine
+from UnityEngine import *
+import System
+from System import Reflection
 """
     Class
 """
@@ -79,7 +83,9 @@ class AutoDoorCloser:
         objects = UnityEngine.Resources.FindObjectsOfTypeAll(self.bd)
         loc = Util.CreateVector(x, y, z)
         for door in objects:
-            if door.transform.position == loc:
+            Distance = Util.GetVectorsDistance(loc, door.transform.position)
+            if Distance < 1.5:
+            #if door.transform.position == loc:
                 return door
         return None
 
