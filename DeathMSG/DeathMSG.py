@@ -5,7 +5,6 @@ import clr
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
-import NPC
 
 """
     Class
@@ -57,7 +56,7 @@ class DeathMSG:
                 killer = str(DeathEvent.Attacker.Name)
             except:
                 return
-            if self.IsAnimal(DeathEvent.Attacker) is not None:
+            if self.IsAnimal(DeathEvent.Attacker):
                 e = int(config.GetSetting("Settings", "enableanimalmsg"))
                 if e == 1:
                     a = config.GetSetting("Settings", "animalkill")
@@ -235,11 +234,9 @@ class DeathMSG:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
     def IsAnimal(self, Entity):
-        try:
-            npc = NPC(Entity)
-            return npc
-        except:
-            return None
+        if "NPC" in str(Entity):
+            return True
+        return False
 
     def WasSuicide(self, killerid, victimid):
         if killerid == victimid:
