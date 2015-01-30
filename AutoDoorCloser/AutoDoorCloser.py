@@ -17,6 +17,8 @@ class AutoDoorCloser:
 
     def On_PluginInit(self):
         self.bd = Util.TryFindReturnType("BasicDoor")
+        if self.bd is None:
+            Plugin.Log("Error", "Couldn't find return type.")
 
     def Stringify(self, List):
         s = re.sub("[[\]\'\ ]", '', str(List))
