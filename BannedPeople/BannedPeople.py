@@ -36,7 +36,7 @@ class BannedPeople:
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        V4.1
     """
 
     def GetPlayerName(self, namee):
@@ -68,7 +68,7 @@ class BannedPeople:
             p = self.GetPlayerName(nargs)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
+            for pl in Server.Players:
                 if nargs in pl.Name.lower():
                     p = pl
                     count += 1
