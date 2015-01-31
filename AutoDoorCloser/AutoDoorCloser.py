@@ -82,7 +82,7 @@ class AutoDoorCloser:
         self.stopTimer()
 
     def Find(self, x, y, z):
-        objects = UnityEngine.Resources.FindObjectsOfTypeAll(self.bd)
+        objects = UnityEngine.Object.FindObjectsOfType(self.bd)
         loc = Util.CreateVector(x, y, z)
         for door in objects:
             Distance = Util.GetVectorsDistance(loc, door.transform.position)
