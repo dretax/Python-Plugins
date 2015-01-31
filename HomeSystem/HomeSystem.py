@@ -442,7 +442,7 @@ class HomeSystem:
                             #Note: I removed the home here if it was null
             if checkwall == 1:
                 type = Util.TryFindReturnType("StructureComponent")
-                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
+                objects = UnityEngine.Object.FindObjectsOfType(type)
                 for x in objects:
                     if "Wall" in x.name:
                         distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
