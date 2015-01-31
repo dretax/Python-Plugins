@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.4'
+__version__ = '3.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -177,7 +177,7 @@ class HomeSystem3:
             loc = Player.Location
             if not self.HasHome(id):
                 type = Util.TryFindReturnType("DeployableObject")
-                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
+                objects = UnityEngine.Object.FindObjectsOfType(type)
                 for x in objects:
                     name = str(x.name).lower()
                     if "sleeping" in name:
@@ -401,7 +401,7 @@ class HomeSystem3:
                 sys = ini.GetSetting("Settings", "SysName")
                 msg = ini.GetSetting("Settings", "Message")
                 type = Util.TryFindReturnType("StructureComponent")
-                objects = UnityEngine.Resources.FindObjectsOfTypeAll(type)
+                objects = UnityEngine.Object.FindObjectsOfType(type)
                 for x in objects:
                     if "Foundation" in x.name or "Ceiling" in x.name:
                         dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
