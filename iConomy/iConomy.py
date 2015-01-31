@@ -203,6 +203,11 @@ class iConomy:
             return True
         return False
 
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
+
     def On_PluginInit(self):
         ini = self.iConomy()
         #Plugin Settings
@@ -291,7 +296,7 @@ class iConomy:
                 m = self.GetMoney(Player.SteamID)
                 Player.MessageFrom(self.__Sys__, "You have " + str(m) + self.__MoneyMark__)
                 return
-            if len(args) > 0 and Player.Admin:
+            if len(args) > 0 and Player.Admin or self.isMod(Player.SteamID):
                 playerr = self.CheckV(Player, args)
                 if playerr is None:
                     return
