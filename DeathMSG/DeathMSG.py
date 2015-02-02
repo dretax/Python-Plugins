@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.4'
+__version__ = '3.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -73,8 +73,7 @@ class DeathMSG:
                     n = n.replace("victim", victim)
                     Server.BroadcastFrom(deathmsgname, n)
                 return
-            weapon = DeathEvent.WeaponName
-            Server.Broadcast(str(DeathEvent.Attacker))
+            weapon = str(DeathEvent.WeaponName)
             bodyPart = self.BD(DeathEvent.DamageEvent.bodyPart)
             damage = round(DeathEvent.DamageAmount, 2)
             killerloc = DeathEvent.Attacker.Location
