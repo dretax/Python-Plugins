@@ -565,8 +565,8 @@ class HomeSystem:
             antihack = int(config.GetSetting("Settings", "Antihack"))
             if antihack == 1:
                 homesystemname = config.GetSetting("Settings", "homesystemname")
-                inventory = Player.Inventory
                 if Entity.Name == "SleepingBagA":
+                    inventory = Player.Inventory
                     Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
                     Player.MessageFrom(homesystemname, "Use /home")
                     Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
@@ -574,6 +574,7 @@ class HomeSystem:
                     Entity.Destroy()
                     inventory.AddItem("Cloth", 15)
                 elif Entity.Name == "SingleBed":
+                    inventory = Player.Inventory
                     Player.MessageFrom(homesystemname, "Beds are banned from this server!")
                     Player.MessageFrom(homesystemname, "Use /home")
                     Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
