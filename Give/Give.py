@@ -84,7 +84,7 @@ class Give:
                         return
                     inventory = Player.Inventory
                     inventory.AddItem(n[1], int(n[2]))
-                    Player.MessageFrom('Give', 'Given ' + str(n[1]) + " " + str(n[2]) + " to " + playerr.Name)
+                    Player.MessageFrom('Give', 'Given ' + str(n[2]) + " of " + str(n[1]) + " to " + playerr.Name)
                 else:
                     Player.MessageFrom('Give', 'Usage: /give "PlayerName" "ItemName" "Amount"')
                     Player.MessageFrom('Give', 'Quote signs (") are required.')
