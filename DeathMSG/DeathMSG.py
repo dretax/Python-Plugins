@@ -23,7 +23,7 @@ class DeathMSG:
     def On_Command(self, Player, cmd, args):
         if cmd == "uautoban":
             if len(args) == 0:
-                Player.Message("---DeathMSG 3.4---")
+                Player.Message("---DeathMSG 3.5---")
                 Player.Message("/uautoban name - Unbans player")
             else:
                 config = self.DeathMSGConfig()
