@@ -129,6 +129,7 @@ class DeathMSG:
                     hn = hn.replace("bodyPart", str(bodyPart))
                     Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
+                    weapon = "Hunting Bow"
                     if autoban == 1:
                         if distance > self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
