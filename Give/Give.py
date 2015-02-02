@@ -80,7 +80,7 @@ class Give:
                     if playerr is None:
                         return
                     if not n[2].isdigit():
-                        Player.MessageFrom('Give', 'You must specify a quanity...')
+                        Player.MessageFrom('Give', 'You must specify a quantity...')
                         return
                     inventory = Player.Inventory
                     inventory.AddItem(n[1], int(n[2]))
