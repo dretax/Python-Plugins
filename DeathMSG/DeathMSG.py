@@ -120,7 +120,7 @@ class DeathMSG:
                 if kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
             elif bleed == "Melee":
-                if damage == 75:
+                if weapon == "Hunting Bow":
                     hn = config.GetSetting("Settings", "huntingbow")
                     hn = hn.replace("victim", victim)
                     hn = hn.replace("killer", killer)
@@ -129,7 +129,6 @@ class DeathMSG:
                     hn = hn.replace("bodyPart", str(bodyPart))
                     Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
-                    weapon = "Hunting Bow"
                     if autoban == 1:
                         if distance > self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
@@ -158,11 +157,17 @@ class DeathMSG:
                             return
                     if kl == 1:
                         self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
-                elif damage == 10 or damage == 15:
+                elif weapon == "Spike Wall":
                     s = config.GetSetting("Settings", "spike")
                     s = s.replace("victim", victim)
                     s = s.replace("killer", killer)
                     s = s.replace("weapon", "Spike Wall")
+                    Server.BroadcastFrom(deathmsgname, s)
+                elif weapon == "Large Spike Wall":
+                    s = config.GetSetting("Settings", "spike")
+                    s = s.replace("victim", victim)
+                    s = s.replace("killer", killer)
+                    s = s.replace("weapon", "Large Spike Wall")
                     Server.BroadcastFrom(deathmsgname, s)
                 else:
                     n = config.GetSetting("Settings", "msg")
