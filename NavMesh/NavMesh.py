@@ -29,15 +29,11 @@ class NavMesh:
         if basicWildlifeAi is None or takeDamage is None:
             return
         count = 0
-        #ailist = Object.FindObjectsOfTypeAll[basicWildlifeAi]()
-        ailist = UnityEngine.Object.FindObjectsOfType(basicWildlifeAi)
+        ailist = UnityEngine.Object.FindObjectsOfType[basicWildlifeAi]()
         for x in range(0, len(ailist)):
             current = ailist[x]
-            takedmg = current.GetComponent("TakeDamage")
+            takedmg = current.GetComponent[takeDamage]()
             Server.Broadcast(str(takedmg))
-            """d = dir(takedmg)
-            for x in d:
-                Plugin.Log("asd", str(x))"""
             idMain = takedmg.idMain # dafuq is wrong here ffs?
             alive = takedmg.alive
             try:
@@ -46,12 +42,17 @@ class NavMesh:
                 continue
 
             if movement:
-                if str(movement._agent.pathStatus) in "PathInvalid" and alive:
+                try:
+                    agent = movement._agent
+                except:
+                    continue
+                if str(agent.pathStatus) in "PathInvalid" and alive:
                     takeDamage.KillSelf(idMain, None)
                     count += 1
 
-        #if count > 0:
-        Plugin.Log("LogFile", "Killed NPCs. Count: " + str(count))
+        if count > 0:
+            Plugin.Log("KilledNpcs", "Killed NPCs. Count: " + str(count))
+        return count
 
     def KillThemCallback(self):
         timer = Plugin.GetTimer("KillThem")
@@ -64,4 +65,5 @@ class NavMesh:
     def On_Command(self, Player, cmd, args):
         if cmd == "navmeshcheck":
             if Player.Admin or self.isMod(Player.SteamID):
-                self.KillEmAll()
+                n = self.KillEmAll()
+                Player.MessageFrom("Killed: " + str(n) + " animals.")
