@@ -33,7 +33,6 @@ class NavMesh:
         for x in range(0, len(ailist)):
             current = ailist[x]
             takedmg = current.GetComponent[takeDamage]()
-            Server.Broadcast(str(takedmg))
             idMain = takedmg.idMain # dafuq is wrong here ffs?
             alive = takedmg.alive
             try:
