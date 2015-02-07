@@ -4,6 +4,7 @@ import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
+from Fougerite import Entity
 import re
 
 """
@@ -27,8 +28,13 @@ class HungerGames:
     # Values
     IsActive = False
     HasStarted = False
+    bd = None
+    objects = None
 
     def On_PluginInit(self):
+        self.bd = Util.TryFindReturnType("BasicDoor")
+        if self.bd is None:
+            Plugin.Log("Error", "Couldn't find return type.")
         Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     """
@@ -47,6 +53,8 @@ class HungerGames:
             ini.AddSetting("DefaultItems", "P250", "1")
             ini.AddSetting("DefaultItems", "9mm Ammo", "10")
             ini.AddSetting("DefaultItems", "Bandage", "2")
+            ini.AddSetting("Rewards", "M4", "4")
+            ini.AddSetting("Rewards", "Large Medkit", "20")
             ini.Save()
         return Plugin.GetIni("DefaultItems")
 
@@ -215,20 +223,30 @@ class HungerGames:
                     if Player not in Players:
                         Player.MessageFrom(sysname, "You are not even in the game, nab.")
                     else:
-                        Players.remove(Player)
-                        l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
-                        loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                        Player.SafeTeleportTo(loc)
-                        self.returnInventory(Player)
-                        Player.MessageFrom(sysname, "You quit the game!")
+                        self.RemovePlayerDirectly(Player)
                         if self.HasStarted:
                             leng = len(Players)
                             if leng > 1:
-                                Server.BroadcastFrom(sysname, green + Player.Name  + red + " has left HungerGames. " + green + str(leng) + red + " Players are still alive.")
+                                Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. " + green + str(leng) + red + " Players are still alive.")
                             else:
+                                Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. ")
                                 self.EndGame(Players[0])
                         #todo check the prizes later.
 
+    def RemovePlayerDirectly(self, Player):
+        Players.remove(Player)
+        l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
+        loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+        Player.SafeTeleportTo(loc)
+        DataStore.Remove("HLastLoc", Player.SteamID)
+
+    def FindDoor(self, location):
+        for door in self.objects:
+            Distance = Util.GetVectorsDistance(location, door.transform.position)
+            if Distance < 1.5:
+                doors.append(door)
+                return
+        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
 
     def StartGame(self):
         if self.HasStarted or not self.IsActive:
@@ -238,10 +256,72 @@ class HungerGames:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             Server.BroadcastFrom(sysname, str(leng) + "/" + str(maxp) + " are waiting.")
             Server.BroadcastFrom(sysname, green + "Type /hungergames for the commands, and join!")
-        #Todo: Handle other parts
+        else:
+            Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+            Server.BroadcastFrom(sysname, green + "HungerGames is starting in 60 seconds!")
+            ini = self.HungerGames()
+            enum = ini.EnumSection("DoorLocations")
+            self.objects = UnityEngine.Object.FindObjectsOfType(self.bd)
+            for door in enum:
+                l = ini.GetSetting("DoorLocations", door).split(',')
+                loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                self.FindDoor(loc)
+            #Todo Handle loot chests
+            Plugin.CreateTimer("StartingIn", 60000)
+
+
+    def StartingInCallback(self):
+        Plugin.Killtimer("StartingIn")
+        Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
+        for door in doors:
+            ent = Entity(door)
+            ent.Destroy()
 
     def EndGame(self, Player):
-        #todo blabla
+        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+        Server.BroadcastFrom(sysname, green + Player.Name + " won the match! Congratulations!")
+        self.RemovePlayerDirectly(Player)
+        self.HasStarted = False
+        self.IsActive = False
+        ini = self.DefaultItems()
+        enum = ini.EnumSection("Rewards")
+        for item in enum:
+            c = int(ini.GetSetting("Rewards", item))
+            Player.Inventory.AddItem(item, c)
+        Player.MessageFrom(sysname, red + "You received your rewards!")
+
+    def On_PlayerHurt(self, HurtEvent):
+        if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
+            if (HurtEvent.Victim in Players and HurtEvent.Attacker not in Players) or (HurtEvent.Victim not in Players and HurtEvent.Attacker in Players):
+                HurtEvent.DamageAmount = float(0)
+
+    def On_PlayerKilled(self, DeathEvent):
+        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
+            if DeathEvent.Victim in Players and self.HasStarted:
+                Players.remove(DeathEvent.Victim)
+                leng = len(Players)
+                if leng > 1:
+                    Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. " + green + str(leng) + red + " Players are still alive.")
+                else:
+                    Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
+                    self.EndGame(Players[0])
+
+    def On_PlayerDisconnected(self, Player):
+        if Player in Players:
+            Players.remove(Player)
+            leng = len(Players)
+            if leng > 1:
+                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. " + green + str(leng) + red + " Players are still alive.")
+            else:
+                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
+                self.EndGame(Players[0])
+
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        if DataStore.ContainsKey("HLastLoc", Player.SteamID):
+            l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
+            loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+            Player.SafeTeleportTo(loc)
+            DataStore.Remove("HLastLoc", Player.SteamID)
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
