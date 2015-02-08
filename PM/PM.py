@@ -76,15 +76,11 @@ class PM:
 
     def On_Command(self, Player, cmd, args):
         if cmd == "pm":
-            if len(args) == 0:
+            if len(args) <= 1:
                 Player.MessageFrom('Give', 'Usage: /pm "PlayerName" "message"')
                 Player.MessageFrom('Give', 'Quote signs (") are required.')
                 return
             array = self.GetQuoted(args)
-            if len(array) <= 1:
-                Player.MessageFrom('Give', 'Usage: /pm "PlayerName" "message"')
-                Player.MessageFrom('Give', 'Quote signs (") are required.')
-                return
             playerr = self.CheckV(Player, array[0])
             if playerr is None:
                 return
