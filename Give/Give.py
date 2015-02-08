@@ -17,6 +17,16 @@ class Give:
             return True
         return False
 
+    def GetQuoted(self, array):
+        text = str.join(" ", array)
+        groups = text.split('"')
+        n = len(groups)
+        list = []
+        for x in xrange(0, n):
+            if x % 2 != 0:
+                list.append(groups[x])
+        return list
+
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
@@ -69,22 +79,17 @@ class Give:
     def On_Command(self, Player, cmd, args):
         if cmd == "give":
             if Player.Admin or self.isMod(Player.SteamID):
-                if len(args) == 0:
+                if len(args) <= 2:
                     Player.MessageFrom('Give', 'Usage: /give "PlayerName" "ItemName" "Amount"')
                     Player.MessageFrom('Give', 'Quote signs (") are required.')
                     return
-                text = str.join(" ", args)
-                n = ['"'.join(text[i:i+2]).replace('"', '').strip(' ') for i in range(0, len(text), 2)]
-                if n[0] and n[1] and n[2]:
-                    playerr = self.CheckV(Player, n[0])
-                    if playerr is None:
-                        return
-                    if not n[2].isdigit():
-                        Player.MessageFrom('Give', 'You must specify a quantity...')
-                        return
-                    inventory = Player.Inventory
-                    inventory.AddItem(n[1], int(n[2]))
-                    Player.MessageFrom('Give', 'Given ' + str(n[2]) + " of " + str(n[1]) + " to " + playerr.Name)
-                else:
-                    Player.MessageFrom('Give', 'Usage: /give "PlayerName" "ItemName" "Amount"')
-                    Player.MessageFrom('Give', 'Quote signs (") are required.')
+                array = self.GetQuoted(args)
+                playerr = self.CheckV(Player, array[0])
+                if playerr is None:
+                    return
+                if not array[2].isdigit():
+                    Player.MessageFrom('Give', 'You must specify a quantity...')
+                    return
+                inventory = Player.Inventory
+                inventory.AddItem(array[1], int(array[2]))
+                Player.MessageFrom('Give', 'Given ' + str(array[2]) + " of " + str(array[1]) + " to " + playerr.Name)
