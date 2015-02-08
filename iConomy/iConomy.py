@@ -75,6 +75,16 @@ class iConomy:
             ini.Save()
         return Plugin.GetIni("iConomy")
 
+    def GetQuoted(self, array):
+        text = str.join(" ", array)
+        groups = text.split('"')
+        n = len(groups)
+        list = []
+        for x in xrange(0, n):
+            if x % 2 != 0:
+                list.append(str(groups[x]))
+        return list
+
     def Shop(self):
         return Plugin.GetIni("Shop")
 
@@ -240,12 +250,12 @@ class iConomy:
         else:
             Player.MessageFrom(self.__Sys__, "That category does not exist!")
 
-    def BuyItem(self, Player, args):
+    def BuyItem(self, Player, Item, Quantity):
         shop = self.Shop()
         Money = self.GetMoney(Player.SteamID)
-        item = self.Item(args)
+        item = self.Item(Item)
         price = shop.GetSetting("BuyPrices", item)
-        qty = int(args[len(args) - 1])
+        qty = int(Quantity)
         if bool(shop.GetSetting("Settings", "Buy")):
             if price:
                 pricesum = int(price) * qty
@@ -261,11 +271,11 @@ class iConomy:
         else:
             Player.MessageFrom(self.__Sys__, "Sorry, buying has been disabled.")
 
-    def SellItem(self, Player, args):
+    def SellItem(self, Player, Item, Quantity):
         shop = self.Shop()
-        item = self.Item(args)
+        item = self.Item(Item)
         price = shop.GetSetting("SellPrices", item)
-        qty = int(args[len(args) - 1])
+        qty = int(Quantity)
         if bool(shop.GetSetting("Settings", "Sell")):
             if price and int(price) > 0:
                 salesum = int(price) * qty
@@ -281,13 +291,9 @@ class iConomy:
         else:
            Player.MessageFrom(self.__Sys__, "Sorry, selling has been disabled.")
 
-    def Item(self, args):
+    def Item(self, i):
         shop = self.Shop()
-        item = ""
-        for i in xrange(0, len(args) - 1):
-            item += args[i] + " "
-        item = Data.Substring(item, 0, len(item) - 1).lower()
-        newItem = shop.GetSetting("ItemNames", item)
+        newItem = shop.GetSetting("ItemNames", i)
         return newItem
 
     def On_Command(self, Player, cmd, args):
@@ -365,14 +371,26 @@ class iConomy:
             Player.MessageFrom(self.__Sys__, "Economy Commands: /money, /buy [Item] [Quantity], /sell [Item] [Quantity], /price")
         elif cmd == "buy":
             if len(args) == 2:
-                self.BuyItem(Player, args)
+                leng = len(args)
+                array = self.GetQuoted(args)
+                if not '"' in args[leng - 1]:
+                    Player.MessageFrom(self.__Sys__, 'Try: /buy "Item" "Quantity"')
+                    Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
+                    return
+                self.BuyItem(Player, array[0], array[1])
             else:
-                Player.Message("Try: /buy [Item] [Quantity]")
+                Player.MessageFrom(self.__Sys__, 'Try: /buy "Item" "Quantity"')
+                Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
         elif cmd == "sell":
             if len(args) == 2:
-                self.SellItem(Player, args)
+                leng = len(args)
+                array = self.GetQuoted(args)
+                if not '"' in args[leng - 1]:
+                    Player.MessageFrom(self.__Sys__, 'Try: /sell "Item" "Quantity"')
+                    return
+                self.SellItem(Player, array[0], array[1])
             else:
-                Player.Message("Try: /sell [Item] [Quantity]")
+                Player.MessageFrom(self.__Sys__, 'Try: /sell "Item" "Quantity"')
         elif cmd == "price":
             if len(args) == 1:
                 self.GetPrices(Player, args[0])
