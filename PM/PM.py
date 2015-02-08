@@ -12,6 +12,8 @@ import Fougerite
 
 green = "[color #009900]"
 white = "[color #FFFFFF]"
+teal = "[color #00FFFF]"
+red = "[color #FF0000]"
 
 class PM:
 
@@ -24,6 +26,13 @@ class PM:
             if x % 2 != 0:
                 list.append(groups[x])
         return list
+
+    def FindPlayerById(self, id):
+        try:
+            p = Server.FindPlayer(id)
+            return p
+        except:
+            return None
     
     """
         CheckV method based on Spock's method.
@@ -80,9 +89,35 @@ class PM:
                 Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
                 Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
+            if '"' not in args:
+                Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
+                Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
+                return
             array = self.GetQuoted(args)
             playerr = self.CheckV(Player, array[0])
             if playerr is None:
                 return
-            playerr.MessageFrom("PrivateMessage", green + Player.Name + white + "says: " + array[1])
-            Player.MessageFrom("PrivateMessage", "You Told" + array[1] + " to -> " + green + playerr.Name)
+            playerr.MessageFrom("PrivateMessage", green + Player.Name + white + " says: " + teal + array[1])
+            Player.MessageFrom("PrivateMessage", "You Told: " + teal + array[1] + white + " to -> " + green + playerr.Name)
+            DataStore.Add("PmSys", Player.SteamID, playerr.SteamID)
+            DataStore.Add("PmSys", playerr.SteamID, Player.SteamID)
+        elif cmd == "r":
+            if len(args) == 0:
+                Player.MessageFrom('PrivateMessage', 'Usage: /r message')
+                return
+            if not DataStore.ContainsKey("PmSys", Player.SteamID):
+                Player.MessageFrom('PrivateMessage', 'You have to send a Private Message first via /pm')
+                return
+            id = DataStore.Get("PmSys", Player.SteamID)
+            text = str.join(" ", args)
+            playerr = self.FindPlayerById(id)
+            if playerr is None:
+                DataStore.Remove("PmSys", Player.SteamID)
+                Player.MessageFrom('PrivateMessage', red + "Player must be offline. Removing from /r")
+                return
+            playerr.MessageFrom("PrivateMessage", green + Player.Name + white + " says: " + teal + text)
+            Player.MessageFrom("PrivateMessage", "You Told: " + teal + text + white + " to -> " + green + playerr.Name)
+
+    def On_PlayerDisconnected(self, Player):
+        id = Player.SteamID
+        DataStore.Remove("PmSys", id)
