@@ -43,7 +43,7 @@ class PM:
             return None
 
     def CheckV(self, Player, args):
-        systemname = "Give"
+        systemname = "PM"
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.join(" ", args))
