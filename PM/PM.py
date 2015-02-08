@@ -14,7 +14,6 @@ green = "[color #009900]"
 white = "[color #FFFFFF]"
 teal = "[color #00FFFF]"
 red = "[color #FF0000]"
-
 class PM:
 
     def GetQuoted(self, array):
@@ -24,7 +23,7 @@ class PM:
         list = []
         for x in xrange(0, n):
             if x % 2 != 0:
-                list.append(groups[x])
+                list.append(str(groups[x]))
         return list
 
     def FindPlayerById(self, id):
@@ -89,7 +88,8 @@ class PM:
                 Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
                 Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
-            if '"' not in args:
+            leng = len(args)
+            if not '"' in args[leng - 1]:
                 Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
                 Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
@@ -97,8 +97,8 @@ class PM:
             playerr = self.CheckV(Player, array[0])
             if playerr is None:
                 return
-            playerr.MessageFrom("PrivateMessage", green + Player.Name + white + " says: " + teal + array[1])
-            Player.MessageFrom("PrivateMessage", "You Told: " + teal + array[1] + white + " to -> " + green + playerr.Name)
+            playerr.MessageFrom("PrivateMessage", green + "(" + Player.Name + " -> You):  " + teal + array[1])
+            Player.MessageFrom("PrivateMessage", green + "(You -> " + playerr.Name + "):  " + teal + array[1])
             DataStore.Add("PmSys", Player.SteamID, playerr.SteamID)
             DataStore.Add("PmSys", playerr.SteamID, Player.SteamID)
         elif cmd == "r":
@@ -115,8 +115,8 @@ class PM:
                 DataStore.Remove("PmSys", Player.SteamID)
                 Player.MessageFrom('PrivateMessage', red + "Player must be offline. Removing from /r")
                 return
-            playerr.MessageFrom("PrivateMessage", green + Player.Name + white + " says: " + teal + text)
-            Player.MessageFrom("PrivateMessage", "You Told: " + teal + text + white + " to -> " + green + playerr.Name)
+            playerr.MessageFrom("PrivateMessage", green + "(" + Player.Name + " -> You):  " + teal + text)
+            Player.MessageFrom("PrivateMessage", green + "(You -> " + playerr.Name + "):  " + teal + text)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
