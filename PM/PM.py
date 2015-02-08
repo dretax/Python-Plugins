@@ -43,7 +43,7 @@ class PM:
             return None
 
     def CheckV(self, Player, args):
-        systemname = "PM"
+        systemname = "PrivateMessage"
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.join(" ", args))
@@ -77,8 +77,8 @@ class PM:
     def On_Command(self, Player, cmd, args):
         if cmd == "pm":
             if len(args) <= 1:
-                Player.MessageFrom('Give', 'Usage: /pm "PlayerName" "message"')
-                Player.MessageFrom('Give', 'Quote signs (") are required.')
+                Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
+                Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
             array = self.GetQuoted(args)
             playerr = self.CheckV(Player, array[0])
