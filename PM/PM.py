@@ -16,6 +16,10 @@ teal = "[color #00FFFF]"
 red = "[color #FF0000]"
 class PM:
 
+    def On_PluginInit(self):
+        DataStore.Flush("PmSys")
+        Util.ConsoleLog("PM by " + __author__ + " Version: " + __version__ + " loaded.", False)
+
     def GetQuoted(self, array):
         text = str.join(" ", array)
         groups = text.split('"')
