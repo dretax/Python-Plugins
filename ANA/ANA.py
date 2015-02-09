@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -27,6 +27,7 @@ class ANA:
             ini = Plugin.CreateIni("ANA")
             ini.AddSetting("Settings", "DontRenameAdmins", "1")
             ini.AddSetting("Settings", "DontRenameMods", "1")
+            ini.AddSetting("Settings", "NameLength", "17")
             ini.AddSetting("Restrict", "1", "DerpTeamNoob")
             ini.AddSetting("Restrict", "2", "Changeme")
             ini.Save()
@@ -62,6 +63,7 @@ class ANA:
         ini = self.ANA()
         a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
         m = int(ini.GetSetting("Settings", "DontRenameMods"))
+        maxl = int(ini.GetSetting("Settings", "NameLength"))
         if Player.Admin and a == 1:
             return
         if self.isMod(id) and m == 1:
@@ -82,6 +84,8 @@ class ANA:
         if not a:
             name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
         n = len(name)
+        if n > maxl:
+            n = 1
         enum = ini.EnumSection("Restrict")
         for checkn in enum:
             get = ini.GetSetting("Restrict", checkn)
