@@ -10,14 +10,18 @@ import re
     Class
 """
 
+path = Util.GetRootFolder() + "\\Save\\PyPlugins"
 class DeathMSG:
     """
         Methods
     """
     red = "[color #FF0000]"
     green = "[color #009900]"
+    bannedpeople = False
 
     def On_PluginInit(self):
+        if Plugin.GetPlugin("BannedPeople") is not None:
+            self.bannedpeople = True
         Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def On_Command(self, Player, cmd, args):
@@ -266,6 +270,9 @@ class DeathMSG:
         return Plugin.GetIni("DeathMSGConfig")
 
     def DMB(self):
+        if self.bannedpeople:
+            ini = Plugin.GetIni(path + "BannedPeople")
+            return ini
         return Plugin.GetIni("BannedPeopleDM")
 
     def GetPlayerUnBannedIP(self, name):
