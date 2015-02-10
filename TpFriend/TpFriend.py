@@ -210,7 +210,7 @@ class TpFriend:
                         oy = float(DataStore.Get("tpfriendy", id))
                         Server.Broadcast("Test: " + str(oy) + " | " + str(y) + " | " + str(oy-y))
                         if oy - y > 3.65:
-                            Server.BroadcastFrom("TpFriend", PlayerFrom.Name + " tried to fall through a house via tpa. Kicked.")
+                            Server.BroadcastFrom("TpFriend", PlayerFrom.Name + red + " tried to fall through a house via tpa. Kicked.")
                             PlayerFrom.TeleportTo(PlayerTo.Location)
                             PlayerFrom.Disconnect()
                         DataStore.Remove("tpfriendy", id)
