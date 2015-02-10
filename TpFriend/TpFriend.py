@@ -208,7 +208,6 @@ class TpFriend:
                     elif callback == 5:
                         y = float(PlayerFrom.Y)
                         oy = float(DataStore.Get("tpfriendy", id))
-                        Server.Broadcast("Test: " + str(oy) + " | " + str(y) + " | " + str(oy-y))
                         if oy - y > 3.65:
                             Server.BroadcastFrom("TpFriend", PlayerFrom.Name + red + " tried to fall through a house via tpa. Kicked.")
                             PlayerFrom.TeleportTo(PlayerTo.Location)
