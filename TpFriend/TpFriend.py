@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5'
+__version__ = '3.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -201,9 +201,22 @@ class TpFriend:
                             continue
                         PlayerFrom.TeleportTo(PlayerTo.Location)
                         PlayerFrom.MessageFrom(sys, "You have been teleported to your friend again.")
-                        self.addJob(4, id, params[1], 4)
+                        DataStore.Add("tpfriendy", id, str(PlayerTo.Y))
+                        self.addJob(2, id, params[1], 5)
                     elif callback == 4:
                         DataStore.Add("tpfriendautoban", id, "none")
+                    elif callback == 5:
+                        y = float(PlayerFrom.Y)
+                        oy = float(DataStore.Get("tpfriendy", id))
+                        Server.Broadcast("Test: " + str(oy) + " | " + str(y) + " | " + str(oy-y))
+                        if oy - y > 3.65:
+                            Server.BroadcastFrom("TpFriend", PlayerFrom.Name + " tried to fall through a house via tpa. Kicked.")
+                            PlayerFrom.TeleportTo(PlayerTo.Location)
+                            PlayerFrom.Disconnect()
+                        DataStore.Remove("tpfriendy", id)
+                        self.addJob(2, id, params[1], 4)
+
+
         else:
             self.stopTimer()
 
@@ -227,7 +240,7 @@ class TpFriend:
                 config = self.TpFriendConfig()
                 systemname = config.GetSetting("Settings", "sysname")
                 Player.MessageFrom(systemname, "Teleport Usage:")
-                Player.MessageFrom(systemname, "TpFriend V3.0 by DreTaX")
+                Player.MessageFrom(systemname, "TpFriend V3.6 by DreTaX")
                 Player.MessageFrom(systemname, "\"/tpa [PlayerName]\" to request a teleport.")
                 Player.MessageFrom(systemname, "\"/tpaccept\" to accept a requested teleport.")
                 Player.MessageFrom(systemname, "\"/tpdeny\" to deny a request.")
@@ -311,6 +324,7 @@ class TpFriend:
 
                     else:
                         DataStore.Add("tpfriendautoban", idt, "using")
+                        DataStore.Add("tpfriendy", idt, str(Player.Y))
                         playerfromm.TeleportTo(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
