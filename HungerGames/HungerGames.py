@@ -3,9 +3,20 @@ __version__ = '1.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
+clr.AddReferenceByPartialName("UnityEngine")
+import UnityEngine
+from UnityEngine import *
 import Fougerite
 from Fougerite import Entity
 import re
+import sys
+path = Util.GetRootFolder()
+sys.path.append(path + "\\Save\\Lib\\")
+Lib = True
+try:
+    import random
+except ImportError:
+    Lib = False
 
 """
     Class
@@ -14,6 +25,8 @@ import re
 Players = []
 #Doors
 doors = []
+#Chests
+loot = []
 #Colors
 blue = "[color #0099FF]"
 red = "[color #FF0000]"
@@ -29,13 +42,20 @@ class HungerGames:
     IsActive = False
     HasStarted = False
     bd = None
+    dp = None
     objects = None
+    chests = None
 
     def On_PluginInit(self):
         self.bd = Util.TryFindReturnType("BasicDoor")
         if self.bd is None:
             Plugin.Log("Error", "Couldn't find return type.")
+        self.dp = Util.TryFindReturnType("DeployableObject")
+        if self.dp is None:
+            Plugin.Log("Error", "Couldn't find return type2.")
         Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
+        if not Lib:
+            Plugin.Log("Error", "Download IronPython Extralibs to run the plugin.")
 
     """
         Main Methods
@@ -55,6 +75,11 @@ class HungerGames:
             ini.AddSetting("DefaultItems", "Bandage", "2")
             ini.AddSetting("Rewards", "M4", "4")
             ini.AddSetting("Rewards", "Large Medkit", "20")
+            ini.AddSetting("Random", "Items", "4")
+            ini.AddSetting("Random", "Count", "20")
+            ini.AddSetting("RandomItems", "1", "Stone Hatchet")
+            ini.AddSetting("RandomItems", "2", "Pick Axe")
+            ini.AddSetting("RandomItems", "3", "")
             ini.Save()
         return Plugin.GetIni("DefaultItems")
 
@@ -233,6 +258,8 @@ class HungerGames:
                                 self.EndGame(Players[0])
                         #todo check the prizes later.
 
+
+
     def RemovePlayerDirectly(self, Player):
         Players.remove(Player)
         l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
@@ -244,7 +271,15 @@ class HungerGames:
         for door in self.objects:
             Distance = Util.GetVectorsDistance(location, door.transform.position)
             if Distance < 1.5:
-                doors.append(door)
+                doors.append(Entity(door))
+                return
+        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
+
+    def FindChest(self, location):
+        for chest in self.chests:
+            Distance = Util.GetVectorsDistance(location, chest.transform.position)
+            if Distance < 1:
+                loot.append(Entity(chest))
                 return
         Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
 
@@ -258,16 +293,40 @@ class HungerGames:
             Server.BroadcastFrom(sysname, green + "Type /hungergames for the commands, and join!")
         else:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
-            Server.BroadcastFrom(sysname, green + "HungerGames is starting in 60 seconds!")
+            Server.BroadcastFrom(sysname, green + "Loading.........")
             ini = self.HungerGames()
             enum = ini.EnumSection("DoorLocations")
+            enum2 = ini.EnumSection("ChestLocations")
             self.objects = UnityEngine.Object.FindObjectsOfType(self.bd)
+            self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
             for door in enum:
                 l = ini.GetSetting("DoorLocations", door).split(',')
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 self.FindDoor(loc)
-            #Todo Handle loot chests
+            Server.BroadcastFrom(sysname, green + "Loaded 50%")
+            for chest in enum2:
+                l = ini.GetSetting("ChestLocations", chest).split(',')
+                loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                self.FindChest(loc)
+            Server.BroadcastFrom(sysname, green + "Loaded 75%")
+            for chest in loot:
+                inv = chest.Inventory
+                if inv is None:
+                    continue
+                inv.ClearAll()
+                if chest.Name == "Wood Box":
+                    slot = random.randint(1, 11)
+                else:
+                    slot = random.randint(1, 35)
+                item = int(ini.GetSetting("Random", "Items"))
+                count = int(ini.GetSetting("Random", "Count"))
+                itemr = random.randint(1, item)
+                countr = random.randint(1, count)
+                gitem = ini.GetSetting("RandomItems", itemr)
+                inv.AddItemTo(gitem, slot, countr)
+            Server.BroadcastFrom(sysname, green + "Loaded 100%!")
             Plugin.CreateTimer("StartingIn", 60000)
+            Server.BroadcastFrom(sysname, green + "HungerGames is starting in 60 seconds!")
 
 
     def StartingInCallback(self):
