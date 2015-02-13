@@ -20,7 +20,9 @@ class DeathMSG:
     bannedpeople = False
 
     def On_PluginInit(self):
-        if Plugin.GetPlugin("BannedPeople") is not None:
+        config = self.DeathMSGConfig()
+        v = int(config.GetSetting("Settings", "usebannedpeoplebanlist"))
+        if Plugin.GetPlugin("BannedPeople") is not None and v == 1:
             self.bannedpeople = True
         Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
 
@@ -96,6 +98,9 @@ class DeathMSG:
                 Server.BroadcastFrom(deathmsgname, n)
                 autoban = int(config.GetSetting("Settings", "autoban"))
                 if autoban == 1:
+                    if self.RangeOf(weapon) is None:
+                        Plugin.Log("Report This to DreTaX", "Null Weapon: " + weapon)
+                        return
                     if distance > self.RangeOf(weapon) > 0:
                         tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                         hometeleport = DataStore.Get("homesystemautoban", id)
@@ -134,6 +139,9 @@ class DeathMSG:
                     Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
+                        if self.RangeOf(weapon) is None:
+                            Plugin.Log("Report This to DreTaX", "Null Weapon: " + weapon)
+                            return
                         if distance > self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
@@ -218,10 +226,10 @@ class DeathMSG:
         config = self.DeathMSGConfig()
         deathmsgname = config.GetSetting("Settings", "deathmsgname")
         ip = Player.IP
-        if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip) == 1:
+        if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip) == "1":
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
-        elif ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id) == 1:
+        elif ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id) == "1":
             Player.MessageFrom(deathmsgname, "You are banned from this server")
             Player.Disconnect()
 
@@ -298,6 +306,8 @@ class DeathMSG:
     def RangeOf(self, weapon):
         ini = Plugin.GetIni("range")
         range = ini.GetSetting("range", weapon)
+        if range is None:
+            return None
         return int(range)
 
     def Replace(self, s):
