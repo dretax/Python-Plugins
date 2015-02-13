@@ -111,7 +111,7 @@ class JZap:
             ini = self.Players()
             name = ini.GetSetting('List', he.Entity.OwnerID)
             if name is None:
-                return
+                name = "UnKnown"
             if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
                 DataStore.Add(JZapDB, 'Target', he.Entity.OwnerID)
                 he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + str(name) + noem + ' (' + he.Entity.OwnerID + ').')
