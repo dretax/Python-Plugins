@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5'
+__version__ = '3.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -85,7 +85,7 @@ class HomeSystem3:
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        V4.1
     """
 
     def GetPlayerName(self, namee):
@@ -117,7 +117,7 @@ class HomeSystem3:
             p = self.GetPlayerName(nargs)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
+            for pl in Server.Players:
                 if nargs in pl.Name.lower():
                     p = pl
                     count += 1
