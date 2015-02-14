@@ -276,7 +276,7 @@ class DeathMSG:
 
     def DMB(self):
         if self.bannedpeople:
-            ini = Plugin.GetIni(path + "BannedPeople")
+            ini = Plugin.GetIni(path + "BannedPeople\\BannedPeople")
             return ini
         return Plugin.GetIni("BannedPeopleDM")
 
