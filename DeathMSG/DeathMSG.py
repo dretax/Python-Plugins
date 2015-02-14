@@ -10,7 +10,7 @@ import re
     Class
 """
 
-path = Util.GetRootFolder() + "\\Save\\PyPlugins"
+path = Util.GetRootFolder() + "\\Save\\PyPlugins\\"
 class DeathMSG:
     """
         Methods
