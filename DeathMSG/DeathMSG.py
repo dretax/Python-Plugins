@@ -139,9 +139,6 @@ class DeathMSG:
                     Server.BroadcastFrom(deathmsgname, hn)
                     autoban = int(config.GetSetting("Settings", "autoban"))
                     if autoban == 1:
-                        if self.RangeOf(weapon) is None:
-                            Plugin.Log("Report This to DreTaX", "Null Weapon: " + weapon)
-                            return
                         if distance > self.RangeOf(weapon) > 0:
                             tpfriendteleport = DataStore.Get("tpfriendautoban", id)
                             hometeleport = DataStore.Get("homesystemautoban", id)
