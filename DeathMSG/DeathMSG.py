@@ -1,16 +1,21 @@
 __author__ = 'DreTaX'
-__version__ = '3.5'
+__version__ = '3.5.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
+import sys
 
 """
     Class
 """
-
-path = Util.GetRootFolder() + "\\Save\\PyPlugins\\"
+try:
+    path = Util.GetRootFolder() + "\\Save\\PyPlugins\\BannedPeople"
+    sys.path.append(path)
+    import BannedPeople
+except:
+    pass
 class DeathMSG:
     """
         Methods
@@ -18,18 +23,24 @@ class DeathMSG:
     red = "[color #FF0000]"
     green = "[color #009900]"
     bannedpeople = False
+    method = None
 
     def On_PluginInit(self):
         config = self.DeathMSGConfig()
         v = int(config.GetSetting("Settings", "usebannedpeoplebanlist"))
         if Plugin.GetPlugin("BannedPeople") is not None and v == 1:
+            methodname = "BannedPeopleIni"
+            pl = Plugin.GetPlugin("BannedPeople")
+            ClassName = BannedPeople.BannedPeople()
+            setattr(BannedPeople, "Plugin", pl)
+            self.method = getattr(ClassName, methodname)
             self.bannedpeople = True
         Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def On_Command(self, Player, cmd, args):
         if cmd == "uautoban":
             if len(args) == 0:
-                Player.Message("---DeathMSG 3.5---")
+                Player.Message("---DeathMSG 3.5.1---")
                 Player.Message("/uautoban name - Unbans player")
             else:
                 config = self.DeathMSGConfig()
@@ -276,7 +287,7 @@ class DeathMSG:
 
     def DMB(self):
         if self.bannedpeople:
-            ini = Plugin.GetIni(path + "BannedPeople\\BannedPeople")
+            ini = self.method()
             return ini
         return Plugin.GetIni("BannedPeopleDM")
 
