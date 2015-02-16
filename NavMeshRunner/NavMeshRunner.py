@@ -7,13 +7,14 @@ import Fougerite
 import UnityEngine
 from UnityEngine import *
 
-
 class NavMeshRunner:
 
     char = None
+    dmg = None
 
     def On_PluginInit(self):
         self.char = Util.TryFindReturnType("Character")
+        self.dmg = Util.TryFindReturnType("DamageEvent")
         Plugin.CreateTimer("KillThem", 120000).Start()
 
     def isMod(self, id):
@@ -30,8 +31,9 @@ class NavMeshRunner:
         for agent in navmeshes:
             if str(agent.pathStatus) in "PathInvalid":
                 char = agent.GetComponent[self.char]()
-                #char.takeDamage.health = 0
+                char.takeDamage.health = 0
                 char.Signal_ServerCharacterDeath()
+                char.SendMessage("OnKilled", self.dmg(), SendMessageOptions.DontRequireReceiver)
                 number += 1
         return number
 
