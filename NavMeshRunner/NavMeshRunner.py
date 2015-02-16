@@ -30,7 +30,8 @@ class NavMeshRunner:
         for agent in navmeshes:
             if str(agent.pathStatus) in "PathInvalid":
                 char = agent.GetComponent[self.char]()
-                char.takeDamage.health = 0
+                #char.takeDamage.health = 0
+                char.Signal_ServerCharacterDeath()
                 number += 1
         return number
 
