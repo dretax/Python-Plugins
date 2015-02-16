@@ -33,7 +33,10 @@ class NavMeshRunner:
                 char = agent.GetComponent[self.char]()
                 char.takeDamage.health = 0
                 char.Signal_ServerCharacterDeath()
-                char.SendMessage("OnKilled", self.dmg(), SendMessageOptions.DontRequireReceiver)
+                try:
+                    char.SendMessage("OnKilled", self.dmg(), SendMessageOptions.DontRequireReceiver)
+                except:
+                    pass
                 number += 1
         return number
 
