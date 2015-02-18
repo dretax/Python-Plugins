@@ -23,6 +23,25 @@ DStable = 'BZjobs'
 red = "[color #FF0000]"
 class HomeSystem:
 
+    sendhome = None
+    ecooldown = None
+    jointpdelay = None
+    cooldown = None
+    homesystemname = None
+
+    def On_PluginInit(self):
+        DataStore.Flush("BZjobs")
+        DataStore.Flush("home_joincooldown")
+        DataStore.Flush("homesystemautoban")
+        DataStore.Flush("home_cooldown")
+        config = self.HomeConfig()
+        self.sendhome = int(config.GetSetting("Settings", "SendPlayertoHomeorRandom"))
+        self.ecooldown = int(config.GetSetting("Settings", "EJoinCooldown"))
+        self.jointpdelay = int(config.GetSetting("Settings", "jointpdelay"))
+        self.cooldown = int(config.GetSetting("Settings", "rejoincd"))
+        self.homesystemname = config.GetSetting("Settings", "homesystemname")
+        Util.ConsoleLog(self.HomeJobs['Name'] + " v" + self.HomeJobs['Version'] + " by " + self.HomeJobs['Author'] + " loaded.", True)
+
     """
         Functions
     """
@@ -172,7 +191,6 @@ class HomeSystem:
             return None
 
     def CheckV(self, Player, args):
-        systemname = "HomeSystem"
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.join(" ", args))
@@ -195,12 +213,12 @@ class HomeSystem:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
+            Player.MessageFrom(self.homesystemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(self.homesystemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     """
@@ -258,20 +276,11 @@ class HomeSystem:
         Events
     """
 
-    def On_PluginInit(self):
-        DataStore.Flush("BZjobs")
-        DataStore.Flush("home_joincooldown")
-        DataStore.Flush("homesystemautoban")
-        DataStore.Flush("home_cooldown")
-        Util.ConsoleLog(self.HomeJobs['Name'] + " v" + self.HomeJobs['Version'] + " by " + self.HomeJobs['Author'] + " loaded.", True)
-
-
     def JobTimerCallback(self):
-        epoch = int(Plugin.GetTimestamp())
         if DataStore.Count(DStable) >= 1:
+            epoch = int(Plugin.GetTimestamp())
             pending = DataStore.Keys(DStable)
             config = self.HomeConfig()
-            homesystemname = config.GetSetting("Settings", "homesystemname")
             for id in pending:
                 if DataStore.Get(DStable, id) is None:
                     DataStore.Remove(DStable, id)
@@ -292,7 +301,7 @@ class HomeSystem:
                     # Join Callback, this should handle the delay
                     if callback == 1:
                         player.SafeTeleportTo(loc)
-                        player.MessageFrom(homesystemname, "You have been teleported to your home")
+                        player.MessageFrom(self.homesystemname, "You have been teleported to your home")
                     # Home Teleport Callback
                     elif callback == 2:
                         movec = int(config.GetSetting("Settings", "movecheck"))
@@ -301,22 +310,22 @@ class HomeSystem:
                             before = Util.CreateVector(float(before[0]), float(before[1]), float(before[2]))
                             dist = Util.GetVectorsDistance(before, player.Location)
                             if dist > 1.0:
-                                player.MessageFrom(homesystemname, "You were moving!")
+                                player.MessageFrom(self.homesystemname, "You were moving!")
                                 DataStore.Add("home_cooldown", id, 7)
                             else:
                                 player.SafeTeleportTo(loc)
-                                player.MessageFrom(homesystemname, "You have been teleported home.")
+                                player.MessageFrom(self.homesystemname, "You have been teleported home.")
                                 DataStore.Add("homey", id, player.Y)
                                 #BZHJ.addJob('mytestt', checkn, jobxData.params);
                         else:
                             player.SafeTeleportTo(loc)
-                            player.MessageFrom(homesystemname, "You have been teleported home.")
+                            player.MessageFrom(self.homesystemname, "You have been teleported home.")
                     # Random Teleportation Delay
                     elif callback == 3:
                         player.SafeTeleportTo(loc)
-                        player.MessageFrom(homesystemname, "You have been teleported to a random location!")
-                        player.MessageFrom(homesystemname, "Type /setdefaulthome HOMENAME")
-                        player.MessageFrom(homesystemname, "To spawn at your home!")
+                        player.MessageFrom(self.homesystemname, "You have been teleported to a random location!")
+                        player.MessageFrom(self.homesystemname, "Type /setdefaulthome HOMENAME")
+                        player.MessageFrom(self.homesystemname, "To spawn at your home!")
                     # Remove teleport usage check.
                     elif callback == 4:
                         DataStore.Add("homesystemautoban", id, "none")
@@ -333,10 +342,10 @@ class HomeSystem:
                             randomloc = ini.GetSetting("DefaultLoc", str(r))
                             tp = self.Replace(randomloc)
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                            Server.BroadcastFrom(homesystemname, player.Name + red + " tried to fall through a house. Kicked.")
+                            Server.BroadcastFrom(self.homesystemname, player.Name + red + " tried to fall through a house. Kicked.")
                             player.TeleportTo(home)
                             player.Disconnect()
-                            return
+                            continue
                         DataStore.Remove("homey", id)
                     # Handles those players who joined after X seconds. Dizzy hack bypasser.
                     elif callback == 5:
@@ -357,32 +366,33 @@ class HomeSystem:
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                             w = 3
                         self.addJob(id, 2, home, w)
+        else:
+            self.clearTimers()
 
     def On_Command(self, Player, cmd, args):
         config = self.HomeConfig()
-        homesystemname = config.GetSetting("Settings", "homesystemname")
         id = Player.SteamID
         plloc = Player.Location
         if cmd == "cleartimers":
             if Player.Admin:
                 self.clearTimers()
-                Player.MessageFrom(homesystemname, "All timers killed.")
+                Player.MessageFrom(self.homesystemname, "All timers killed.")
         elif cmd == "home":
             if len(args) != 1:
-                Player.MessageFrom(homesystemname, "---HomeSystem---")
-                Player.MessageFrom(homesystemname, "/home name - Teleport to Home")
-                Player.MessageFrom(homesystemname, "/sethome name - Save Home")
-                Player.MessageFrom(homesystemname, "/delhome name - Delete Home")
-                Player.MessageFrom(homesystemname, "/setdefaulthome name - Default Spawn Point")
-                Player.MessageFrom(homesystemname, "/homes - List Homes")
-                Player.MessageFrom(homesystemname, "/addfriendh name - Adds Player To Distance Whitelist")
-                Player.MessageFrom(homesystemname, "/delfriendh name - Removes Player From Distance Whitelist")
-                Player.MessageFrom(homesystemname, "/listwlh - List Players On Distance Whitelist")
+                Player.MessageFrom(self.homesystemname, "---HomeSystem---")
+                Player.MessageFrom(self.homesystemname, "/home name - Teleport to Home")
+                Player.MessageFrom(self.homesystemname, "/sethome name - Save Home")
+                Player.MessageFrom(self.homesystemname, "/delhome name - Delete Home")
+                Player.MessageFrom(self.homesystemname, "/setdefaulthome name - Default Spawn Point")
+                Player.MessageFrom(self.homesystemname, "/homes - List Homes")
+                Player.MessageFrom(self.homesystemname, "/addfriendh name - Adds Player To Distance Whitelist")
+                Player.MessageFrom(self.homesystemname, "/delfriendh name - Removes Player From Distance Whitelist")
+                Player.MessageFrom(self.homesystemname, "/listwlh - List Players On Distance Whitelist")
             else:
                 home = str(args[0])
                 check = self.HomeOf(Player, home)
                 if check is None:
-                    Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
+                    Player.MessageFrom(self.homesystemname, "You don't have a home called: " + home)
                     return
                 cooldown = int(config.GetSetting("Settings", "Cooldown"))
                 time = DataStore.Get("home_cooldown", id)
@@ -399,44 +409,44 @@ class HomeSystem:
                     if tpdelay == 0:
                         Player.SafeTeleportTo(loc)
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
-                        Player.MessageFrom(homesystemname, "Teleported to home!")
+                        Player.MessageFrom(self.homesystemname, "Teleported to home!")
                     else:
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         self.addJob(id, tpdelay, loc, 2, plloc)
-                        Player.MessageFrom(homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
+                        Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
                         movec = int(config.GetSetting("Settings", "movecheck"))
                         dmg = int(config.GetSetting("Settings", "checkdamage"))
                         if movec == 1:
-                            Player.MessageFrom(homesystemname, "You can't move while teleporting.")
+                            Player.MessageFrom(self.homesystemname, "You can't move while teleporting.")
                         if dmg == 1:
-                            Player.MessageFrom(homesystemname, "You can't take damage while teleporting.")
+                            Player.MessageFrom(self.homesystemname, "You can't take damage while teleporting.")
 
                 else:
                     Player.Notice("You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
                     done2 = round((cooldown / 1000) / 60, 2)
-                    Player.MessageFrom(homesystemname, "Time: " + str(done) + "/" + str(done2))
+                    Player.MessageFrom(self.homesystemname, "Time: " + str(done) + "/" + str(done2))
         elif cmd == "sethome":
             if len(args) != 1:
-                Player.MessageFrom(homesystemname, "Usage: /sethome name")
+                Player.MessageFrom(self.homesystemname, "Usage: /sethome name")
                 return
             ini = self.Homes()
             maxh = self.DonatorRankCheck(id)
             if self.GetHomeNumber(id) == int(maxh):
-                Player.MessageFrom(homesystemname, "You reached the max number of homes!")
+                Player.MessageFrom(self.homesystemname, "You reached the max number of homes!")
                 return
             home = str(args[0])
             home = self.CutName(home)
             if len(home) == 0:
-                Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                Player.MessageFrom(self.homesystemname, "You need to use English Characters for home!")
                 return
             a = re.match('^[a-zA-Z0-9]+$', home)
             if not a:
-                Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                Player.MessageFrom(self.homesystemname, "You need to use English Characters for home!")
                 return
             check = self.HomeOf(Player, home)
             if check is not None:
-                Player.MessageFrom(homesystemname, "You already have a home called like that!")
+                Player.MessageFrom(self.homesystemname, "You already have a home called like that!")
                 return
             checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
             checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
@@ -453,7 +463,7 @@ class HomeSystem:
                                 vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                                 dist = Util.GetVectorsDistance(vector, plloc)
                                 if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
-                                    Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
+                                    Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                     return
                             #Note: I removed the home here if it was null
             if checkwall == 1:
@@ -463,7 +473,7 @@ class HomeSystem:
                     if "Wall" in x.name:
                         distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
                         if distance <= 1.50:
-                            Player.MessageFrom(homesystemname, "You can't set home near walls!")
+                            Player.MessageFrom(self.homesystemname, "You can't set home near walls!")
                             return
             homes = ini.GetSetting("HomeNames", id)
             if homes is not None and "," in homes:
@@ -471,29 +481,29 @@ class HomeSystem:
                 ini.AddSetting(id, home, str(plloc))
                 ini.AddSetting("HomeNames", id, n)
                 ini.Save()
-                Player.MessageFrom(homesystemname, "Home Saved")
+                Player.MessageFrom(self.homesystemname, "Home Saved")
                 return
             n = home + ","
             ini.AddSetting(id, home, str(plloc))
             ini.AddSetting("HomeNames", id, n)
             ini.Save()
-            Player.MessageFrom(homesystemname, "Home Saved")
+            Player.MessageFrom(self.homesystemname, "Home Saved")
         elif cmd == "setdefaulthome":
             if len(args) != 1:
-                Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
+                Player.MessageFrom(self.homesystemname, "Usage: /setdefaulthome name")
                 return
             home = str(args[0])
             check = self.HomeOf(Player, home)
             if check is None:
-                Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
+                Player.MessageFrom(self.homesystemname, "You don't have a home called: " + home)
                 return
             ini = self.Homes()
             ini.AddSetting("DefaultHome", id, home)
             ini.Save()
-            Player.MessageFrom(homesystemname, "Default Home Set!")
+            Player.MessageFrom(self.homesystemname, "Default Home Set!")
         elif cmd == "delhome":
             if len(args) != 1:
-                Player.MessageFrom(homesystemname, "Usage: /delhome name")
+                Player.MessageFrom(self.homesystemname, "Usage: /delhome name")
                 return
             home = str(args[0])
             ini = self.Homes()
@@ -510,49 +520,49 @@ class HomeSystem:
                 else:
                     ini.AddSetting("HomeNames", id, second)
                 ini.Save()
-                Player.MessageFrom(homesystemname, "Home: " + home + " Deleted")
+                Player.MessageFrom(self.homesystemname, "Home: " + home + " Deleted")
             else:
-                Player.MessageFrom(homesystemname, "Home: " + home + " doesn't exists!")
+                Player.MessageFrom(self.homesystemname, "Home: " + home + " doesn't exists!")
         elif cmd == "homes":
             ini = self.Homes()
             if ini.GetSetting("HomeNames", id) is not None:
                 homes = str(ini.GetSetting("HomeNames", id))
                 homes = homes[:-1]
                 homes = homes.split(',')
-                Player.MessageFrom(homesystemname, "--List of your Homes--")
+                Player.MessageFrom(self.homesystemname, "--List of your Homes--")
                 for h in homes:
-                    Player.MessageFrom(homesystemname, "- " + str(h))
+                    Player.MessageFrom(self.homesystemname, "- " + str(h))
             else:
-                Player.MessageFrom(homesystemname, "You don't have homes!")
+                Player.MessageFrom(self.homesystemname, "You don't have homes!")
         elif cmd == "deletebeds":
             if Player.Admin:
                 for x in World.Entities:
                     if x.Name == "SleepingBagA" or x.Name == "SingleBed":
                         x.Destroy()
-                Player.MessageFrom(homesystemname, "Deleted all.")
+                Player.MessageFrom(self.homesystemname, "Deleted all.")
         elif cmd == "addfriendh":
             if len(args) == 0:
-                Player.MessageFrom(homesystemname, "Usage: /addfriendh playername")
+                Player.MessageFrom(self.homesystemname, "Usage: /addfriendh playername")
                 return
             playerr = self.CheckV(Player, args[0])
             if playerr is None:
                 return
             if playerr == Player:
-                Player.MessageFrom(homesystemname, "This is you....")
+                Player.MessageFrom(self.homesystemname, "This is you....")
                 return
             ini = self.Wl()
             ini.AddSetting(id, playerr.SteamID, playerr.Name)
             ini.Save()
-            Player.MessageFrom(homesystemname, "Player Whitelisted")
+            Player.MessageFrom(self.homesystemname, "Player Whitelisted")
         elif cmd == "delfriendh":
             if len(args) == 0:
-                Player.MessageFrom(homesystemname, "Usage: /delfriendh playername")
+                Player.MessageFrom(self.homesystemname, "Usage: /delfriendh playername")
                 return
             name = str(args[0])
             ini = self.Wl()
             players = ini.EnumSection(id)
             if len(players) == 0:
-                Player.MessageFrom(homesystemname, "You have never added anyone...")
+                Player.MessageFrom(self.homesystemname, "You have never added anyone...")
                 return
             name = name.lower()
             for playerid in players:
@@ -561,40 +571,39 @@ class HomeSystem:
                 if lowered == name:
                     ini.DeleteSetting(id, playerid)
                     ini.Save()
-                    Player.MessageFrom(homesystemname, "Player Removed from Whitelist")
+                    Player.MessageFrom(self.homesystemname, "Player Removed from Whitelist")
                     return
-            Player.MessageFrom(homesystemname, "Couldn't find that player!")
+            Player.MessageFrom(self.homesystemname, "Couldn't find that player!")
         elif cmd == "listwlh":
             ini = self.Wl()
             players = ini.EnumSection(id)
-            Player.MessageFrom(homesystemname, "Whitelisted Players:")
+            Player.MessageFrom(self.homesystemname, "Whitelisted Players:")
             if len(players) == 0:
-                Player.MessageFrom(homesystemname, "You have never added anyone...")
+                Player.MessageFrom(self.homesystemname, "You have never added anyone...")
                 return
             for playerid in players:
                 nameof = ini.GetSetting(id, playerid)
-                Player.MessageFrom(homesystemname, "- " + nameof)
+                Player.MessageFrom(self.homesystemname, "- " + nameof)
 
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None and Player is not None:
             config = self.HomeConfig()
             antihack = int(config.GetSetting("Settings", "Antihack"))
             if antihack == 1:
-                homesystemname = config.GetSetting("Settings", "homesystemname")
                 if Entity.Name == "SleepingBagA":
                     inventory = Player.Inventory
-                    Player.MessageFrom(homesystemname, "Sleeping bags are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 15 Cloth.")
+                    Player.MessageFrom(self.homesystemname, "Sleeping bags are banned from this server!")
+                    Player.MessageFrom(self.homesystemname, "Use /home")
+                    Player.MessageFrom(self.homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(self.homesystemname, "You received 15 Cloth.")
                     Entity.Destroy()
                     inventory.AddItem("Cloth", 15)
                 elif Entity.Name == "SingleBed":
                     inventory = Player.Inventory
-                    Player.MessageFrom(homesystemname, "Beds are banned from this server!")
-                    Player.MessageFrom(homesystemname, "Use /home")
-                    Player.MessageFrom(homesystemname, "We disabled Beds, so players can't hack in your house!")
-                    Player.MessageFrom(homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
+                    Player.MessageFrom(self.homesystemname, "Beds are banned from this server!")
+                    Player.MessageFrom(self.homesystemname, "Use /home")
+                    Player.MessageFrom(self.homesystemname, "We disabled Beds, so players can't hack in your house!")
+                    Player.MessageFrom(self.homesystemname, "You received 40 Cloth and 100 Metal Fragments.")
                     Entity.Destroy()
                     inventory.AddItem("Cloth", 40)
                     inventory.AddItem("Metal Fragments", 100)
@@ -605,20 +614,18 @@ class HomeSystem:
             checkdamage = int(config.GetSetting("Settings", "checkdamage"))
             if checkdamage == 0:
                 return
-            homesystemname = config.GetSetting("Settings", "homesystemname")
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is not None:
                 vid = self.TrytoGrabID(HurtEvent.Victim)
                 if self.isInjob(vid):
                     self.killJob(vid)
-                    HurtEvent.Victim.MessageFrom(homesystemname, "Teleportation Cancelled. You received damage.")
+                    HurtEvent.Victim.MessageFrom(self.homesystemname, "Teleportation Cancelled. You received damage.")
                     DataStore.Remove("home_cooldown", vid)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         config = self.HomeConfig()
         id = Player.SteamID
-        homesystemname = config.GetSetting("Settings", "homesystemname")
-        camp = SpawnEvent.CampUsed
+        """camp = SpawnEvent.CampUsed
         if camp:
             #checkn = int(config.GetSetting("Settings", "safetpcheck"))
             cooldown = config.GetSetting("Settings", "Cooldown")
@@ -636,26 +643,25 @@ class HomeSystem:
                     home = self.HomeOf(Player, check)
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.SafeTeleportTo(home)
-                    Player.MessageFrom(homesystemname, "Spawned at home!")
-        else:
-            v = DataStore.Get("homey", id)
-            ini = self.DefaultLoc()
-            if v is None:
-                return
-            y = float(Player.Y)
-            oy = float(v)
-            if oy - y > 3.0:
-                randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
-                DataStore.Add("home_joincooldown", id, 7)
-                r = random.randrange(1, randomloc)
-                randomloc = ini.GetSetting("DefaultLoc", str(r))
-                tp = self.Replace(randomloc)
-                home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                Server.BroadcastFrom(homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
-                Player.TeleportTo(home)
-                Player.Disconnect()
-                return
-            DataStore.Remove("homey", id)
+                    Player.MessageFrom(self.homesystemname, "Spawned at home!")"""
+        v = DataStore.Get("homey", id)
+        ini = self.DefaultLoc()
+        if v is None:
+            return
+        y = float(Player.Y)
+        oy = float(v)
+        if oy - y > 3.0:
+            randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
+            DataStore.Add("home_joincooldown", id, 7)
+            r = random.randrange(1, randomloc)
+            randomloc = ini.GetSetting("DefaultLoc", str(r))
+            tp = self.Replace(randomloc)
+            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
+            Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
+            Player.TeleportTo(home)
+            Player.Disconnect()
+            return
+        DataStore.Remove("homey", id)
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -665,34 +671,28 @@ class HomeSystem:
             except:
                 pass
             return
-        config = self.HomeConfig()
-        jointpdelay = int(config.GetSetting("Settings", "jointpdelay"))
         jtime = DataStore.Get("home_joincooldown", id)
-        cooldown = int(config.GetSetting("Settings", "rejoincd"))
-        homesystemname = config.GetSetting("Settings", "homesystemname")
-        sendhome = int(config.GetSetting("Settings", "SendPlayertoHomeorRandom"))
-        ecooldown = int(config.GetSetting("Settings", "EJoinCooldown"))
         if jtime is None:
-            if sendhome == 1:
-                self.addJob(id, jointpdelay, None, 5)
+            if self.sendhome == 1:
+                self.addJob(id, self.jointpdelay, None, 5)
             return
         if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
             DataStore.Remove("home_joincooldown", id)
-            if sendhome == 1:
-                self.addJob(id, jointpdelay, None, 5)
+            if self.sendhome == 1:
+                self.addJob(id, self.jointpdelay, None, 5)
             return
-        if ecooldown == 1:
-            calc = int(System.Environment.TickCount - (jtime + (cooldown * 1000)))
-            if System.Environment.TickCount <= jtime + cooldown * 1000:
-                calc2 = cooldown * 1000
-                calc2 = round((calc2 - calc) / 1000 - cooldown, 2)
-                Player.MessageFrom(homesystemname, red + str(cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+        if self.ecooldown == 1:
+            calc = int(System.Environment.TickCount - (jtime + (self.cooldown * 1000)))
+            if System.Environment.TickCount <= jtime + self.cooldown * 1000:
+                calc2 = self.cooldown * 1000
+                calc2 = round((calc2 - calc) / 1000 - self.cooldown, 2)
+                Player.MessageFrom(self.homesystemname, red + str(self.cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
                 Player.Disconnect()
                 return
-            elif System.Environment.TickCount > jtime + (cooldown * 1000):
+            elif System.Environment.TickCount > jtime + (self.cooldown * 1000):
                 DataStore.Remove("home_joincooldown", id)
-                if sendhome == 1:
-                    self.addJob(id, jointpdelay, None, 5)
+                if self.sendhome == 1:
+                    self.addJob(id, self.jointpdelay, None, 5)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
@@ -700,6 +700,8 @@ class HomeSystem:
         antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         if antiroof == 1:
             if not Player.Admin and not self.isMod(id):
+                DataStore.Add("homey", id, Player.Y)
+        if self.ecooldown == 1:
+            if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
         DataStore.Add("homesystemautoban", id, "none")
-        DataStore.Add("homey", id, Player.Y)
