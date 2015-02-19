@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.5'
+__version__ = '1.5.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -12,7 +12,15 @@ Names = []
 
 class ANA:
 
+    a = None
+    m = None
+    maxl = None
+
     def On_PluginInit(self):
+        ini = self.ANA()
+        self.a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
+        self.m = int(ini.GetSetting("Settings", "DontRenameMods"))
+        self.maxl = int(ini.GetSetting("Settings", "NameLength"))
         Util.ConsoleLog("Anti Non ASCII by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def TrytoGrabID(self, Player):
@@ -61,12 +69,9 @@ class ANA:
                 pass
             return
         ini = self.ANA()
-        a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
-        m = int(ini.GetSetting("Settings", "DontRenameMods"))
-        maxl = int(ini.GetSetting("Settings", "NameLength"))
-        if Player.Admin and a == 1:
+        if Player.Admin and self.a == 1:
             return
-        if self.isMod(id) and m == 1:
+        if self.isMod(id) and self.m == 1:
             return
         name = Player.Name
         name = self.CutName(name)
@@ -84,7 +89,7 @@ class ANA:
         if not a:
             name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
         n = len(name)
-        if n > maxl:
+        if n > self.maxl:
             n = 1
         enum = ini.EnumSection("Restrict")
         for checkn in enum:
