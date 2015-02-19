@@ -171,4 +171,5 @@ class Wiper:
                 return
             if Player.Admin or self.isMod(id):
                 num = self.WipeByID(args[0])
+                Plugin.Log("Log", Player.Name + " wiped " + args[0] + "'s objects. Total: " + str(num))
                 Player.MessageFrom("Wiper", "Wiped " + str(num) + " objects!")
