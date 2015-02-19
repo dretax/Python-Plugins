@@ -337,7 +337,7 @@ class HomeSystem:
                             return
                         y = float(player.Y)
                         v = float(v)
-                        if v - y > 3.0:
+                        if v - y > 2.6:
                             randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
                             DataStore.Add("home_joincooldown", id, 7)
                             r = random.randrange(1, randomloc)
