@@ -670,15 +670,14 @@ class HomeSystem:
                 pass
             return
         jtime = DataStore.Get("home_joincooldown", id)
-        if jtime is None:
-            if self.sendhome == 1:
+        if self.sendhome == 1:
+            if jtime is None:
                 self.addJob(id, self.jointpdelay, None, 5)
-            return
-        if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
-            DataStore.Remove("home_joincooldown", id)
-            if self.sendhome == 1:
+                return
+            if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
+                DataStore.Remove("home_joincooldown", id)
                 self.addJob(id, self.jointpdelay, None, 5)
-            return
+                return
         if self.ecooldown == 1:
             calc = int(System.Environment.TickCount - (jtime + (self.cooldown * 1000)))
             if System.Environment.TickCount <= jtime + self.cooldown * 1000:
