@@ -294,7 +294,7 @@ class HomeSystem:
                         continue
                     callback = int(params[2])
                     self.killJob(id)
-                    if callback != 5:
+                    if callback != 5 and callback != 4:
                         xto = self.ReplaceToDot(params[1])
                         loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
                     DataStore.Add("homesystemautoban", id, "using")
@@ -315,7 +315,8 @@ class HomeSystem:
                             else:
                                 player.SafeTeleportTo(loc)
                                 player.MessageFrom(self.homesystemname, "You have been teleported home.")
-                                DataStore.Add("homey", id, player.Y)
+                                DataStore.Add("homey", id, loc.y)
+                                self.addJob(id, 2, None, 4)
                                 #BZHJ.addJob('mytestt', checkn, jobxData.params);
                         else:
                             player.SafeTeleportTo(loc)
@@ -326,7 +327,7 @@ class HomeSystem:
                         player.MessageFrom(self.homesystemname, "You have been teleported to a random location!")
                         player.MessageFrom(self.homesystemname, "Type /setdefaulthome HOMENAME")
                         player.MessageFrom(self.homesystemname, "To spawn at your home!")
-                    # Remove teleport usage check.
+                    # dizzy heck.
                     elif callback == 4:
                         DataStore.Add("homesystemautoban", id, "none")
                         v = DataStore.Get("homey", id)
@@ -622,6 +623,10 @@ class HomeSystem:
                     HurtEvent.Victim.MessageFrom(self.homesystemname, "Teleportation Cancelled. You received damage.")
                     DataStore.Remove("home_cooldown", vid)
 
+    def On_PlayerKilled(self, DeathEvent):
+        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
+            DataStore.Remove("homey", DeathEvent.Victim.SteamID)
+
     def On_PlayerSpawned(self, Player, SpawnEvent):
         config = self.HomeConfig()
         id = Player.SteamID
@@ -645,9 +650,9 @@ class HomeSystem:
                     Player.SafeTeleportTo(home)
                     Player.MessageFrom(self.homesystemname, "Spawned at home!")"""
         v = DataStore.Get("homey", id)
-        ini = self.DefaultLoc()
         if v is None:
             return
+        ini = self.DefaultLoc()
         y = float(Player.Y)
         oy = float(v)
         if oy - y > 3.0:
