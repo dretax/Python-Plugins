@@ -32,6 +32,7 @@ class TpFriend:
         DataStore.Flush("tpfriendpending")
         DataStore.Flush("tpfriendpending2")
         DataStore.Flush("tpfriendcooldown")
+        DataStore.Flush("tpfriendy")
         Util.ConsoleLog(TpJobs['Name'] + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     def TpFriendConfig(self):
