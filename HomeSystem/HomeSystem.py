@@ -34,6 +34,7 @@ class HomeSystem:
         DataStore.Flush("home_joincooldown")
         DataStore.Flush("homesystemautoban")
         DataStore.Flush("home_cooldown")
+        DataStore.Flush("homey")
         config = self.HomeConfig()
         self.sendhome = int(config.GetSetting("Settings", "SendPlayertoHomeorRandom"))
         self.ecooldown = int(config.GetSetting("Settings", "EJoinCooldown"))
@@ -294,7 +295,7 @@ class HomeSystem:
                         continue
                     callback = int(params[2])
                     self.killJob(id)
-                    if callback != 5 and callback != 4:
+                    if callback != 6 and callback != 5 and callback != 4:
                         xto = self.ReplaceToDot(params[1])
                         loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
                     DataStore.Add("homesystemautoban", id, "using")
@@ -335,18 +336,18 @@ class HomeSystem:
                         if v is None:
                             return
                         y = float(player.Y)
-                        oy = float(v)
-                        if oy - y > 3.0:
+                        v = float(v)
+                        if v - y > 3.0:
                             randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
                             DataStore.Add("home_joincooldown", id, 7)
                             r = random.randrange(1, randomloc)
                             randomloc = ini.GetSetting("DefaultLoc", str(r))
                             tp = self.Replace(randomloc)
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                            Server.BroadcastFrom(self.homesystemname, player.Name + red + " tried to fall through a house. Kicked.")
                             player.TeleportTo(home)
-                            player.Disconnect()
-                            continue
+                            Server.BroadcastFrom(self.homesystemname, player.Name + red + " tried to fall through a house. Kicked.")
+                            DataStore.Remove("homey", id)
+                            self.addJob(id, 2, None, 6)
                         DataStore.Remove("homey", id)
                     # Handles those players who joined after X seconds. Dizzy hack bypasser.
                     elif callback == 5:
@@ -367,6 +368,11 @@ class HomeSystem:
                             home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                             w = 3
                         self.addJob(id, 2, home, w)
+                    elif callback == 6:
+                        try:
+                            player.Disconnect()
+                        except:
+                            pass
         else:
             self.clearTimers()
 
@@ -628,8 +634,8 @@ class HomeSystem:
             DataStore.Remove("homey", DeathEvent.Victim.SteamID)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
-        config = self.HomeConfig()
         id = Player.SteamID
+        self.addJob(id, 2, None, 4)
         """camp = SpawnEvent.CampUsed
         if camp:
             #checkn = int(config.GetSetting("Settings", "safetpcheck"))
@@ -649,24 +655,6 @@ class HomeSystem:
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.SafeTeleportTo(home)
                     Player.MessageFrom(self.homesystemname, "Spawned at home!")"""
-        v = DataStore.Get("homey", id)
-        if v is None:
-            return
-        ini = self.DefaultLoc()
-        y = float(Player.Y)
-        oy = float(v)
-        if oy - y > 3.0:
-            randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
-            DataStore.Add("home_joincooldown", id, 7)
-            r = random.randrange(1, randomloc)
-            randomloc = ini.GetSetting("DefaultLoc", str(r))
-            tp = self.Replace(randomloc)
-            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-            Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
-            Player.TeleportTo(home)
-            Player.Disconnect()
-            return
-        DataStore.Remove("homey", id)
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -710,3 +698,5 @@ class HomeSystem:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
         DataStore.Add("homesystemautoban", id, "none")
+        DataStore.Add("homey", id, Player.Y)
+        Plugin.Log("assas", str(Player.Y))
