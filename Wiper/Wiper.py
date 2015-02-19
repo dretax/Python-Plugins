@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -29,6 +29,7 @@ class Wiper:
         if not Plugin.IniExists("Settings"):
             ini = Plugin.CreateIni("Settings")
             ini.AddSetting("Settings", "MaxDays", "14")
+            ini.AddSetting("Settings", "Broadcast", "True")
             ini.Save()
         return Plugin.GetIni("Settings")
 
@@ -94,7 +95,7 @@ class Wiper:
             if int(count) > cooldown:
                 IdsToWipe.append(id)
         for ent in World.Entities:
-            if ent.OwnerID not in enum and ent.OwnerID not in IdsToWipe:
+            if ent.OwnerID not in enum:
                 if ini.GetSetting("Objects", ent.OwnerID) is None and not ini.GetSetting("Objects", ent.OwnerID):
                     ini.AddSetting("Objects", ent.OwnerID, str(today))
                     ini.Save()
@@ -111,9 +112,11 @@ class Wiper:
                     count = count.replace('day', '')
                     if int(count) < cooldown:
                         continue
+                    else:
+                        IdsToWipe.append(ent.OwnerID)
             if ent.OwnerID in IdsToWipe:
                 ent.Destroy()
-                c = c + 1
+                c += 1
         for x in IdsToWipe:
             ini.DeleteSetting("Objects", x)
             Plugin.Log("WipedIds", str(x))
@@ -121,15 +124,51 @@ class Wiper:
         del IdsToWipe[:]
         return c
 
+    def WipeByID(self, id):
+        c = 0
+        for ent in World.Entities:
+            if long(ent.OwnerID) == long(id):
+                ent.Destroy()
+                c += 1
+        return c
+
     def WipeCallback(self):
         Plugin.KillTimer("Wipe")
+        ini = self.GetIni()
+        Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
+        if Broadcast:
+            Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped Objects: " + str(n))
+        if Broadcast:
+            Server.BroadcastFrom("Wiper", "Wiped " + str(n) + " unused objects!")
         Plugin.CreateTimer("Wipe", 3600000).Start()
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
         if cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
-                check = self.LaunchCheck()
-                Player.MessageFrom("Wiper", "Wiped: " + str(check) + " objects.")
+                ini = self.GetIni()
+                Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
+                if Broadcast:
+                    Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
+                n = self.LaunchCheck()
+                if Broadcast:
+                    Server.BroadcastFrom("Wiper", "Wiped: " + str(n) + " objects.")
+                else:
+                    Player.MessageFrom("Wiper", "Wiped: " + str(n) + " objects.")
+        elif cmd == "wipetimerreset":
+            if Player.Admin or self.isMod(id):
+                Plugin.KillTimer("Wipe")
+                Plugin.CreateTimer("Wipe", 3600000).Start()
+                Player.MessageFrom("Wiper", "Timer restarted.")
+        elif cmd == "wipeid":
+            if len(args) == 0 or len(args) > 1:
+                Player.MessageFrom("Wiper", "Usage: /wipeid playerid")
+                return
+            if not args[0].isdigit():
+                Player.MessageFrom("Wiper", "The id is only made of numbers")
+                return
+            if Player.Admin or self.isMod(id):
+                num = self.WipeByID(args[0])
+                Player.MessageFrom("Wiper", "Wiped " + str(num) + " objects!")
