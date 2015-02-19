@@ -635,10 +635,12 @@ class HomeSystem:
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         id = Player.SteamID
-        self.addJob(id, 2, None, 4)
-        """camp = SpawnEvent.CampUsed
+        config = self.HomeConfig()
+        antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
+        camp = SpawnEvent.CampUsed
+        if antiroof == 1 and not camp:
+            self.addJob(id, 2, None, 4)
         if camp:
-            #checkn = int(config.GetSetting("Settings", "safetpcheck"))
             cooldown = config.GetSetting("Settings", "Cooldown")
             time = DataStore.Get("home_cooldown", id)
             if time is None:
@@ -654,7 +656,10 @@ class HomeSystem:
                     home = self.HomeOf(Player, check)
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.SafeTeleportTo(home)
-                    Player.MessageFrom(self.homesystemname, "Spawned at home!")"""
+                    if antiroof == 1:
+                        DataStore.Add("homey", id, float(home[1]))
+                        self.addJob(id, 2, None, 4)
+                    Player.MessageFrom(self.homesystemname, "Spawned at home!")
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -698,5 +703,3 @@ class HomeSystem:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
         DataStore.Add("homesystemautoban", id, "none")
-        DataStore.Add("homey", id, Player.Y)
-        Plugin.Log("assas", str(Player.Y))
