@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -68,11 +68,14 @@ class IdIdentifier:
             except:
                 pass
             return
+        ip = str(Player.IP)
         banini = self.ManualBan()
         if banini.GetSetting("Banned", sid) and int(banini.GetSetting("Banned", sid)) == 1:
             Player.Disconnect()
             return
-        ip = str(Player.IP)
+        if banini.GetSetting("Banned", ip) and int(banini.GetSetting("Banned", ip)) == 1:
+            Player.Disconnect()
+            return
         location = str(Player.Location)
         ini = self.PlayersIni()
         if ini.GetSetting("Track", sid) is not None:
