@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.1'
+__version__ = '3.5.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -28,13 +28,14 @@ class DeathMSG:
     def On_PluginInit(self):
         config = self.DeathMSGConfig()
         v = int(config.GetSetting("Settings", "usebannedpeoplebanlist"))
-        if Plugin.GetPlugin("BannedPeople") is not None and v == 1:
-            methodname = "BannedPeopleIni"
-            pl = Plugin.GetPlugin("BannedPeople")
-            ClassName = BannedPeople.BannedPeople()
-            setattr(BannedPeople, "Plugin", pl)
-            self.method = getattr(ClassName, methodname)
-            self.bannedpeople = True
+        if v == 1:
+            if Plugin.GetPlugin("BannedPeople") is not None:
+                methodname = "BannedPeopleIni"
+                pl = Plugin.GetPlugin("BannedPeople")
+                ClassName = BannedPeople.BannedPeople()
+                setattr(BannedPeople, "Plugin", pl)
+                self.method = getattr(ClassName, methodname)
+                self.bannedpeople = True
         Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def On_Command(self, Player, cmd, args):
