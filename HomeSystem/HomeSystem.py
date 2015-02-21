@@ -352,7 +352,7 @@ class HomeSystem:
                 Player.MessageFrom(self.homesystemname, "/addfriendh name - Adds Player To Distance Whitelist")
                 Player.MessageFrom(self.homesystemname, "/delfriendh name - Removes Player From Distance Whitelist")
                 Player.MessageFrom(self.homesystemname, "/listwlh - List Players On Distance Whitelist")
-                Player.MessageFrom(self.homesystemname, "/hcancel - Cancels Home Teleportation")
+                Player.MessageFrom(self.homesystemname, "/hcanc - Cancels Home Teleportation")
             else:
                 home = str(args[0])
                 check = self.HomeOf(Player, home)
@@ -550,7 +550,7 @@ class HomeSystem:
             for playerid in players:
                 nameof = ini.GetSetting(id, playerid)
                 Player.MessageFrom(self.homesystemname, "- " + nameof)
-        elif cmd == "hcancel":
+        elif cmd == "hcanc":
             if Player not in Pending:
                 Player.MessageFrom(self.homesystemname, "You are not teleporting.")
                 return
