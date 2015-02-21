@@ -586,7 +586,6 @@ class HomeSystem:
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is not None:
                 vid = self.TrytoGrabID(HurtEvent.Victim)
-                #todo: Fix
                 if HurtEvent.Victim in Pending:
                     Pending.remove(HurtEvent.Victim)
                     if self.movec == 1:
