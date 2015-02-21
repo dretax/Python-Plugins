@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.4'
+__version__ = '2.5.5'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -19,8 +19,8 @@ try:
 except ImportError:
     pass
 
-DStable = 'BZjobs'
 red = "[color #FF0000]"
+Pending = []
 class HomeSystem:
 
     sendhome = None
@@ -28,9 +28,13 @@ class HomeSystem:
     jointpdelay = None
     cooldown = None
     homesystemname = None
+    checkdamage = None
+    antihack = None
+    antiroof = None
+    type = None
+    movec = None
 
     def On_PluginInit(self):
-        DataStore.Flush("BZjobs")
         DataStore.Flush("home_joincooldown")
         DataStore.Flush("homesystemautoban")
         DataStore.Flush("home_cooldown")
@@ -41,7 +45,12 @@ class HomeSystem:
         self.jointpdelay = int(config.GetSetting("Settings", "jointpdelay"))
         self.cooldown = int(config.GetSetting("Settings", "rejoincd"))
         self.homesystemname = config.GetSetting("Settings", "homesystemname")
-        Util.ConsoleLog(self.HomeJobs['Name'] + " v" + self.HomeJobs['Version'] + " by " + self.HomeJobs['Author'] + " loaded.", True)
+        self.checkdamage = int(config.GetSetting("Settings", "checkdamage"))
+        self.antihack = int(config.GetSetting("Settings", "Antihack"))
+        self.antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
+        self.type = Util.TryFindReturnType("StructureComponent")
+        self.movec = int(config.GetSetting("Settings", "movecheck"))
+        Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     """
         Functions
@@ -142,22 +151,6 @@ class HomeSystem:
                 maxh = config.GetSetting("Settings", "Maxhomes")
                 return maxh
 
-    # exec, location, callback
-    """def Stringify(self, List):
-        return str(List).strip('[]')
-
-    def Parse(self, String):
-        x = ast.literal_eval(String)
-        x = [n.strip() for n in x]
-        return x"""
-
-    def Stringify(self, List):
-        s = re.sub("[[\]\'\ ]", '', str(List))
-        return str(s)
-
-    def Parse(self, String):
-        return String.split(',')
-
     def TrytoGrabID(self, Player):
         try:
             id = Player.SteamID
@@ -222,41 +215,39 @@ class HomeSystem:
             Player.MessageFrom(self.homesystemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
+    def Freezer(self, Player, num):
+        if num == 1:
+            Player.SendCommand("input.bind Down 7 None")
+            Player.SendCommand("input.bind Left 7 None")
+            Player.SendCommand("input.bind Right 7 None")
+            Player.SendCommand("input.bind Sprint 7 None")
+            Player.SendCommand("input.bind Duck 7 None")
+            Player.SendCommand("input.bind Jump 7 None")
+            Player.SendCommand("input.bind Jump 7 None")
+            Player.SendCommand("input.bind Fire 7 None")
+            Player.SendCommand("input.bind AtlFire 7 None")
+            Player.MessageFrom(self.homesystemname, red + "You froze!")
+        else:
+            Player.SendCommand("input.bind Up W UpArrow")
+            Player.SendCommand("input.bind Down S DownArrow")
+            Player.SendCommand("input.bind Left A LeftArrow")
+            Player.SendCommand("input.bind Right D RightArrow")
+            Player.SendCommand("input.bind Sprint LeftShift RightShift")
+            Player.SendCommand("input.bind Duck LeftControl RightControl")
+            Player.SendCommand("input.bind Jump Space None")
+            Player.SendCommand("input.bind Fire Mouse0 None")
+            Player.MessageFrom(self.homesystemname, red + "You are now free!")
+
     """
         Timer Functions
     """
 
-    def addJob(self, id, xtime, location, callbacknumber, PlayerLoc = None):
-        epoch = Plugin.GetTimestamp()
-        exectime = int(epoch) + int(xtime)
-        # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
-        List = []
-        List.append(str(exectime))
-        List.append(str(location).replace(",", ":"))
-        List.append(str(callbacknumber))
-        List.append(str(PlayerLoc).replace(",", ":"))
-        DataStore.Add(DStable, id, self.Stringify(List))
-        self.startTimer()
-
-    def isInjob(self, id):
-        if DataStore.Get(DStable, id) is not None:
-            return True
-        return False
-
-    def killJob(self, id):
-        DataStore.Remove(DStable, id)
-
-    def startTimer(self):
-        config = self.HomeConfig()
-        gfjfhg = int(config.GetSetting("Settings", "run_timer")) * 1000
-        try:
-            if not Plugin.GetTimer("JobTimer"):
-                Plugin.CreateTimer("JobTimer", gfjfhg).Start()
-        except:
-            pass
-
-    def stopTimer(self):
-        Plugin.KillTimer("JobTimer")
+    def addJob(self, Player, xtime, callbacknumber, location):
+        List = Plugin.CreateDict()
+        List["Player"] = Player
+        List["Call"] = callbacknumber
+        List["house"] = location
+        Plugin.CreateParallelTimer("JobTimer", xtime * 1000, List)
 
     def getPlayer(self, d):
         try:
@@ -267,114 +258,89 @@ class HomeSystem:
             return None
 
     def clearTimers(self):
-        DataStore.Flush(DStable)
-        self.stopTimer()
-
-    HomeJobs = {'Name': 'HomeSystem', 'Author': 'DreTaX', 'Version': '2.5.0'}
+        Plugin.KillParallelTimer("JobTimer")
 
 
     """
         Events
     """
 
-    def JobTimerCallback(self):
-        if DataStore.Count(DStable) >= 1:
-            epoch = int(Plugin.GetTimestamp())
-            pending = DataStore.Keys(DStable)
-            config = self.HomeConfig()
-            for id in pending:
-                if DataStore.Get(DStable, id) is None:
-                    DataStore.Remove(DStable, id)
-                    continue
-                params = self.Parse(str(DataStore.Get(DStable, id)))
-                if epoch >= int(params[0]):
-                    player = self.getPlayer(id)
-                    if player is None:
-                        DataStore.Add("homesystemautoban", id, "none")
-                        self.killJob(id)
-                        continue
-                    callback = int(params[2])
-                    self.killJob(id)
-                    if callback != 6 and callback != 5 and callback != 4:
-                        xto = self.ReplaceToDot(params[1])
-                        loc = Util.CreateVector(float(xto[0]), float(xto[1]), float(xto[2]))
-                    DataStore.Add("homesystemautoban", id, "using")
-                    # Join Callback, this should handle the delay
-                    if callback == 1:
-                        player.SafeTeleportTo(loc)
-                        player.MessageFrom(self.homesystemname, "You have been teleported to your home")
-                    # Home Teleport Callback
-                    elif callback == 2:
-                        movec = int(config.GetSetting("Settings", "movecheck"))
-                        if movec == 1:
-                            before = self.ReplaceToDot(params[3])
-                            before = Util.CreateVector(float(before[0]), float(before[1]), float(before[2]))
-                            dist = Util.GetVectorsDistance(before, player.Location)
-                            if dist > 1.0:
-                                player.MessageFrom(self.homesystemname, "You were moving!")
-                                DataStore.Add("home_cooldown", id, 7)
-                            else:
-                                player.SafeTeleportTo(loc)
-                                player.MessageFrom(self.homesystemname, "You have been teleported home.")
-                                DataStore.Add("homey", id, loc.y)
-                                self.addJob(id, 2, None, 4)
-                                #BZHJ.addJob('mytestt', checkn, jobxData.params);
-                        else:
-                            player.SafeTeleportTo(loc)
-                            player.MessageFrom(self.homesystemname, "You have been teleported home.")
-                    # Random Teleportation Delay
-                    elif callback == 3:
-                        player.SafeTeleportTo(loc)
-                        player.MessageFrom(self.homesystemname, "You have been teleported to a random location!")
-                        player.MessageFrom(self.homesystemname, "Type /setdefaulthome HOMENAME")
-                        player.MessageFrom(self.homesystemname, "To spawn at your home!")
-                    # dizzy heck.
-                    elif callback == 4:
-                        DataStore.Add("homesystemautoban", id, "none")
-                        v = DataStore.Get("homey", id)
-                        ini = self.DefaultLoc()
-                        if v is None:
-                            return
-                        y = float(player.Y)
-                        v = float(v)
-                        if v - y > 2.6:
-                            randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
-                            DataStore.Add("home_joincooldown", id, 7)
-                            r = random.randrange(1, randomloc)
-                            randomloc = ini.GetSetting("DefaultLoc", str(r))
-                            tp = self.Replace(randomloc)
-                            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                            player.TeleportTo(home)
-                            Server.BroadcastFrom(self.homesystemname, player.Name + red + " tried to fall through a house. Kicked.")
-                            DataStore.Remove("homey", id)
-                            self.addJob(id, 2, None, 6)
-                        DataStore.Remove("homey", id)
-                    # Handles those players who joined after X seconds. Dizzy hack bypasser.
-                    elif callback == 5:
-                        randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
-                        DataStore.Add("home_joincooldown", id, 7)
-                        r = random.randrange(1, randomloc)
-                        ini = self.Homes()
-                        getdfhome = ini.GetSetting("DefaultHome", id)
-                        if getdfhome is not None:
-                            home = self.HomeOf(player, getdfhome)
-                            home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
-                            # ID, EXECTIME : Location : CallBack number  : Player's Last Location | Requires to be splited
-                            w = 1
-                        else:
-                            ini2 = self.DefaultLoc()
-                            locc = ini2.GetSetting("DefaultLoc", str(r))
-                            tp = self.Replace(locc)
-                            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                            w = 3
-                        self.addJob(id, 2, home, w)
-                    elif callback == 6:
-                        try:
-                            player.Disconnect()
-                        except:
-                            pass
-        else:
-            self.clearTimers()
+    def JobTimerCallback(self, timer):
+        timer.Kill()
+        config = self.HomeConfig()
+        List = timer.Args
+        Player = List["Player"]
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            return
+        callback = List["Call"]
+        loc = List["house"]
+        DataStore.Add("homesystemautoban", id, "using")
+        # Join Callback, this should handle the delay
+        if callback == 1:
+            Player.SafeTeleportTo(loc)
+            Player.MessageFrom(self.homesystemname, "You have been teleported to your home")
+        # Home Teleport Callback
+        elif callback == 2:
+            if self.movec == 1:
+                self.Freezer(Player, 2)
+                Player.SafeTeleportTo(loc)
+                Pending.remove(Player)
+                Player.MessageFrom(self.homesystemname, "You have been teleported home.")
+                DataStore.Add("homey", id, loc.y)
+                self.addJob(Player, 2, 4, None)
+            else:
+                Player.SafeTeleportTo(loc)
+                Player.MessageFrom(self.homesystemname, "You have been teleported home.")
+        # Random Teleportation Delay
+        elif callback == 3:
+            Player.SafeTeleportTo(loc)
+            Player.MessageFrom(self.homesystemname, "You have been teleported to a random location!")
+            Player.MessageFrom(self.homesystemname, "Type /setdefaulthome HOMENAME")
+            Player.MessageFrom(self.homesystemname, "To spawn at your home!")
+        # dizzy heck.
+        elif callback == 4:
+            DataStore.Add("homesystemautoban", id, "none")
+            v = DataStore.Get("homey", id)
+            ini = self.DefaultLoc()
+            if v is None:
+                return
+            y = float(Player.Y)
+            v = float(v)
+            if v - y > 2.6:
+                randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
+                DataStore.Add("home_joincooldown", id, 7)
+                r = random.randrange(1, randomloc)
+                randomloc = ini.GetSetting("DefaultLoc", str(r))
+                tp = self.Replace(randomloc)
+                home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
+                Player.TeleportTo(home)
+                Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
+                DataStore.Remove("homey", id)
+                self.addJob(Player, 2, 6, None)
+                DataStore.Remove("homey", id)
+                # Handles those players who joined after X seconds. Dizzy hack bypasser.
+        elif callback == 5:
+            randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
+            DataStore.Add("home_joincooldown", id, 7)
+            r = random.randrange(1, randomloc)
+            ini = self.Homes()
+            getdfhome = ini.GetSetting("DefaultHome", id)
+            if getdfhome is not None:
+                home = loc
+                w = 1
+            else:
+                ini2 = self.DefaultLoc()
+                locc = ini2.GetSetting("DefaultLoc", str(r))
+                tp = self.Replace(locc)
+                home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
+                w = 3
+            self.addJob(Player, 2, w, home)
+        elif callback == 6:
+            try:
+                Player.Disconnect()
+            except:
+                pass
 
     def On_Command(self, Player, cmd, args):
         config = self.HomeConfig()
@@ -415,19 +381,21 @@ class HomeSystem:
                     loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                     if tpdelay == 0:
                         Player.SafeTeleportTo(loc)
+                        self.addJob(Player, 2, 6, loc)
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         Player.MessageFrom(self.homesystemname, "Teleported to home!")
                     else:
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
-                        self.addJob(id, tpdelay, loc, 2, plloc)
+                        self.addJob(Player, tpdelay, 2, loc)
                         Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
                         movec = int(config.GetSetting("Settings", "movecheck"))
                         dmg = int(config.GetSetting("Settings", "checkdamage"))
                         if movec == 1:
-                            Player.MessageFrom(self.homesystemname, "You can't move while teleporting.")
+                            Player.MessageFrom(self.homesystemname, red + "You can't move while teleporting.")
+                            self.Freezer(Player, 1)
                         if dmg == 1:
-                            Player.MessageFrom(self.homesystemname, "You can't take damage while teleporting.")
-
+                            Pending.append(Player)
+                            Player.MessageFrom(self.homesystemname, red + "You can't take damage while teleporting.")
                 else:
                     Player.Notice("You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
@@ -472,10 +440,8 @@ class HomeSystem:
                                 if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
                                     Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                     return
-                            #Note: I removed the home here if it was null
             if checkwall == 1:
-                type = Util.TryFindReturnType("StructureComponent")
-                objects = UnityEngine.Object.FindObjectsOfType(type)
+                objects = UnityEngine.Object.FindObjectsOfType(self.type)
                 for x in objects:
                     if "Wall" in x.name:
                         distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
@@ -594,9 +560,7 @@ class HomeSystem:
 
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None and Player is not None:
-            config = self.HomeConfig()
-            antihack = int(config.GetSetting("Settings", "Antihack"))
-            if antihack == 1:
+            if self.antihack == 1:
                 if Entity.Name == "SleepingBagA":
                     inventory = Player.Inventory
                     Player.MessageFrom(self.homesystemname, "Sleeping bags are banned from this server!")
@@ -617,30 +581,31 @@ class HomeSystem:
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
-            config = self.HomeConfig()
-            checkdamage = int(config.GetSetting("Settings", "checkdamage"))
-            if checkdamage == 0:
+            if self.checkdamage == 0:
                 return
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is not None:
                 vid = self.TrytoGrabID(HurtEvent.Victim)
-                if self.isInjob(vid):
-                    self.killJob(vid)
+                #todo: Fix
+                if HurtEvent.Victim in Pending:
+                    Pending.remove(HurtEvent.Victim)
+                    if self.movec == 1:
+                        self.Freezer(HurtEvent.Victim, 2)
                     HurtEvent.Victim.MessageFrom(self.homesystemname, "Teleportation Cancelled. You received damage.")
                     DataStore.Remove("home_cooldown", vid)
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            DataStore.Remove("homey", DeathEvent.Victim.SteamID)
+            if self.antiroof == 1:
+                DataStore.Remove("homey", DeathEvent.Victim.SteamID)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         id = Player.SteamID
-        config = self.HomeConfig()
-        antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         camp = SpawnEvent.CampUsed
-        if antiroof == 1 and not camp:
-            self.addJob(id, 2, None, 4)
+        if self.antiroof == 1 and not camp:
+            self.addJob(Player, 2, 4, None)
         if camp:
+            config = self.HomeConfig()
             cooldown = config.GetSetting("Settings", "Cooldown")
             time = DataStore.Get("home_cooldown", id)
             if time is None:
@@ -656,9 +621,9 @@ class HomeSystem:
                     home = self.HomeOf(Player, check)
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.SafeTeleportTo(home)
-                    if antiroof == 1:
+                    if self.antiroof == 1:
                         DataStore.Add("homey", id, float(home[1]))
-                        self.addJob(id, 2, None, 4)
+                        self.addJob(Player, 2, 4, home)
                     Player.MessageFrom(self.homesystemname, "Spawned at home!")
 
     def On_PlayerConnected(self, Player):
@@ -672,11 +637,11 @@ class HomeSystem:
         jtime = DataStore.Get("home_joincooldown", id)
         if self.sendhome == 1:
             if jtime is None:
-                self.addJob(id, self.jointpdelay, None, 5)
+                self.addJob(Player, self.jointpdelay, 5, None)
                 return
             if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
                 DataStore.Remove("home_joincooldown", id)
-                self.addJob(id, self.jointpdelay, None, 5)
+                self.addJob(Player, self.jointpdelay, 5, None)
                 return
         if self.ecooldown == 1:
             calc = int(System.Environment.TickCount - (jtime + (self.cooldown * 1000)))
@@ -689,13 +654,11 @@ class HomeSystem:
             elif System.Environment.TickCount > jtime + (self.cooldown * 1000):
                 DataStore.Remove("home_joincooldown", id)
                 if self.sendhome == 1:
-                    self.addJob(id, self.jointpdelay, None, 5)
+                    self.addJob(Player, self.jointpdelay, 5, None)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
-        config = self.HomeConfig()
-        antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
-        if antiroof == 1:
+        if self.antiroof == 1:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("homey", id, Player.Y)
         if self.ecooldown == 1:
