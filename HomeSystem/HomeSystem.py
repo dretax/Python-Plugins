@@ -213,6 +213,7 @@ class HomeSystem:
 
     def Freezer(self, Player, num):
         if num == 1:
+            Player.SendCommand("input.bind Up 7 None")
             Player.SendCommand("input.bind Down 7 None")
             Player.SendCommand("input.bind Left 7 None")
             Player.SendCommand("input.bind Right 7 None")
@@ -243,15 +244,7 @@ class HomeSystem:
         List["Player"] = Player
         List["Call"] = callbacknumber
         List["house"] = location
-        Plugin.CreateParallelTimer("JobTimer", xtime * 1000, List)
-
-    def getPlayer(self, d):
-        try:
-            id = str(d)
-            pl = Server.FindPlayer(id)
-            return pl
-        except:
-            return None
+        Plugin.CreateParallelTimer("JobTimer", xtime * 1000, List).Start()
 
     def clearTimers(self):
         Plugin.KillParallelTimer("JobTimer")
@@ -266,6 +259,8 @@ class HomeSystem:
         config = self.HomeConfig()
         List = timer.Args
         Player = List["Player"]
+        if Player not in Server.Players:
+            return
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -377,11 +372,12 @@ class HomeSystem:
                     loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                     if tpdelay == 0:
                         Player.SafeTeleportTo(loc)
-                        self.addJob(Player, 2, 6, loc)
+                        self.addJob(Player, 2, 2, loc)
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         Player.MessageFrom(self.homesystemname, "Teleported to home!")
                     else:
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                        Pending.append(Player)
                         self.addJob(Player, tpdelay, 2, loc)
                         Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
                         movec = int(config.GetSetting("Settings", "movecheck"))
@@ -390,7 +386,6 @@ class HomeSystem:
                             Player.MessageFrom(self.homesystemname, red + "You can't move while teleporting.")
                             self.Freezer(Player, 1)
                         if dmg == 1:
-                            Pending.append(Player)
                             Player.MessageFrom(self.homesystemname, red + "You can't take damage while teleporting.")
                 else:
                     Player.Notice("You have to wait before teleporting again!")
@@ -651,6 +646,7 @@ class HomeSystem:
                 DataStore.Remove("home_joincooldown", id)
                 if self.sendhome == 1:
                     self.addJob(Player, self.jointpdelay, 5, None)
+        self.Freezer(Player, 2)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
@@ -660,4 +656,5 @@ class HomeSystem:
         if self.ecooldown == 1:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
+        Pending.remove(Player)
         DataStore.Add("homesystemautoban", id, "none")
