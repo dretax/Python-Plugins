@@ -668,6 +668,8 @@ class HomeSystem:
                         DataStore.Remove("HomeHit", id)
                         vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y + 3), float(HurtEvent.Entity.Z))
                         self.SaveHome(HurtEvent.Attacker, name, vec)
+                    else:
+                        HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "You are not whitelisted for this foundation!")
                 else:
                     HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
 
