@@ -60,10 +60,6 @@ class HomeSystem:
         str = re.sub('[(\)]', '', String)
         return str.split(',')
 
-    def ReplaceToDot(self, String):
-        str = re.sub('[(\)]', '', String)
-        return str.split(':')
-
     def HomeConfig(self):
         if not Plugin.IniExists("HomeConfig"):
             homes = Plugin.CreateIni("HomeConfig")
@@ -423,6 +419,7 @@ class HomeSystem:
             if check is not None:
                 Player.MessageFrom(self.homesystemname, "You already have a home called like that!")
                 return
+            #Todo: How about foundation checks instead?
             checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
             checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
             if checkforit == 1:
