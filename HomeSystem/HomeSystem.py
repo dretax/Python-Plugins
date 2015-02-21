@@ -259,7 +259,7 @@ class HomeSystem:
         config = self.HomeConfig()
         List = timer.Args
         Player = List["Player"]
-        if Player not in Server.Players:
+        if Player not in Server.Players or Player not in Pending:
             return
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -352,6 +352,7 @@ class HomeSystem:
                 Player.MessageFrom(self.homesystemname, "/addfriendh name - Adds Player To Distance Whitelist")
                 Player.MessageFrom(self.homesystemname, "/delfriendh name - Removes Player From Distance Whitelist")
                 Player.MessageFrom(self.homesystemname, "/listwlh - List Players On Distance Whitelist")
+                Player.MessageFrom(self.homesystemname, "/hcancel - Cancels Home Teleportation")
             else:
                 home = str(args[0])
                 check = self.HomeOf(Player, home)
@@ -549,6 +550,15 @@ class HomeSystem:
             for playerid in players:
                 nameof = ini.GetSetting(id, playerid)
                 Player.MessageFrom(self.homesystemname, "- " + nameof)
+        elif cmd == "hcancel":
+            if Player not in Pending:
+                Player.MessageFrom(self.homesystemname, "You are not teleporting.")
+                return
+            if self.movec == 1:
+                self.Freezer(Player, 2)
+            Pending.remove(Player)
+            Player.MessageFrom(self.homesystemname, "Teleportation Cancelled!")
+
 
     def On_EntityDeployed(self, Player, Entity):
         if Entity is not None and Player is not None:
@@ -577,7 +587,7 @@ class HomeSystem:
                 return
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is not None:
-                vid = self.TrytoGrabID(HurtEvent.Victim)
+                vid = HurtEvent.Victim.SteamID
                 if HurtEvent.Victim in Pending:
                     Pending.remove(HurtEvent.Victim)
                     if self.movec == 1:
@@ -589,6 +599,8 @@ class HomeSystem:
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
             if self.antiroof == 1:
                 DataStore.Remove("homey", DeathEvent.Victim.SteamID)
+            if DeathEvent.Victim in Pending:
+                Pending.remove(DeathEvent.Victim)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         id = Player.SteamID
