@@ -664,7 +664,7 @@ class HomeSystem:
                 HurtEvent.DamageAmount = 0
                 name = DataStore.Get("HomeHit", id)
                 if "Ceiling" in HurtEvent.Entity.Name or "Foundation" in HurtEvent.Entity.Name:
-                    if self.FriendOf(id, HurtEvent.Entity.OwnerID):
+                    if self.FriendOf(HurtEvent.Entity.OwnerID, id):
                         DataStore.Remove("HomeHit", id)
                         vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y + 3), float(HurtEvent.Entity.Z))
                         self.SaveHome(HurtEvent.Attacker, name, vec)
