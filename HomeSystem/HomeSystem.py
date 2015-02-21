@@ -33,6 +33,7 @@ class HomeSystem:
     antiroof = None
     type = None
     movec = None
+    found = None
 
     def On_PluginInit(self):
         DataStore.Flush("home_joincooldown")
@@ -50,6 +51,7 @@ class HomeSystem:
         self.antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         self.type = Util.TryFindReturnType("StructureComponent")
         self.movec = int(config.GetSetting("Settings", "movecheck"))
+        self.found = bool(config.GetSetting("Settings", "foundationhome"))
         Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     """
@@ -211,7 +213,7 @@ class HomeSystem:
             Player.MessageFrom(self.homesystemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
-    def Freezer(self, Player, num):
+    def Freezer(self, Player, num, msg=True):
         if num == 1:
             Player.SendCommand("input.bind Up 7 None")
             Player.SendCommand("input.bind Down 7 None")
@@ -223,7 +225,8 @@ class HomeSystem:
             Player.SendCommand("input.bind Jump 7 None")
             Player.SendCommand("input.bind Fire 7 None")
             Player.SendCommand("input.bind AtlFire 7 None")
-            Player.MessageFrom(self.homesystemname, red + "You froze!")
+            if msg:
+                Player.MessageFrom(self.homesystemname, red + "You froze!")
         else:
             Player.SendCommand("input.bind Up W UpArrow")
             Player.SendCommand("input.bind Down S DownArrow")
@@ -233,7 +236,8 @@ class HomeSystem:
             Player.SendCommand("input.bind Duck LeftControl RightControl")
             Player.SendCommand("input.bind Jump Space None")
             Player.SendCommand("input.bind Fire Mouse0 None")
-            Player.MessageFrom(self.homesystemname, red + "You are now free!")
+            if msg:
+                Player.MessageFrom(self.homesystemname, red + "You are now free!")
 
     """
         Timer Functions
@@ -307,9 +311,9 @@ class HomeSystem:
                 home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                 Player.TeleportTo(home)
                 Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
+                Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " + Player.IP + " - " + str(Player.Location))
                 DataStore.Remove("homey", id)
                 self.addJob(Player, 2, 6, None)
-                DataStore.Remove("homey", id)
                 # Handles those players who joined after X seconds. Dizzy hack bypasser.
         elif callback == 5:
             randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
@@ -332,6 +336,52 @@ class HomeSystem:
                 Player.Disconnect()
             except:
                 pass
+
+    def Check(self, Player, plloc):
+        config = self.HomeConfig()
+        ini = self.Homes()
+        checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
+        checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
+        if checkforit == 1:
+            checkdist = ini.EnumSection("HomeNames")
+            counted = len(checkdist)
+            maxdist = int(config.GetSetting("Settings", "Distance"))
+            if counted > 0:
+                for idof in checkdist:
+                    homes = self.GetListofHomes(idof)
+                    for i in xrange(0, len(homes)):
+                        check = self.HomeOfID(idof, homes[i])
+                        if check is not None:
+                            vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
+                            dist = Util.GetVectorsDistance(vector, plloc)
+                            if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
+                                Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
+                                return False
+        if checkwall == 1:
+            objects = UnityEngine.Object.FindObjectsOfType(self.type)
+            for x in objects:
+                if "Wall" in x.name:
+                    distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
+                    if distance <= 1.50:
+                        Player.MessageFrom(self.homesystemname, "You can't set home near walls!")
+                        return False
+        return True
+
+    def SaveHome(self, Player, home, loc):
+        ini = self.Homes()
+        homes = ini.GetSetting("HomeNames", id)
+        if homes is not None and "," in homes:
+            n = homes + "" + home + ","
+            ini.AddSetting(id, home, str(loc))
+            ini.AddSetting("HomeNames", id, n)
+            ini.Save()
+            Player.MessageFrom(self.homesystemname, "Home Saved")
+            return
+        n = home + ","
+        ini.AddSetting(id, home, str(loc))
+        ini.AddSetting("HomeNames", id, n)
+        ini.Save()
+        Player.MessageFrom(self.homesystemname, "Home Saved")
 
     def On_Command(self, Player, cmd, args):
         config = self.HomeConfig()
@@ -415,45 +465,14 @@ class HomeSystem:
             if check is not None:
                 Player.MessageFrom(self.homesystemname, "You already have a home called like that!")
                 return
-            #Todo: How about foundation checks instead?
-            checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
-            checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
-            if checkforit == 1:
-                checkdist = ini.EnumSection("HomeNames")
-                counted = len(checkdist)
-                maxdist = int(config.GetSetting("Settings", "Distance"))
-                if counted > 0:
-                    for idof in checkdist:
-                        homes = self.GetListofHomes(idof)
-                        for i in xrange(0, len(homes)):
-                            check = self.HomeOfID(idof, homes[i])
-                            if check is not None:
-                                vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
-                                dist = Util.GetVectorsDistance(vector, plloc)
-                                if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
-                                    Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
-                                    return
-            if checkwall == 1:
-                objects = UnityEngine.Object.FindObjectsOfType(self.type)
-                for x in objects:
-                    if "Wall" in x.name:
-                        distance = round(Util.GetVectorsDistance(x.gameObject.transform.position, plloc), 2)
-                        if distance <= 1.50:
-                            Player.MessageFrom(self.homesystemname, "You can't set home near walls!")
-                            return
-            homes = ini.GetSetting("HomeNames", id)
-            if homes is not None and "," in homes:
-                n = homes + "" + home + ","
-                ini.AddSetting(id, home, str(plloc))
-                ini.AddSetting("HomeNames", id, n)
-                ini.Save()
-                Player.MessageFrom(self.homesystemname, "Home Saved")
-                return
-            n = home + ","
-            ini.AddSetting(id, home, str(plloc))
-            ini.AddSetting("HomeNames", id, n)
-            ini.Save()
-            Player.MessageFrom(self.homesystemname, "Home Saved")
+            if not self.found:
+                s = self.Check(Player, plloc)
+                if not s:
+                    return
+                self.SaveHome(Player, home, plloc)
+            else:
+                DataStore.Add("HomeHit", id, home)
+                Player.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
         elif cmd == "setdefaulthome":
             if len(args) != 1:
                 Player.MessageFrom(self.homesystemname, "Usage: /setdefaulthome name")
@@ -510,7 +529,7 @@ class HomeSystem:
             if len(args) == 0:
                 Player.MessageFrom(self.homesystemname, "Usage: /addfriendh playername")
                 return
-            playerr = self.CheckV(Player, args[0])
+            playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
             if playerr == Player:
@@ -586,8 +605,8 @@ class HomeSystem:
             if self.checkdamage == 0:
                 return
             id = self.TrytoGrabID(HurtEvent.Attacker)
-            if id is not None:
-                vid = HurtEvent.Victim.SteamID
+            vid = self.TrytoGrabID(HurtEvent.Victim)
+            if id is not None and vid is not None:
                 if HurtEvent.Victim in Pending:
                     Pending.remove(HurtEvent.Victim)
                     if self.movec == 1:
@@ -597,8 +616,11 @@ class HomeSystem:
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
+            vid = self.TrytoGrabID(DeathEvent.Victim.SteamID)
+            if vid is None:
+                return
             if self.antiroof == 1:
-                DataStore.Remove("homey", DeathEvent.Victim.SteamID)
+                DataStore.Remove("homey", vid)
             if DeathEvent.Victim in Pending:
                 Pending.remove(DeathEvent.Victim)
 
@@ -629,6 +651,21 @@ class HomeSystem:
                         self.addJob(Player, 2, 4, home)
                     Player.MessageFrom(self.homesystemname, "Spawned at home!")
 
+    def On_EntityHurt(self, HurtEvent):
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
+            id = self.TrytoGrabID(HurtEvent.Attacker)
+            if id is None:
+                return
+            if DataStore.ContainsKey("HomeHit", id):
+                HurtEvent.DamageAmount = 0
+                if "Ceiling" in HurtEvent.Entity.Name or "Foundation" in HurtEvent.Entity.Name:
+                    if self.FriendOf(id, HurtEvent.Entity.OwnerID):
+                        DataStore.Remove("HomeHit", id)
+                        vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y + 3), float(HurtEvent.Entity.Z))
+                        self.SaveHome(HurtEvent.Attacker, DataStore.Get("HomeHit", id), vec)
+                else:
+                    HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
+
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
         if id is None:
@@ -658,7 +695,7 @@ class HomeSystem:
                 DataStore.Remove("home_joincooldown", id)
                 if self.sendhome == 1:
                     self.addJob(Player, self.jointpdelay, 5, None)
-        self.Freezer(Player, 2)
+        self.Freezer(Player, 2, False)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
@@ -668,5 +705,6 @@ class HomeSystem:
         if self.ecooldown == 1:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
-        Pending.remove(Player)
+        if Player in Pending:
+            Pending.remove(Player)
         DataStore.Add("homesystemautoban", id, "none")
