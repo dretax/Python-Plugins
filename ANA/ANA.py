@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.5.1'
+__version__ = '1.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -9,6 +9,7 @@ import re
 
 RandNames = []
 Names = []
+Restricted = []
 
 class ANA:
 
@@ -21,6 +22,11 @@ class ANA:
         self.a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
         self.m = int(ini.GetSetting("Settings", "DontRenameMods"))
         self.maxl = int(ini.GetSetting("Settings", "NameLength"))
+        enum = ini.EnumSection("Restrict")
+        for checkn in enum:
+            get = ini.GetSetting("Restrict", checkn)
+            get = get.lower()
+            Restricted.append(get)
         Util.ConsoleLog("Anti Non ASCII by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def TrytoGrabID(self, Player):
@@ -60,19 +66,7 @@ class ANA:
             return True
         return False
 
-    def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
-        ini = self.ANA()
-        if Player.Admin and self.a == 1:
-            return
-        if self.isMod(id) and self.m == 1:
-            return
+    def Rename(self, Player):
         name = Player.Name
         name = self.CutName(name)
         name = re.sub(' +',' ', name)
@@ -91,14 +85,8 @@ class ANA:
         n = len(name)
         if n > self.maxl:
             n = 1
-        enum = ini.EnumSection("Restrict")
-        for checkn in enum:
-            get = ini.GetSetting("Restrict", checkn)
-            lowername = name.lower()
-            lowercheck = get.lower()
-            if lowercheck in lowername:
-                n = 1
-                break
+        if name.lower() in str(Restricted):
+            n = 1
         if name in Names:
             n = 1
         if n <= 1:
@@ -107,6 +95,25 @@ class ANA:
             name = name + str(rand)
         Player.Name = name
         Names.append(name)
+
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        if DataStore.ContainsKey("ANA", Player.SteamID):
+            DataStore.Remove("ANA", Player.SteamID)
+            self.Rename(Player)
+
+    def On_PlayerConnected(self, Player):
+        id = self.TrytoGrabID(Player)
+        if id is None:
+            try:
+                Player.Disconnect()
+            except:
+                pass
+            return
+        if Player.Admin and self.a == 1:
+            return
+        if self.isMod(id) and self.m == 1:
+            return
+        DataStore.Add("ANA", id, True)
 
     def On_PlayerDisconnected(self, Player):
         id = self.TrytoGrabID(Player)
