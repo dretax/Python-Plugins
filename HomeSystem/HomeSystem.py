@@ -75,6 +75,8 @@ class HomeSystem:
         return Plugin.GetIni("Homes")
 
     def FriendOf(self, id, selfid):
+        if selfid == id:
+            return True
         ini = self.Wl()
         check = ini.GetSetting(id, selfid)
         if check is not None:
@@ -340,6 +342,7 @@ class HomeSystem:
     def Check(self, Player, plloc):
         config = self.HomeConfig()
         ini = self.Homes()
+        id = Player.SteamID
         checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
         checkwall = int(config.GetSetting("Settings", "CheckCloseWall"))
         if checkforit == 1:
@@ -354,7 +357,7 @@ class HomeSystem:
                         if check is not None:
                             vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                             dist = Util.GetVectorsDistance(vector, plloc)
-                            if dist <= maxdist and not self.FriendOf(idof, id) and long(idof) != long(id):
+                            if dist <= maxdist and not self.FriendOf(idof, id):
                                 Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
                                 return False
         if checkwall == 1:
@@ -369,6 +372,7 @@ class HomeSystem:
 
     def SaveHome(self, Player, home, loc):
         ini = self.Homes()
+        id = Player.SteamID
         homes = ini.GetSetting("HomeNames", id)
         if homes is not None and "," in homes:
             n = homes + "" + home + ","
@@ -658,11 +662,12 @@ class HomeSystem:
                 return
             if DataStore.ContainsKey("HomeHit", id):
                 HurtEvent.DamageAmount = 0
+                name = DataStore.Get("HomeHit", id)
                 if "Ceiling" in HurtEvent.Entity.Name or "Foundation" in HurtEvent.Entity.Name:
                     if self.FriendOf(id, HurtEvent.Entity.OwnerID):
                         DataStore.Remove("HomeHit", id)
                         vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y + 3), float(HurtEvent.Entity.Z))
-                        self.SaveHome(HurtEvent.Attacker, DataStore.Get("HomeHit", id), vec)
+                        self.SaveHome(HurtEvent.Attacker, name, vec)
                 else:
                     HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
 
