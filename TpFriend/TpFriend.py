@@ -289,7 +289,7 @@ class TpFriend:
                     DataStore.Add("tpfriendpending2", idt, id)
                     self.KillJob(Player)
                     self.KillJob(playertor)
-                    self.addJob(stuff, id, idt, 2)
+                    self.addJob(stuff, Player, playertor, 2, id, idt)
                 else:
                     Player.MessageFrom(self.sys, "You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
@@ -318,7 +318,7 @@ class TpFriend:
                     idt = playerfromm.SteamID
                     if tpdelayy > 0:
                         playerfromm.MessageFrom(self.sys, "Teleporting you in: " + str(tpdelayy) + " second(s)")
-                        self.addJob(tpdelayy, idt, id, 1)
+                        self.addJob(tpdelayy, playerfromm, Player, 1, idt, id)
 
                     else:
                         DataStore.Add("tpfriendautoban", idt, "using")
@@ -326,7 +326,7 @@ class TpFriend:
                         playerfromm.TeleportTo(Player.Location)
                         playerfromm.MessageFrom(self.sys, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
-                        self.addJob(check, idt, id, 3)
+                        self.addJob(check, playerfromm, Player, 3, idt, id)
 
                     DataStore.Remove("tpfriendpending", idt)
                     DataStore.Remove("tpfriendpending2", id)
