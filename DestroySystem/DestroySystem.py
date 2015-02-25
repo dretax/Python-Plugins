@@ -110,7 +110,7 @@ class DestroySystem:
 
     def IsFriend(self, id, tid):
         ini = self.Foundation()
-        if ini.GetSetting(id, tid) is not None:
+        if ini.GetSetting(str(id), str(tid)) is not None:
             return True
         return False
 
@@ -142,6 +142,9 @@ class DestroySystem:
             for id in enum:
                 Player.Message("- " + ini.GetSetting(Player.SteamID, id))
         elif cmd == "delfoundation":
+            if len(args) == 0:
+                Player.Message("Usage: /delfoundation name")
+                return
             enum = ini.EnumSection(Player.SteamID)
             text = self.argsToText(args)
             for id in enum:
