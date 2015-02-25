@@ -15,7 +15,7 @@ class NavMeshRunner:
     def On_PluginInit(self):
         self.char = Util.TryFindReturnType("Character")
         self.dmg = Util.TryFindReturnType("DamageEvent")
-        Plugin.CreateTimer("KillThem", 120000).Start()
+        Plugin.CreateTimer("KillThem", 300000).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -40,13 +40,10 @@ class NavMeshRunner:
                 number += 1
         return number
 
-    def KillThemCallback(self):
-        timer = Plugin.GetTimer("KillThem")
-        if timer is not None:
-            timer.Stop()
-            Plugin.Timers.Remove("KillThem")
+    def KillThemCallback(self, timer):
+        timer.Kill()
         self.Kill()
-        Plugin.CreateTimer("KillThem", 120000).Start()
+        Plugin.CreateTimer("KillThem", 300000).Start()
 
     def On_Command(self, Player, cmd, args):
         if cmd == "navmeshcheck":
