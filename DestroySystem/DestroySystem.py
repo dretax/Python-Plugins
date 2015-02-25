@@ -136,6 +136,7 @@ class DestroySystem:
                 return
             ini.AddSetting(Player.SteamID, playerr.SteamID, playerr.Name)
             ini.Save()
+            Player.Message("Sharing Foundations with: " + playerr.Name)
         elif cmd == "lfoundation":
             enum = ini.EnumSection(Player.SteamID)
             Player.Message("Foundation List:")
