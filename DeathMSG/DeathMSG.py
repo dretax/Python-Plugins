@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.2'
+__version__ = '3.5.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -41,7 +41,7 @@ class DeathMSG:
     def On_Command(self, Player, cmd, args):
         if cmd == "uautoban":
             if len(args) == 0:
-                Player.Message("---DeathMSG 3.5.1---")
+                Player.Message("---DeathMSG 3.5.3---")
                 Player.Message("/uautoban name - Unbans player")
             else:
                 config = self.DeathMSGConfig()
@@ -141,7 +141,7 @@ class DeathMSG:
                 if kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
             elif bleed == "Melee":
-                if weapon == "Hunting Bow":
+                if weapon == "Hunting Bow" and damage == 75:
                     hn = config.GetSetting("Settings", "huntingbow")
                     hn = hn.replace("victim", victim)
                     hn = hn.replace("killer", killer)
