@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -32,11 +32,18 @@ class SpikeDamage:
             return True
         return False
 
+    def TrytoGrabID(self, Player):
+        try:
+            id = Player.SteamID
+            return id
+        except:
+            return None
+
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        V4.1
     """
 
     def GetPlayerName(self, namee):
@@ -67,7 +74,7 @@ class SpikeDamage:
             p = self.GetPlayerName(nargs)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
+            for pl in Server.Players:
                 if nargs in pl.Name.lower():
                     p = pl
                     count += 1
@@ -83,6 +90,8 @@ class SpikeDamage:
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
+            if self.TrytoGrabID(HurtEvent.Attacker) is None:
+                return
             if HurtEvent.Attacker.SteamID == HurtEvent.Victim.SteamID:
                 damage = HurtEvent.DamageAmount
                 if damage == 10 or damage == 15:
