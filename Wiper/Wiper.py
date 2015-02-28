@@ -189,7 +189,7 @@ class Wiper:
                     if "barricade" in ent.Name.lower():
                         ent.Destroy()
                         c += 1
-                Player.MessageFrom("Wiper", "Wiped " + c + " barricades.")
+                Player.MessageFrom("Wiper", "Wiped " + str(c) + " barricades.")
         elif cmd == "wipecampf":
             if Player.Admin or self.isMod(id):
                 c = 0
@@ -197,4 +197,4 @@ class Wiper:
                     if "camp" in ent.Name.lower():
                         ent.Destroy()
                         c += 1
-                Player.MessageFrom("Wiper", "Wiped " + c + " barricades.")
+                Player.MessageFrom("Wiper", "Wiped " + str(c) + " barricades.")
