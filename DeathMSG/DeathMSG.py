@@ -65,14 +65,16 @@ class DeathMSG:
                 ini.Save()
                 Player.MessageFrom(deathmsgname, "Player " + pl + " unbanned!")
         elif cmd == "autobantobanip":
+            config = self.DeathMSGConfig()
+            deathmsgname = config.GetSetting("Settings", "deathmsgname")
             if not Player.Admin and not self.isMod(Player.SteamID):
-                Player.Message("You aren't an admin!")
+                Player.MessageFrom(deathmsgname, "You aren't an admin!")
                 return
             if self.bannedpeople:
                 Player.Messgae("Converting DeathMSG DataBase to BannedPeople...")
                 ini = Plugin.GetIni("BannedPeopleDM")
                 if ini is None:
-                    Player.Messgae("DeathMSG DataBase doesn't exist..")
+                    Player.MessageFrom(deathmsgname, "DeathMSG DataBase doesn't exist..")
                     return
                 bini = self.method()
                 ips = ini.EnumSection("Ips")
@@ -102,7 +104,7 @@ class DeathMSG:
                     ini.DeleteSetting("Logistical", logist)
                 bini.Save()
                 ini.Save()
-                Player.Messgae("Complete!")
+                Player.MessageFrom(deathmsgname, "Complete!")
                 return
             Player.Message("BannedPeople Support isn't enabled.")
 
