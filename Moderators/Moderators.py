@@ -130,3 +130,4 @@ class Moderators:
         elif cmd == "modflush":
             if Player.Admin:
                 self.AddIdsToDS()
+                Player.Message("Flushed!")
