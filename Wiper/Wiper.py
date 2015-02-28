@@ -150,11 +150,11 @@ class Wiper:
         if cmd == "wipehelp":
             if Player.Admin or self.isMod(id):
                 Player.MessageFrom("Wiper", "Wiper Commands:")
-                Player.MessageFrom("Wiper", "/wipecheck")
-                Player.MessageFrom("Wiper", "/wipetimerreset")
-                Player.MessageFrom("Wiper", "/wipeid")
-                Player.MessageFrom("Wiper", "/wipebarr")
-                Player.MessageFrom("Wiper", "/wipecampf")
+                Player.MessageFrom("Wiper", "/wipecheck - Checks for inactive objects")
+                Player.MessageFrom("Wiper", "/wipetimerreset - Restarts the timer.")
+                Player.MessageFrom("Wiper", "/wipeid playerid - Wipes All the objects of the ID")
+                Player.MessageFrom("Wiper", "/wipebarr - Deletes all barricaes")
+                Player.MessageFrom("Wiper", "/wipecampf - Deletes all camp fires")
         elif cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
                 ini = self.GetIni()
