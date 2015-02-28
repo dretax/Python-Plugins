@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.5'
+__version__ = '2.5.6'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -224,9 +224,7 @@ class HomeSystem:
             Player.SendCommand("input.bind Sprint 7 None")
             Player.SendCommand("input.bind Duck 7 None")
             Player.SendCommand("input.bind Jump 7 None")
-            Player.SendCommand("input.bind Jump 7 None")
             Player.SendCommand("input.bind Fire 7 None")
-            Player.SendCommand("input.bind AtlFire 7 None")
             if msg:
                 Player.MessageFrom(self.homesystemname, red + "You froze!")
         else:
