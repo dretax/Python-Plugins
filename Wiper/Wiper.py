@@ -147,7 +147,15 @@ class Wiper:
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
-        if cmd == "wipecheck":
+        if cmd == "wipehelp":
+            if Player.Admin or self.isMod(id):
+                Player.MessageFrom("Wiper", "Wiper Commands:")
+                Player.MessageFrom("Wiper", "/wipecheck")
+                Player.MessageFrom("Wiper", "/wipetimerreset")
+                Player.MessageFrom("Wiper", "/wipeid")
+                Player.MessageFrom("Wiper", "/wipebarr")
+                Player.MessageFrom("Wiper", "/wipecampf")
+        elif cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
                 ini = self.GetIni()
                 Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
@@ -176,6 +184,17 @@ class Wiper:
                 Player.MessageFrom("Wiper", "Wiped " + str(num) + " objects!")
         elif cmd == "wipebarr":
             if Player.Admin or self.isMod(id):
+                c = 0
                 for ent in World.Entities:
-                    if "Barricade" in ent.Name:
+                    if "barricade" in ent.Name.lower():
                         ent.Destroy()
+                        c += 1
+                Player.MessageFrom("Wiper", "Wiped " + c + " barricades.")
+        elif cmd == "wipecampf":
+            if Player.Admin or self.isMod(id):
+                c = 0
+                for ent in World.Entities:
+                    if "camp" in ent.Name.lower():
+                        ent.Destroy()
+                        c += 1
+                Player.MessageFrom("Wiper", "Wiped " + c + " barricades.")
