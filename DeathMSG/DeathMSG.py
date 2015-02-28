@@ -65,6 +65,9 @@ class DeathMSG:
                 ini.Save()
                 Player.MessageFrom(deathmsgname, "Player " + pl + " unbanned!")
         elif cmd == "autobantobanip":
+            if not Player.Admin and not self.isMod(Player.SteamID):
+                Player.Message("You aren't an admin!")
+                return
             if self.bannedpeople:
                 Player.Messgae("Converting DeathMSG DataBase to BannedPeople...")
                 ini = Plugin.GetIni("BannedPeopleDM")
@@ -100,6 +103,8 @@ class DeathMSG:
                 bini.Save()
                 ini.Save()
                 Player.Messgae("Complete!")
+                return
+            Player.Message("BannedPeople Support isn't enabled.")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
