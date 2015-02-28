@@ -40,6 +40,7 @@ class Wiper:
         return String
 
     def On_ServerInit(self):
+        self.GetIni()
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped: " + str(n))
         Plugin.CreateTimer("Wipe", 3600000).Start()
@@ -173,3 +174,8 @@ class Wiper:
                 num = self.WipeByID(args[0])
                 Plugin.Log("Log", Player.Name + " wiped " + args[0] + "'s objects. Total: " + str(num))
                 Player.MessageFrom("Wiper", "Wiped " + str(num) + " objects!")
+        elif cmd == "wipebarr":
+            if Player.Admin or self.isMod(id):
+                for ent in World.Entities:
+                    if "Barricade" in ent.Name:
+                        ent.Destroy()
