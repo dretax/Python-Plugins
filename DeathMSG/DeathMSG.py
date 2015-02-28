@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.3'
+__version__ = '3.5.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -64,6 +64,42 @@ class DeathMSG:
                 ini.DeleteSetting("NameIds", id)
                 ini.Save()
                 Player.MessageFrom(deathmsgname, "Player " + pl + " unbanned!")
+        elif cmd == "autobantobanip":
+            if self.bannedpeople:
+                Player.Messgae("Converting DeathMSG DataBase to BannedPeople...")
+                ini = Plugin.GetIni("BannedPeopleDM")
+                if ini is None:
+                    Player.Messgae("DeathMSG DataBase doesn't exist..")
+                    return
+                bini = self.method()
+                ips = ini.EnumSection("Ips")
+                ids = ini.EnumSection("Ids")
+                nameips = ini.EnumSection("NameIps")
+                nameids = ini.EnumSection("NameIds")
+                logists = ini.EnumSection("Logistical")
+                for ip in ips:
+                    v = ini.GetSetting("Ips", ip)
+                    bini.AddSetting("Ips", ip, v)
+                    ini.DeleteSetting("Ips", ip)
+                for id in ids:
+                    v = ini.GetSetting("Ids", id)
+                    bini.AddSetting("Ids", id, v)
+                    ini.DeleteSetting("Ids", id)
+                for nameip in nameips:
+                    v = ini.GetSetting("NameIps", nameip)
+                    bini.AddSetting("NameIps", nameip, v)
+                    ini.DeleteSetting("NameIps", nameip)
+                for nameid in nameids:
+                    v = ini.GetSetting("NameIds", nameid)
+                    bini.AddSetting("NameIds", nameid, v)
+                    ini.DeleteSetting("NameIds", nameid)
+                for logist in logists:
+                    v = ini.GetSetting("Logistical", logist)
+                    bini.AddSetting("Logistical", logist, v)
+                    ini.DeleteSetting("Logistical", logist)
+                bini.Save()
+                ini.Save()
+                Player.Messgae("Complete!")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
