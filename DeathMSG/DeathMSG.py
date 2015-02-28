@@ -267,6 +267,8 @@ class DeathMSG:
             DataStore.Remove("DeathMSGBAN", id)
 
     def On_PlayerConnected(self, Player):
+        if self.bannedpeople:
+            return
         ini = self.DMB()
         id = self.TrytoGrabID(Player)
         if id is None:
