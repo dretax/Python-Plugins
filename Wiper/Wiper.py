@@ -197,4 +197,4 @@ class Wiper:
                     if "camp" in ent.Name.lower():
                         ent.Destroy()
                         c += 1
-                Player.MessageFrom("Wiper", "Wiped " + str(c) + " barricades.")
+                Player.MessageFrom("Wiper", "Wiped " + str(c) + " camp fires.")
