@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -29,7 +29,7 @@ class Moderators:
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        V4.1
     """
 
     def GetPlayerName(self, namee):
@@ -60,7 +60,7 @@ class Moderators:
             p = self.GetPlayerName(nargs)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
+            for pl in Server.Players:
                 if nargs in pl.Name.lower():
                     p = pl
                     count += 1
@@ -75,6 +75,7 @@ class Moderators:
             return None
 
     def On_PluginInit(self):
+        DataStore.Flush("Moderators")
         self.AddIdsToDS()
 
     def AddIdsToDS(self):
