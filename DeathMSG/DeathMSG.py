@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.4'
+__version__ = '3.5.4b'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -71,7 +71,7 @@ class DeathMSG:
                 Player.MessageFrom(deathmsgname, "You aren't an admin!")
                 return
             if self.bannedpeople:
-                Player.Messgae("Converting DeathMSG DataBase to BannedPeople...")
+                Player.MessageFrom(deathmsgname, "Converting DeathMSG DataBase to BannedPeople...")
                 ini = Plugin.GetIni("BannedPeopleDM")
                 if ini is None:
                     Player.MessageFrom(deathmsgname, "DeathMSG DataBase doesn't exist..")
@@ -106,7 +106,7 @@ class DeathMSG:
                 ini.Save()
                 Player.MessageFrom(deathmsgname, "Complete!")
                 return
-            Player.Message("BannedPeople Support isn't enabled.")
+            Player.MessageFrom(deathmsgname, "BannedPeople Support isn't enabled.")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
