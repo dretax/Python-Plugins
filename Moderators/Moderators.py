@@ -75,10 +75,10 @@ class Moderators:
             return None
 
     def On_PluginInit(self):
-        DataStore.Flush("Moderators")
         self.AddIdsToDS()
 
     def AddIdsToDS(self):
+        DataStore.Flush("Moderators")
         ini = self.ModeratorsIni()
         mods = ini.EnumSection("Moderators")
         for mod in mods:
@@ -127,3 +127,6 @@ class Moderators:
                 Player.Message("Current Moderators:")
                 for mod in mods:
                     Player.Message("- "+ str(mod))
+        elif cmd == "modflush":
+            if Player.Admin:
+                self.AddIdsToDS()
