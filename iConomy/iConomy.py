@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -82,11 +82,14 @@ class iConomy:
         list = []
         for x in xrange(0, n):
             if x % 2 != 0:
-                list.append(str(groups[x]))
+                list.append(str(groups[x]).strip('\\'))
         return list
 
-    def Shop(self):
-        return Plugin.GetIni("Shop")
+    def ShopIni(self):
+        if not Plugin.IniExists("ShopData"):
+            ini = Plugin.CreateIni("ShopData")
+            ini.Save()
+        return Plugin.GetIni("ShopData")
 
     def TrytoGrabID(self, Player):
         try:
@@ -240,7 +243,7 @@ class iConomy:
         DataStore.Add("iConomy", "DeathP2", str(self.__DeathPortion2__))
 
     def GetPrices(self, Player, args):
-        shop = self.Shop()
+        shop = self.ShopIni()
         Count = int(shop.GetSetting(args, "Count"))
         if Count >= 1:
             Player.MessageFrom(self.__Sys__, teal + args + ":")
@@ -251,48 +254,48 @@ class iConomy:
             Player.MessageFrom(self.__Sys__, "That category does not exist!")
 
     def BuyItem(self, Player, Item, Quantity):
-        shop = self.Shop()
+        shop = self.ShopIni()
         Money = self.GetMoney(Player.SteamID)
-        item = self.Item(Item)
-        price = shop.GetSetting("BuyPrices", item)
+        nitem = str(self.Item(Item.lower()))
+        price = shop.GetSetting("BuyPrices", nitem)
         qty = int(Quantity)
         if bool(shop.GetSetting("Settings", "Buy")):
-            if price:
+            if price and int(price) > 0:
                 pricesum = int(price) * qty
                 if pricesum <= Money:
-                    Player.Inventory.AddItem(item, qty)
+                    Player.Inventory.AddItem(nitem, qty)
                     self.TakeMoney(Player.SteamID, pricesum, Player)
-                    Player.MessageFrom(self.__Sys__, "You have bought " + str(qty) + " " + item + "(s).")
+                    Player.MessageFrom(self.__Sys__, "You have bought " + str(qty) + " " + nitem + "(s).")
                 else:
-                    Player.MessageFrom(self.__Sys__, "You do not have enough money to buy " + str(qty) + " " + item + "(s).")
+                    Player.MessageFrom(self.__Sys__, "You do not have enough money to buy " + str(qty) + " " + nitem + "(s).")
             else:
-                Player.MessageFrom(self.__Sys__, "You can't buy " + item + ".")
+                Player.MessageFrom(self.__Sys__, "You can't buy " + Item + ".")
                 Player.MessageFrom(self.__Sys__, "Contact an admin to see if it will be added later!")
         else:
             Player.MessageFrom(self.__Sys__, "Sorry, buying has been disabled.")
 
     def SellItem(self, Player, Item, Quantity):
-        shop = self.Shop()
-        item = self.Item(Item)
-        price = shop.GetSetting("SellPrices", item)
+        shop = self.ShopIni()
+        nitem = str(self.Item(Item.lower()))
+        price = shop.GetSetting("SellPrices", nitem)
         qty = int(Quantity)
         if bool(shop.GetSetting("Settings", "Sell")):
             if price and int(price) > 0:
                 salesum = int(price) * qty
-                if Player.Inventory.HasItem(item, qty):
-                    Player.Inventory.RemoveItem(item, qty)
+                if Player.Inventory.HasItem(nitem, qty):
+                    Player.Inventory.RemoveItem(nitem, qty)
                     self.GiveMoney(Player.SteamID, salesum)
-                    Player.MessageFrom(self.__Sys__, "You have sold " + str(qty) + " " + item + "(s).")
+                    Player.MessageFrom(self.__Sys__, "You have sold " + str(qty) + " " + nitem + "(s). for " + str(salesum) + self.__MoneyMark__)
                 else:
                     Player.MessageFrom(self.__Sys__, "You either don't have the item or the quantity wanted to sell. Try again.")
             else:
-                Player.MessageFrom(self.__Sys__, "You can't sell " + item + ".")
+                Player.MessageFrom(self.__Sys__, "You can't sell " + Item + ".")
                 Player.MessageFrom(self.__Sys__, "Contact an admin to see if it will be added later!")
         else:
            Player.MessageFrom(self.__Sys__, "Sorry, selling has been disabled.")
 
     def Item(self, i):
-        shop = self.Shop()
+        shop = self.ShopIni()
         newItem = shop.GetSetting("ItemNames", i)
         return newItem
 
@@ -395,7 +398,7 @@ class iConomy:
             if len(args) == 1:
                 self.GetPrices(Player, args[0])
                 return
-            shop = self.Shop()
+            shop = self.ShopIni()
             Player.MessageFrom(self.__Sys__, "Try: /price [List]")
             Player.MessageFrom(self.__Sys__, teal + "Lists:")
             Count = int(shop.GetSetting("Categories", "Count"))
@@ -418,7 +421,7 @@ class iConomy:
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            shop = self.Shop()
+            shop = self.ShopIni()
             if not bool(shop.GetSetting("Settings", "PlayerKills")):
                 return
             victim = str(DeathEvent.Victim.Name)
@@ -427,9 +430,6 @@ class iConomy:
             if id is None:
                 return
             if long(id) == long(vid):
-                return
-            shop = self.Shop()
-            if not bool(shop.GetSetting("Settings", "PlayerKills")):
                 return
             s = self.HandleMoney(id, vid)
             s = s.split(':')
@@ -444,7 +444,7 @@ class iConomy:
             aid = self.TrytoGrabID(DeathEvent.Attacker)
             if aid is None:
                 return
-            shop = self.Shop()
+            shop = self.ShopIni()
             if not bool(shop.GetSetting("Settings", "AnimalKills")):
                 return
             name = DeathEvent.Victim.Name.lower()
