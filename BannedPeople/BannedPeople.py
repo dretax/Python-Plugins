@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.1'
+__version__ = '1.4'
 
 import clr
 
@@ -234,15 +234,21 @@ class BannedPeople:
             except:
                 pass
             return
-        ip = str(Player.IP)
+        ip = Player.IP
         ini = self.BannedPeopleConfig()
         sysname = ini.GetSetting("Main", "Name")
         bannedreason = ini.GetSetting("Main", "BannedDrop")
         ini = self.BannedPeopleIni()
-        if ini.GetSetting("Ips", ip) == "1":
+        if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip):
+            if ini.GetSetting("Ids", id) is None:
+                ini.AddSetting("Ids", id, "Connected from a banned IP: " + ip)
+                ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
             return
-        if ini.GetSetting("Ids", id) == "1":
+        if ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id):
+            if ini.GetSetting("Ips", ip) is None:
+                ini.AddSetting("Ips", ip, "Connected from a banned ID " + id)
+                ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
