@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -13,6 +13,54 @@ import datetime
 IdsToWipe = []
 class Wiper:
 
+    # Woods
+    WoodFoundation = None
+    WoodDoorFrame = None
+    WoodPillar = None
+    WoodWall = None
+    WoodCeiling = None
+    WoodWindowFrame = None
+    WoodStairs = None
+    WoodRamp = None
+    WoodSpikeWall = None
+    LargeWoodSpikeWall = None
+    WoodBox = None
+    WoodBoxLarge = None
+    WoodGate = None
+    WoodGateway = None
+    WoodenDoor = None
+    Wood_Shelter = None
+    # Metals
+    MetalWall = None
+    MetalCeiling = None
+    MetalDoorFrame = None
+    MetalPillar = None
+    MetalFoundation = None
+    MetalStairs = None
+    MetalRamp = None
+    MetalWindowFrame = None
+    MetalDoor = None
+    MetalBarsWindow = None
+    # Other
+    SmallStash = None
+    Campfire = None
+    Furnace = None
+    Workbench = None
+    Barricade_Fence_Deployable = None
+    RepairBench = None
+    SleepingBagA = None
+    SingleBed = None
+
+
+    def On_PluginInit(self):
+        ini = self.GetIni()
+        n = self.LaunchCheck()
+        Plugin.Log("Log", "Wiped: " + str(n))
+        if bool(ini.GetSetting("Settings", "UseDayLimit")):
+            Plugin.CreateTimer("Wipe", 3600000).Start()
+        if bool(ini.GetSetting("Settings", "UseDecay")):
+            self.Assign()
+
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
             return True
@@ -25,10 +73,18 @@ class Wiper:
         except:
             return None
 
+    def Assign(self):
+        ini = Plugin.GetIni("Health")
+        self.WoodFoundation = float(ini.GetSetting("Damage", "WoodFoundation"))
+        #Todo: Assign the damage values, and run a timer that executes that damage.
+
     def GetIni(self):
         if not Plugin.IniExists("Settings"):
             ini = Plugin.CreateIni("Settings")
+            ini.AddSetting("Settings", "UseDayLimit", "True")
             ini.AddSetting("Settings", "MaxDays", "14")
+            ini.AddSetting("Settings", "UseDecay", "True")
+            ini.AddSetting("Settings", "DecayTimer", "180")
             ini.AddSetting("Settings", "Broadcast", "True")
             ini.Save()
         return Plugin.GetIni("Settings")
@@ -38,12 +94,6 @@ class Wiper:
             n = String.replace(String[0], '')
             return n
         return String
-
-    def On_ServerInit(self):
-        self.GetIni()
-        n = self.LaunchCheck()
-        Plugin.Log("Log", "Wiped: " + str(n))
-        Plugin.CreateTimer("Wipe", 3600000).Start()
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
