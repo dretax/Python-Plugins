@@ -225,6 +225,23 @@ class BannedPeople:
                 Player.MessageFrom(sysname, self.red + "Current Bans:")
                 for pl in checkdist:
                     Player.MessageFrom(sysname, str(pl))
+        elif cmd == "munbanip":
+            if Player.Admin or self.isMod(Player.SteamID):
+                ini = self.BannedPeopleConfig()
+                sysname = ini.GetSetting("Main", "Name")
+                if len(args) == 0:
+                    Player.MessageFrom(sysname, "Usage: /munbanip IDorIP")
+                    return
+                if ini.GetSetting("Ips", args[0]):
+                    ini.DeleteSetting("Ips", args[0])
+                    ini.Save()
+                    Player.MessageFrom(sysname, "Unbanned.")
+                elif ini.GetSetting("Ids", args[0]):
+                    ini.DeleteSetting("Ids", args[0])
+                    ini.Save()
+                    Player.MessageFrom(sysname, "Unbanned.")
+                else:
+                    Player.MessageFrom(sysname, "Couldn't find " + args[0])
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -241,14 +258,14 @@ class BannedPeople:
         ini = self.BannedPeopleIni()
         if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip):
             if ini.GetSetting("Ids", id) is None:
-                ini.AddSetting("Ids", id, "Connected from a banned IP: " + ip)
+                ini.AddSetting("Ids", id, Player.Name + "Connected from a banned IP: " + ip)
                 ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
             return
         if ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id):
             if ini.GetSetting("Ips", ip) is None:
-                ini.AddSetting("Ips", ip, "Connected from a banned ID " + id)
+                ini.AddSetting("Ips", ip, Player.Name + " Connected from a banned ID " + id)
                 ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
