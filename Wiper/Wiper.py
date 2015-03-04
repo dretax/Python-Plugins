@@ -24,12 +24,12 @@ class Wiper:
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped: " + str(n))
         num = ini.GetSetting("Settings", "DecayTimer")
-        self.DecayTimer = int(num)
+        self.DecayTimer = int(num) * 60000
         if bool(ini.GetSetting("Settings", "UseDayLimit")):
             Plugin.CreateTimer("Wipe", 3600000).Start()
         if bool(ini.GetSetting("Settings", "UseDecay")):
             self.Assign()
-            Plugin.CreateTimer("Decay", int(num)).Start()
+            Plugin.CreateTimer("Decay", int(self.DecayTimer)).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -178,13 +178,11 @@ class Wiper:
         return c
 
     def ForceDecay(self):
-        v = len(World.Entities)
         for Entity in World.Entities:
             v = EntityList.get(Entity.Name, None)
             if v is None:
                 continue
             Entity.Health = Entity.Health - v
-        return v - len(World.Entities)
 
     def WipeByID(self, id):
         c = 0
@@ -268,4 +266,4 @@ class Wiper:
             if Player.Admin or self.isMod(id):
                 Player.MessageFrom("Wiper", "Forcing Decay...")
                 n = self.ForceDecay()
-                Player.MessageFrom("Wiper", str(n) + " decayed...")
+                Player.MessageFrom("Wiper", "Force Decay Finished.")
