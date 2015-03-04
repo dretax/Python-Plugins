@@ -17,45 +17,7 @@ EntityList = {
 
 class Wiper:
 
-    # Woods
-    WoodFoundation = None
-    WoodDoorFrame = None
-    WoodPillar = None
-    WoodWall = None
-    WoodCeiling = None
-    WoodWindowFrame = None
-    WoodStairs = None
-    WoodRamp = None
-    WoodSpikeWall = None
-    LargeWoodSpikeWall = None
-    WoodBox = None
-    WoodBoxLarge = None
-    WoodGate = None
-    WoodGateway = None
-    WoodenDoor = None
-    Wood_Shelter = None
-    # Metals
-    MetalWall = None
-    MetalCeiling = None
-    MetalDoorFrame = None
-    MetalPillar = None
-    MetalFoundation = None
-    MetalStairs = None
-    MetalRamp = None
-    MetalWindowFrame = None
-    MetalDoor = None
-    MetalBarsWindow = None
-    # Other
-    SmallStash = None
-    Campfire = None
-    Furnace = None
-    Workbench = None
-    Barricade_Fence_Deployable = None
-    RepairBench = None
-    SleepingBagA = None
-    SingleBed = None
     DecayTimer = None
-
 
     def On_PluginInit(self):
         ini = self.GetIni()
