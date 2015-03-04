@@ -11,6 +11,10 @@ import datetime
     Class
 """
 IdsToWipe = []
+EntityList = {
+
+}
+
 class Wiper:
 
     # Woods
@@ -50,16 +54,20 @@ class Wiper:
     RepairBench = None
     SleepingBagA = None
     SingleBed = None
+    DecayTimer = None
 
 
     def On_PluginInit(self):
         ini = self.GetIni()
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped: " + str(n))
+        num = ini.GetSetting("Settings", "DecayTimer")
+        self.DecayTimer = int(num)
         if bool(ini.GetSetting("Settings", "UseDayLimit")):
             Plugin.CreateTimer("Wipe", 3600000).Start()
         if bool(ini.GetSetting("Settings", "UseDecay")):
             self.Assign()
+            Plugin.CreateTimer("Decay", int(num)).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -75,8 +83,40 @@ class Wiper:
 
     def Assign(self):
         ini = Plugin.GetIni("Health")
-        self.WoodFoundation = float(ini.GetSetting("Damage", "WoodFoundation"))
-        #Todo: Assign the damage values, and run a timer that executes that damage.
+        EntityList['WoodFoundation'] = float(ini.GetSetting("Damage", "WoodFoundation"))
+        EntityList['WoodDoorFrame'] = float(ini.GetSetting("Damage", "WoodDoorFrame"))
+        EntityList['WoodPillar'] = float(ini.GetSetting("Damage", "WoodPillar"))
+        EntityList['WoodWall'] = float(ini.GetSetting("Damage", "WoodWall"))
+        EntityList['WoodCeiling'] = float(ini.GetSetting("Damage", "WoodCeiling"))
+        EntityList['WoodWindowFrame'] = float(ini.GetSetting("Damage", "WoodWindowFrame"))
+        EntityList['WoodStairs'] = float(ini.GetSetting("Damage", "WoodStairs"))
+        EntityList['WoodRamp'] = float(ini.GetSetting("Damage", "WoodRamp"))
+        EntityList['WoodSpikeWall'] = float(ini.GetSetting("Damage", "WoodSpikeWall"))
+        EntityList['LargeWoodSpikeWall'] = float(ini.GetSetting("Damage", "LargeWoodSpikeWall"))
+        EntityList['WoodBox'] = float(ini.GetSetting("Damage", "WoodBox"))
+        EntityList['WoodBoxLarge'] = float(ini.GetSetting("Damage", "WoodBoxLarge"))
+        EntityList['WoodGate'] = float(ini.GetSetting("Damage", "WoodGate"))
+        EntityList['WoodGateway'] = float(ini.GetSetting("Damage", "WoodGateway"))
+        EntityList['WoodenDoor'] = float(ini.GetSetting("Damage", "WoodenDoor"))
+        EntityList['Wood_Shelter'] = float(ini.GetSetting("Damage", "Wood_Shelter"))
+        EntityList['MetalWall'] = float(ini.GetSetting("Damage", "MetalWall"))
+        EntityList['MetalCeiling'] = float(ini.GetSetting("Damage", "MetalCeiling"))
+        EntityList['MetalDoorFrame'] = float(ini.GetSetting("Damage", "MetalDoorFrame"))
+        EntityList['MetalPillar'] = float(ini.GetSetting("Damage", "MetalPillar"))
+        EntityList['MetalFoundation'] = float(ini.GetSetting("Damage", "MetalFoundation"))
+        EntityList['MetalStairs'] = float(ini.GetSetting("Damage", "MetalStairs"))
+        EntityList['MetalRamp'] = float(ini.GetSetting("Damage", "MetalRamp"))
+        EntityList['MetalWindowFrame'] = float(ini.GetSetting("Damage", "MetalWindowFrame"))
+        EntityList['MetalDoor'] = float(ini.GetSetting("Damage", "MetalDoor"))
+        EntityList['MetalBarsWindow'] = float(ini.GetSetting("Damage", "MetalBarsWindow"))
+        EntityList['SmallStash'] = float(ini.GetSetting("Damage", "SmallStash"))
+        EntityList['Campfire'] = float(ini.GetSetting("Damage", "Campfire"))
+        EntityList['Furnace'] = float(ini.GetSetting("Damage", "Furnace"))
+        EntityList['Workbench'] = float(ini.GetSetting("Damage", "Workbench"))
+        EntityList['Barricade_Fence_Deployable'] = float(ini.GetSetting("Damage", "Barricade_Fence_Deployable"))
+        EntityList['RepairBench'] = float(ini.GetSetting("Damage", "RepairBench"))
+        EntityList['SleepingBagA'] = float(ini.GetSetting("Damage", "SleepingBagA"))
+        EntityList['SingleBed'] = float(ini.GetSetting("Damage", "SingleBed"))
 
     def GetIni(self):
         if not Plugin.IniExists("Settings"):
@@ -175,6 +215,15 @@ class Wiper:
         del IdsToWipe[:]
         return c
 
+    def ForceDecay(self):
+        v = len(World.Entities)
+        for Entity in World.Entities:
+            v = EntityList.get(Entity.Name, None)
+            if v is None:
+                continue
+            Entity.Health = Entity.Health - v
+        return v - len(World.Entities)
+
     def WipeByID(self, id):
         c = 0
         for ent in World.Entities:
@@ -183,8 +232,8 @@ class Wiper:
                 c += 1
         return c
 
-    def WipeCallback(self):
-        Plugin.KillTimer("Wipe")
+    def WipeCallback(self, timer):
+        timer.Kill()
         ini = self.GetIni()
         Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
         if Broadcast:
@@ -194,6 +243,11 @@ class Wiper:
         if Broadcast:
             Server.BroadcastFrom("Wiper", "Wiped " + str(n) + " unused objects!")
         Plugin.CreateTimer("Wipe", 3600000).Start()
+
+    def DecayCallback(self, timer):
+        timer.Kill()
+        self.ForceDecay()
+        Plugin.CreateTimer("Decay", self.DecayTimer).Start()
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
@@ -248,3 +302,8 @@ class Wiper:
                         ent.Destroy()
                         c += 1
                 Player.MessageFrom("Wiper", "Wiped " + str(c) + " camp fires.")
+        elif cmd == "wipeforced":
+            if Player.Admin or self.isMod(id):
+                Player.MessageFrom("Wiper", "Forcing Decay...")
+                n = self.ForceDecay()
+                Player.MessageFrom("Wiper", str(n) + " decayed...")
