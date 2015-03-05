@@ -265,5 +265,5 @@ class Wiper:
         elif cmd == "wipeforced":
             if Player.Admin or self.isMod(id):
                 Player.MessageFrom("Wiper", "Forcing Decay...")
-                n = self.ForceDecay()
+                self.ForceDecay()
                 Player.MessageFrom("Wiper", "Force Decay Finished.")
