@@ -219,6 +219,7 @@ class Wiper:
                 Player.MessageFrom("Wiper", "/wipeid playerid - Wipes All the objects of the ID")
                 Player.MessageFrom("Wiper", "/wipebarr - Deletes all barricaes")
                 Player.MessageFrom("Wiper", "/wipecampf - Deletes all camp fires")
+                Player.MessageFrom("Wiper", "/wipeforced - Force a decay")
         elif cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
                 ini = self.GetIni()
