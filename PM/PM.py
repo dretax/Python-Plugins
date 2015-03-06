@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -20,8 +20,12 @@ class PM:
         DataStore.Flush("PmSys")
         Util.ConsoleLog("PM by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
-    def GetQuoted(self, array):
+    def GetQuoted(self, array, Reporter):
         text = str.join(" ", array)
+        if not '"' in text:
+            Reporter.MessageFrom('PrivateMessage', 'Usage: /report "PlayerName" "message"')
+            Reporter.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
+            return False
         groups = text.split('"')
         n = len(groups)
         list = []
@@ -98,6 +102,8 @@ class PM:
                 Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
             array = self.GetQuoted(args)
+            if not array:
+                return
             playerr = self.CheckV(Player, array[0])
             if playerr is None:
                 return
