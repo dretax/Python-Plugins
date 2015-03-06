@@ -176,6 +176,5 @@ class DestroySystem:
                     HurtEvent.Entity.Destroy()
                     ini = self.DestroySys()
                     giveback = int(ini.GetSetting("options", "giveback"))
-                    Server.Broadcast(EntityName)
                     if giveback == 1:
                         HurtEvent.Attacker.Inventory.AddItem(EntityName)
