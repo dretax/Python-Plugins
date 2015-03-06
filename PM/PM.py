@@ -20,18 +20,20 @@ class PM:
         DataStore.Flush("PmSys")
         Util.ConsoleLog("PM by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
-    def GetQuoted(self, array, Reporter):
+    def GetQuoted(self, array, Player):
         text = str.join(" ", array)
         if not '"' in text:
-            Reporter.MessageFrom('PrivateMessage', 'Usage: /report "PlayerName" "message"')
-            Reporter.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
+            Player.MessageFrom('PrivateMessage', 'Usage: /report "PlayerName" "message"')
+            Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
             return False
         groups = text.split('"')
         n = len(groups)
         list = []
         for x in xrange(0, n):
             if x % 2 != 0:
-                list.append(str(groups[x]))
+                list.append(str(groups[x]).strip('\\'))
+        if len(list) < 2:
+            return False
         return list
 
     def FindPlayerById(self, id):
@@ -96,12 +98,7 @@ class PM:
                 Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
                 Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
                 return
-            leng = len(args)
-            if not '"' in args[leng - 1]:
-                Player.MessageFrom('PrivateMessage', 'Usage: /pm "PlayerName" "message"')
-                Player.MessageFrom('PrivateMessage', 'Quote signs (") are required.')
-                return
-            array = self.GetQuoted(args)
+            array = self.GetQuoted(args, Player)
             if not array:
                 return
             playerr = self.CheckV(Player, array[0])
