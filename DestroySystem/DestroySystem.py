@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -157,39 +157,6 @@ class DestroySystem:
                     return
             Player.Message("Couldn't find: " + text)
 
-    Items = {
-        'WoodFoundation': 'Wood Foundation',
-        'WoodDoorFrame': 'Wood Doorway',
-        'WoodDoor': 'Wood Door',
-        'WoodWall': 'Wood Wall',
-        'WoodPillar': 'Wood Pillar',
-        'WoodCeiling': 'Wood Ceiling',
-        'MetalDoor': 'Metal Door',
-        'WoodStairs': 'Wood Stairs',
-        'WoodWindowFrame': 'Wood Window',
-        'MetalFoundation': 'Metal Foundation',
-        'MetalDoorFrame': 'Metal Doorway',
-        'MetalWall': 'Metal Wall',
-        'MetalPillar': 'Metal Pillar',
-        'MetalCeiling': 'Metal Ceiling',
-        'MetalStairs': 'Metal Stairs',
-        'MetalWindowFrame': 'Metal Window',
-        'Wood_Shelter': 'Wood Shelter',
-        'Barricade_Fence_Deployable': 'Wood Barricade',
-        'Wood Box': 'Wood Storage Box',
-        'Wood Box Large': 'Large Wood Storage',
-        'Metal Bars Window': 'Metal Window Bars',
-        'CampFire': 'Camp Fire',
-        'Wood Spike Wall': 'Spike Wall',
-        'Large Wood Spike Wall': 'Large Spike Wall',
-        'Workbench': 'Workbench',
-        'WoodGate': 'Wood Gate',
-        'WoodGateway': 'Wood Gateway',
-        'RepairBench': 'Repair Bench',
-        'Furnace': 'Furnace'
-    }
-
-
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
@@ -209,8 +176,6 @@ class DestroySystem:
                     HurtEvent.Entity.Destroy()
                     ini = self.DestroySys()
                     giveback = int(ini.GetSetting("options", "giveback"))
+                    Server.Broadcast(EntityName)
                     if giveback == 1:
-                        item = self.Items.get(EntityName, None)
-                        if item is None:
-                            return
-                        HurtEvent.Attacker.Inventory.AddItem(item)
+                        HurtEvent.Attacker.Inventory.AddItem(EntityName)
