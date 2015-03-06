@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -75,14 +75,20 @@ class iConomy:
             ini.Save()
         return Plugin.GetIni("iConomy")
 
-    def GetQuoted(self, array):
+    def GetQuoted(self, array, Player):
         text = str.join(" ", array)
+        if not '"' in text:
+            Player.MessageFrom(self.__Sys__, 'Usage: /buy "Item" "Quantity"')
+            Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
+            return False
         groups = text.split('"')
         n = len(groups)
         list = []
         for x in xrange(0, n):
             if x % 2 != 0:
                 list.append(str(groups[x]).strip('\\'))
+        if len(list) < 2:
+            return False
         return list
 
     def ShopIni(self):
@@ -244,6 +250,8 @@ class iConomy:
 
     def GetPrices(self, Player, args):
         shop = self.ShopIni()
+        if shop.GetSetting(args, "Count") is None:
+            return
         Count = int(shop.GetSetting(args, "Count"))
         if Count >= 1:
             Player.MessageFrom(self.__Sys__, teal + args + ":")
@@ -373,27 +381,15 @@ class iConomy:
         elif cmd == "shop":
             Player.MessageFrom(self.__Sys__, "Economy Commands: /money, /buy [Item] [Quantity], /sell [Item] [Quantity], /price")
         elif cmd == "buy":
-            if len(args) == 2:
-                leng = len(args)
-                array = self.GetQuoted(args)
-                if not '"' in args[leng - 1]:
-                    Player.MessageFrom(self.__Sys__, 'Try: /buy "Item" "Quantity"')
-                    Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
-                    return
-                self.BuyItem(Player, array[0], array[1])
-            else:
-                Player.MessageFrom(self.__Sys__, 'Try: /buy "Item" "Quantity"')
-                Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
+            array = self.GetQuoted(args, Player)
+            if not array:
+                return
+            self.BuyItem(Player, array[0], array[1])
         elif cmd == "sell":
-            if len(args) == 2:
-                leng = len(args)
-                array = self.GetQuoted(args)
-                if not '"' in args[leng - 1]:
-                    Player.MessageFrom(self.__Sys__, 'Try: /sell "Item" "Quantity"')
-                    return
-                self.SellItem(Player, array[0], array[1])
-            else:
-                Player.MessageFrom(self.__Sys__, 'Try: /sell "Item" "Quantity"')
+            array = self.GetQuoted(args, Player)
+            if not array:
+                return
+            self.SellItem(Player, array[0], array[1])
         elif cmd == "price":
             if len(args) == 1:
                 self.GetPrices(Player, args[0])
