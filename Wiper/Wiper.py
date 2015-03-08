@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
@@ -29,7 +29,7 @@ class Wiper:
             Plugin.CreateTimer("Wipe", 3600000).Start()
         if bool(ini.GetSetting("Settings", "UseDecay")):
             self.Assign()
-            Plugin.CreateTimer("Decay", int(self.DecayTimer)).Start()
+            Plugin.CreateTimer("Decay", self.DecayTimer).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -234,7 +234,9 @@ class Wiper:
         elif cmd == "wipetimerreset":
             if Player.Admin or self.isMod(id):
                 Plugin.KillTimer("Wipe")
+                Plugin.KillTimer("Decay")
                 Plugin.CreateTimer("Wipe", 3600000).Start()
+                Plugin.CreateTimer("Decay", self.DecayTimer).Start()
                 Player.MessageFrom("Wiper", "Timer restarted.")
         elif cmd == "wipeid":
             if len(args) == 0 or len(args) > 1:
