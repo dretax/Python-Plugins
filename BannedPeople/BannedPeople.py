@@ -227,21 +227,24 @@ class BannedPeople:
                     Player.MessageFrom(sysname, str(pl))
         elif cmd == "munbanip":
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
-                if len(args) == 0:
+                ini = self.BannedPeopleIni()
+                cfg = self.BannedPeopleConfig()
+                sysname = cfg.GetSetting("Main", "Name")
+                if len(args) == 0 or len(args) > 1:
                     Player.MessageFrom(sysname, "Usage: /munbanip IDorIP")
                     return
-                if ini.GetSetting("Ips", args[0]):
-                    ini.DeleteSetting("Ips", args[0])
+                v = str(args[0])
+                if ini.GetSetting("Ips", v) is not None and ini.GetSetting("Ips", v):
+                    ini.DeleteSetting("Ips", v)
                     ini.Save()
                     Player.MessageFrom(sysname, "Unbanned.")
-                elif ini.GetSetting("Ids", args[0]):
-                    ini.DeleteSetting("Ids", args[0])
+                    return
+                if ini.GetSetting("Ids", v) is not None and ini.GetSetting("Ids", v):
+                    ini.DeleteSetting("Ids", v)
                     ini.Save()
                     Player.MessageFrom(sysname, "Unbanned.")
-                else:
-                    Player.MessageFrom(sysname, "Couldn't find " + args[0])
+                    return
+                Player.MessageFrom(sysname, "Couldn't find " + v)
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
