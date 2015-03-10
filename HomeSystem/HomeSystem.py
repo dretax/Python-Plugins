@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.6'
+__version__ = '2.5.7'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -216,6 +216,8 @@ class HomeSystem:
             return None
 
     def Freezer(self, Player, num, msg=True):
+        if Player not in Pending:
+            return False
         if num == 1:
             Player.SendCommand("input.bind Up 7 None")
             Player.SendCommand("input.bind Down 7 None")
@@ -238,6 +240,7 @@ class HomeSystem:
             Player.SendCommand("input.bind Fire Mouse0 None")
             if msg:
                 Player.MessageFrom(self.homesystemname, red + "You are now free!")
+        return True
 
     """
         Timer Functions
@@ -278,7 +281,9 @@ class HomeSystem:
         # Home Teleport Callback
         elif callback == 2:
             if self.movec == 1:
-                self.Freezer(Player, 2)
+                fr = self.Freezer(Player, 2)
+                if not fr:
+                    return
                 Player.SafeTeleportTo(loc)
                 Pending.remove(Player)
                 Player.MessageFrom(self.homesystemname, "You have been teleported home.")
@@ -437,7 +442,9 @@ class HomeSystem:
                         dmg = int(config.GetSetting("Settings", "checkdamage"))
                         if movec == 1:
                             Player.MessageFrom(self.homesystemname, red + "You can't move while teleporting.")
-                            self.Freezer(Player, 1)
+                            fr = self.Freezer(Player, 1)
+                            if not fr:
+                                return
                         if dmg == 1:
                             Player.MessageFrom(self.homesystemname, red + "You can't take damage while teleporting.")
                 else:
@@ -700,13 +707,15 @@ class HomeSystem:
                 DataStore.Remove("home_joincooldown", id)
                 if self.sendhome == 1:
                     self.addJob(Player, self.jointpdelay, 5, None)
-        self.Freezer(Player, 2, False)
+        if self.movec == 1:
+            self.Freezer(Player, 2, False)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
+        y = Player.Y
         if self.antiroof == 1:
             if not Player.Admin and not self.isMod(id):
-                DataStore.Add("homey", id, Player.Y)
+                DataStore.Add("homey", id, y)
         if self.ecooldown == 1:
             if not Player.Admin and not self.isMod(id):
                 DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
