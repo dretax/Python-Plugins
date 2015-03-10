@@ -202,7 +202,7 @@ class BannedPeople:
                         ini.Save()
                         for pl in Server.Players:
                             if pl.Admin:
-                                pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: "  + self.green + Player.Name)
+                                pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + Player.Name)
 
                         Player.MessageFrom(sysname, "Player " + name + " unbanned!")
                 else:
@@ -262,6 +262,8 @@ class BannedPeople:
         if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip):
             if ini.GetSetting("Ids", id) is None:
                 ini.AddSetting("Ids", id, Player.Name + "Connected from a banned IP: " + ip)
+                ini.AddSetting("NameIps", Player.Name, ip)
+                ini.AddSetting("NameIds", Player.Name, id)
                 ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
@@ -269,6 +271,8 @@ class BannedPeople:
         if ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id):
             if ini.GetSetting("Ips", ip) is None:
                 ini.AddSetting("Ips", ip, Player.Name + " Connected from a banned ID " + id)
+                ini.AddSetting("NameIps", Player.Name, ip)
+                ini.AddSetting("NameIds", Player.Name, id)
                 ini.Save()
             Player.MessageFrom(sysname, bannedreason)
             Player.Disconnect()
