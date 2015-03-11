@@ -36,8 +36,8 @@ class iConomy:
         self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
         self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
         self.__Sys__ = ini.GetSetting("Settings", "Sysname")
-        self.__Buy__ = ini.GetSetting("Settings", "Buy")
-        self.__Sell__ = ini.GetSetting("Settings", "Sell")
+        self.__Buy__ = bool(ini.GetSetting("Settings", "Buy"))
+        self.__Sell__ = bool(ini.GetSetting("Settings", "Sell"))
         self.__AnimalKills__ = bool(ini.GetSetting("Settings", "AnimalKills"))
         self.__PlayerKills__ = bool(ini.GetSetting("Settings", "PlayerKills"))
         #Player Settings!
