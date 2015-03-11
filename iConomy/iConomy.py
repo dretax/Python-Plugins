@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -19,6 +19,10 @@ class iConomy:
     __MoneyMark__ = None
     __DefaultMoney__ = None
     __Sys__ = None
+    __AnimalKills__ = None
+    __PlayerKills__ = None
+    __Buy__ = None
+    __Sell__ = None
     #Player Settings!
     __MoneyMode__ = None
     __KillPortion__ = None
@@ -26,12 +30,45 @@ class iConomy:
     __DeathPortion__ = None
     __DeathPortion2__ = None
 
+    def On_PluginInit(self):
+        ini = self.iConomy()
+        #Plugin Settings
+        self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
+        self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
+        self.__Sys__ = ini.GetSetting("Settings", "Sysname")
+        self.__Buy__ = ini.GetSetting("Settings", "Buy")
+        self.__Sell__ = ini.GetSetting("Settings", "Sell")
+        self.__AnimalKills__ = bool(ini.GetSetting("Settings", "AnimalKills"))
+        self.__PlayerKills__ = bool(ini.GetSetting("Settings", "PlayerKills"))
+        #Player Settings!
+        self.__MoneyMode__ = int(ini.GetSetting("PlayerKillSettings", "PercentageOrExtra"))
+        self.__KillPortion__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion"))
+        self.__KillPortion2__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion2"))
+        self.__DeathPortion__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion"))
+        self.__DeathPortion2__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion2"))
+        DataStore.Add("iConomy", "MoneyMark", str(self.__MoneyMark__))
+        DataStore.Add("iConomy", "SysName", str(self.__Sys__))
+        DataStore.Add("iConomy", "DefaultMoney", str(self.__DefaultMoney__))
+        DataStore.Add("iConomy", "MoneyMode", str(self.__MoneyMode__))
+        DataStore.Add("iConomy", "KillP", str(self.__KillPortion__))
+        DataStore.Add("iConomy", "KillP2", str(self.__KillPortion2__))
+        DataStore.Add("iConomy", "DeathP", str(self.__DeathPortion__))
+        DataStore.Add("iConomy", "DeathP2", str(self.__DeathPortion2__))
+        DataStore.Add("iConomy", "AnimalKills", str(self.__AnimalKills__))
+        DataStore.Add("iConomy", "PlayerKills", str(self.__PlayerKills__))
+        DataStore.Add("iConomy", "Sell", str(self.__Sell__))
+        DataStore.Add("iConomy", "Buy", str(self.__Buy__))
+
     def iConomy(self):
         if not Plugin.IniExists("iConomy"):
             ini = Plugin.CreateIni("iConomy")
             ini.AddSetting("Settings", "DefaultMoney", "100.0")
             ini.AddSetting("Settings", "MoneyMark", "$")
             ini.AddSetting("Settings", "Sysname", "[iConomy]")
+            ini.AddSetting("Settings", "AnimalKills", "True")
+            ini.AddSetting("Settings", "PlayerKills", "True")
+            ini.AddSetting("Settings", "Buy", "True")
+            ini.AddSetting("Settings", "Sell", "True")
             ini.AddSetting("PlayerKillSettings", "PercentageOrExtra", "1")
             ini.AddSetting("PlayerKillSettings", "KillPortion", "1.25")
             ini.AddSetting("PlayerKillSettings", "DeathPortion", "0.75")
@@ -227,27 +264,6 @@ class iConomy:
             return True
         return False
 
-    def On_PluginInit(self):
-        ini = self.iConomy()
-        #Plugin Settings
-        self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
-        self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
-        self.__Sys__ = ini.GetSetting("Settings", "Sysname")
-        #Player Settings!
-        self.__MoneyMode__ = int(ini.GetSetting("PlayerKillSettings", "PercentageOrExtra"))
-        self.__KillPortion__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion"))
-        self.__KillPortion2__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion2"))
-        self.__DeathPortion__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion"))
-        self.__DeathPortion2__ = float(ini.GetSetting("PlayerKillSettings", "DeathPortion2"))
-        DataStore.Add("iConomy", "MoneyMark", str(self.__MoneyMark__))
-        DataStore.Add("iConomy", "SysName", str(self.__Sys__))
-        DataStore.Add("iConomy", "DefaultMoney", str(self.__DefaultMoney__))
-        DataStore.Add("iConomy", "MoneyMode", str(self.__MoneyMode__))
-        DataStore.Add("iConomy", "KillP", str(self.__KillPortion__))
-        DataStore.Add("iConomy", "KillP2", str(self.__KillPortion2__))
-        DataStore.Add("iConomy", "DeathP", str(self.__DeathPortion__))
-        DataStore.Add("iConomy", "DeathP2", str(self.__DeathPortion2__))
-
     def GetPrices(self, Player, args):
         shop = self.ShopIni()
         if shop.GetSetting(args, "Count") is None:
@@ -267,7 +283,7 @@ class iConomy:
         nitem = str(self.Item(Item.lower()))
         price = shop.GetSetting("BuyPrices", nitem)
         qty = int(Quantity)
-        if bool(shop.GetSetting("Settings", "Buy")):
+        if self.__Buy__:
             if price and int(price) > 0:
                 pricesum = int(price) * qty
                 if pricesum <= Money:
@@ -287,7 +303,7 @@ class iConomy:
         nitem = str(self.Item(Item.lower()))
         price = shop.GetSetting("SellPrices", nitem)
         qty = int(Quantity)
-        if bool(shop.GetSetting("Settings", "Sell")):
+        if self.__Sell__:
             if price and int(price) > 0:
                 salesum = int(price) * qty
                 if Player.Inventory.HasItem(nitem, qty):
@@ -417,8 +433,7 @@ class iConomy:
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            shop = self.ShopIni()
-            if not bool(shop.GetSetting("Settings", "PlayerKills")):
+            if not self.__PlayerKills__:
                 return
             victim = str(DeathEvent.Victim.Name)
             id = self.TrytoGrabID(DeathEvent.Attacker)
@@ -440,8 +455,7 @@ class iConomy:
             aid = self.TrytoGrabID(DeathEvent.Attacker)
             if aid is None:
                 return
-            shop = self.ShopIni()
-            if not bool(shop.GetSetting("Settings", "AnimalKills")):
+            if not self.__AnimalKills__:
                 return
             name = DeathEvent.Victim.Name.lower()
             #NPC Settings
