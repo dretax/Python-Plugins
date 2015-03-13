@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7'
+__version__ = '3.7.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -33,6 +33,7 @@ class TpFriend:
     """
 
     sys = None
+    DizzyDist = None
 
     def On_PluginInit(self):
         DataStore.Flush("TpTimer")
@@ -43,6 +44,7 @@ class TpFriend:
         DataStore.Flush("tpfriendy")
         config = self.TpFriendConfig()
         self.sys = config.GetSetting("Settings", "sysname")
+        self.DizzyDist = float(config.GetSetting("Settings", "DizzyDist"))
         Util.ConsoleLog("TpFriend v" + __version__ + " by " + __author__ + " loaded.", True)
 
     def TpFriendConfig(self):
@@ -201,7 +203,7 @@ class TpFriend:
         elif callback == 5:
             y = float(PlayerFrom.Y)
             oy = float(DataStore.Get("tpfriendy", id))
-            if oy - y > 2.6:
+            if oy - y > self.DizzyDist:
                 Server.BroadcastFrom(self.sys, PlayerFrom.Name + red + " tried to fall through a house via tpa. Kicked.")
                 Plugin.Log("DizzyHackBypass", PlayerFrom.Name + " - " + PlayerFrom.SteamID + " - " + PlayerFrom.IP + " - " + str(PlayerFrom.Location))
                 rand = self.DefaultLoc()
