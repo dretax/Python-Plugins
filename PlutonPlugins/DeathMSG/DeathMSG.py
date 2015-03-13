@@ -158,6 +158,7 @@ class DeathMSG:
                 for word in words:
                     strip = word.strip(' ')
                     if self.IsRGB(strip):
+                        #Atleast iScripters realised that I should split here, since the logical REPLACE DIDNT WORK -.-
                         color = part.split(' ', 1)[0]
                         themsg = part.split(' ', 1)[1]
                         colorized = self.ColorText(color, themsg)
