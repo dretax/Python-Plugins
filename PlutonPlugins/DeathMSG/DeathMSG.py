@@ -234,7 +234,7 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
         else:
-            damage = PlayerDeathEvent.DamageAmount
+            damage = PlayerDeathEvent.DamageAmounts[9]
             Sleeping = False
             if victim.basePlayer.IsSleeping():
                 Sleeping = True
