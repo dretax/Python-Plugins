@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2b'
+__version__ = '1.3'
 
 import clr
 
@@ -19,6 +19,10 @@ import re
 """
 class HomeSystem:
 
+    def On_PluginInit(self):
+        DataStore.Flush("home_cooldown")
+        DataStore.Flush("HomeHit")
+
     """
         Timer
     """
@@ -37,7 +41,8 @@ class HomeSystem:
         PLZ = HomeSystem["LocationZ"]
         PLZ = re.sub('[)\(\[\'\]\,]', '', str(PLZ))
         HLoc = HomeSystem["HomeLocation"]
-        HLoc = re.sub('[)\(\[\'\]\,]', '', str(HLoc))
+        #HLoc = re.sub('[)\(\[\'\]\,]', '', str(HLoc)) old
+        HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         movec = int(config.GetSetting("Settings", "movecheck"))
         if movec == 1:
@@ -154,19 +159,71 @@ class HomeSystem:
         except ValueError:
             return False
 
-    def isNoneOrEmptyOrBlankString(self, String):
-        if String:
-            if not String.strip():
-                return True
-            else:
-                return False
+    def CutName(self, string):
+        name = re.sub(r'[^\x00-\x7F]+', '', string)
+        return name
+
+    def Check(self, Player, plloc):
+        config = self.HomeConfig()
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        ini = self.Homes()
+        checkdist = ini.EnumSection("HomeNames")
+        counted = len(checkdist)
+        i = 0
+        maxdist = int(config.GetSetting("Settings", "Distance"))
+        if counted > 0 and checkdist:
+            for idof in checkdist:
+                i += 1
+                homes = ini.GetSetting("HomeNames", idof)
+                if homes:
+                    homes = homes.replace(",", "")
+                    check = self.HomeOfID(idof, homes)
+                    if not self.IsFloat(check[0]) or not self.IsFloat(check[1]) or not self.IsFloat(check[2]):
+                        Plugin.Log("HomeSystemError", "Something is wrong at: " + str(check) + " | " + str(homes))
+                        continue
+                    vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
+                    dist = Util.GetVectorsDistance(vector, plloc)
+                    if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
+                        Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
+                        return True
+                    if i == counted:
+                        return False
         return False
+
+    def SaveHome(self, Player, home, loc):
+        id = Player.SteamID
+        ini = self.Homes()
+        config = self.HomeConfig()
+        homesystemname = config.GetSetting("Settings", "homesystemname")
+        homes = ini.GetSetting("HomeNames", id)
+        if homes is not None and "," in homes:
+            n = homes + "" + home + ","
+            ini.AddSetting(id, home, str(loc))
+            ini.AddSetting("HomeNames", id, n)
+            ini.Save()
+            Player.MessageFrom(homesystemname, "Home Saved")
+            return
+        n = home + ","
+        ini.AddSetting(id, home, str(loc))
+        ini.AddSetting("HomeNames", id, n)
+        ini.Save()
+        Player.MessageFrom(homesystemname, "Home Saved")
+
+    def On_CombatEntityHurt(self, EntityHurtEvent):
+        if EntityHurtEvent.Attacker.ToPlayer() is None:
+            return
+        attacker = EntityHurtEvent.Attacker.ToPlayer()
+        if DataStore.ContainsKey("HomeHit", attacker.SteamID):
+            if "foundation" in EntityHurtEvent.Victim.Name:
+                loc = Vector3(EntityHurtEvent.Victim.X, EntityHurtEvent.Victim.Y + 4, EntityHurtEvent.Victim.Z)
+                self.SaveHome(attacker, DataStore.Get("HomeHit", attacker.SteamID), loc)
+            else:
+                attacker.Message("Hit a foundation.")
 
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
         command = cmd.cmd
-
         if command == "home":
             if len(args) == 0 or len(args) > 1:
                 config = self.HomeConfig()
@@ -187,7 +244,6 @@ class HomeSystem:
                 home = str(args[0])
                 check = self.HomeOf(Player, home)
                 id = Player.SteamID
-                loc = Player.Location
                 if check is None:
                     Player.MessageFrom(homesystemname, "You don't have a home called: " + home)
                 else:
@@ -222,7 +278,6 @@ class HomeSystem:
                         done = round((calc / 1000) / 60, 2)
                         done2 = round((cooldown / 1000) / 60, 2)
                         Player.MessageFrom(homesystemname, "Time: " + str(done) + "/" + str(done2))
-
         elif command == "sethome":
             if args == 0 or args > 1:
                 config = self.HomeConfig()
@@ -235,126 +290,36 @@ class HomeSystem:
                 home = args[0]
                 ini = self.Homes()
                 id = Player.SteamID
-                maxh = config.GetSetting("Settings", "Maxhomes")
+                plloc = Player.Location
+                maxh = int(config.GetSetting("Settings", "Maxhomes"))
+                foundation = int(config.GetSetting("Settings", "Foundation"))
+                homel = ini.EnumSection(id)
+                count = len(homel)
+                if count >= maxh:
+                    Player.MessageFrom(homesystemname, "You reached the max home limit. (" + str(maxh) + ")")
+                    return
                 checkforit = int(config.GetSetting("Settings", "DistanceCheck"))
-                #checkwall = config.GetSetting("Settings", "CheckCloseWall")
-                if not self.CheckIfEmpty(id):
+                home = self.CutName(home)
+                if len(home) == 0:
+                    Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                    return
+                a = re.match('^[a-zA-Z0-9]+$', home)
+                if not a:
+                    Player.MessageFrom(homesystemname, "You need to use English Characters for home!")
+                    return
+                check = self.HomeOf(Player, home)
+                if check is not None:
+                    Player.MessageFrom(homesystemname, "You already have a home called like that!")
+                    return
+                if foundation == 0:
                     if checkforit == 1:
-                        checkdist = ini.EnumSection("HomeNames")
-                        counted = len(checkdist)
-                        i = 0
-                        maxdist = int(config.GetSetting("Settings", "Distance"))
-                        if counted > 0 and checkdist:
-                            for idof in checkdist:
-                                i += 1
-                                homes = ini.GetSetting("HomeNames", idof)
-                                if homes:
-                                    homes = homes.replace(",", "")
-                                    check = self.HomeOfID(idof, homes)
-                                    if not self.IsFloat(check[0]) or not self.IsFloat(check[1]) or not self.IsFloat(check[2]):
-                                        Plugin.Log("HomeSystemError", "Something is wrong at: " + str(check) + " | " + str(homes))
-                                        continue
-                                    vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
-                                    dist = Util.GetVectorsDistance(vector, Player.Location)
-                                    if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                        Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
-                                        return
-                                    if i == counted:
-                                        homes = ini.GetSetting("HomeNames", id)
-                                        n = homes + "" + home + ","
-                                        ini.AddSetting(id, home, str(Player.Location))
-                                        ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                                        ini.Save()
-                                        Player.MessageFrom(homesystemname, "Home Saved")
-                                        return
-                                else:
-                                    ini.DeleteSetting("HomeNames", idof)
-                                    ini.Save()
-                        else:
-                            homes = ini.GetSetting("HomeNames", id)
-                            n = homes + "" + home + ","
-                            ini.AddSetting(id, home, str(Player.Location))
-                            ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                            ini.Save()
-                            Player.MessageFrom(homesystemname, "Home Saved")
+                        s = self.Check(Player, plloc)
+                        if not s:
                             return
-                    else:
-                        homes = ini.GetSetting("HomeNames", id)
-                        n = homes + "" + home + ","
-                        ini.AddSetting(id, home, str(Player.Location))
-                        ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                        ini.Save()
-                        Player.MessageFrom(homesystemname, "Home Saved")
-                        return
+                    self.SaveHome(Player, home, plloc)
                 else:
-                    homel = ini.EnumSection(id)
-                    count = len(homel)
-                    parsed = int(count)
-                    parsedd = int(maxh)
-                    if parsed >= parsedd:
-                        Player.MessageFrom(homesystemname, "You reached the max home limit. (" + str(maxh) + ")")
-                        return
-                    else:
-                        if checkforit == 1:
-                            checkdist = ini.EnumSection("HomeNames")
-                            counted = len(checkdist)
-                            i = 0
-                            maxdist = int(config.GetSetting("Settings", "Distance"))
-                            if counted > 0:
-                                for idof in checkdist:
-                                    i += 1
-                                    homes = ini.GetSetting("HomeNames", idof)
-                                    if homes:
-                                        splitit = homes.split(',')
-                                        if len(splitit) >= 2:
-                                            for nn in xrange(-1, len(splitit)):
-                                                nn += 1
-                                                check = self.HomeOfID(idof, splitit[nn])
-                                                vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
-                                                dist = Util.GetVectorsDistance(vector, Player.Location)
-                                                if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                                    Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
-                                                    return
-                                                if i == counted:
-                                                    homes = ini.GetSetting("HomeNames", id)
-                                                    n = homes + "" + home + ","
-                                                    ini.AddSetting(id, home, str(Player.Location))
-                                                    ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                                                    ini.Save()
-                                                    Player.MessageFrom(homesystemname, "Home Saved")
-                                                    return
-                                        else:
-                                            homes = homes.replace(",", "")
-                                            check =self.HomeOfID(idof, homes)
-                                            vector = Vector3(float(check[0]), float(check[1]), float(check[2]))
-                                            dist = Util.GetVectorsDistance(vector, Player.Location)
-                                            if dist <= maxdist and not self.FriendOf(idof, id) and idof != id:
-                                                Player.MessageFrom(homesystemname, "There is a home within: " + str(maxdist) + "m!")
-                                                return
-                                            if i == counted:
-                                                homes = ini.GetSetting("HomeNames", id)
-                                                n = homes + "" + home + ","
-                                                ini.AddSetting(id, home, str(Player.Location))
-                                                ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                                                ini.Save()
-                                                Player.MessageFrom(homesystemname, "Home Saved")
-                                    else:
-                                        ini.DeleteSetting("HomeNames", idof)
-                                        ini.Save()
-                            else:
-                                homes = ini.GetSetting("HomeNames", id)
-                                n = homes + "" + home + ","
-                                ini.AddSetting(id, home, str(Player.Location))
-                                ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                                ini.Save()
-                                Player.MessageFrom(homesystemname, "Home Saved")
-                        else:
-                            homes = ini.GetSetting("HomeNames", id)
-                            n = homes + "" + home + ","
-                            ini.AddSetting(id, home, str(Player.Location))
-                            ini.AddSetting("HomeNames", id, n.replace("undefined", ""))
-                            ini.Save()
-                            Player.MessageFrom(homesystemname, "Home Saved")
+                    DataStore.Add("HomeHit", id, home)
+                    Player.MessageFrom(homesystemname, "Hit a foundation/ceiling to save your home!")
         elif command == "setdefaulthome":
             if len(args) > 0:
                 config = self.HomeConfig()
@@ -373,7 +338,7 @@ class HomeSystem:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
-        elif command ==  "delhome":
+        elif command == "delhome":
             if len(args) == 1:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -400,25 +365,20 @@ class HomeSystem:
                 config = self.HomeConfig()
                 homesystemname = config.GetSetting("Settings", "homesystemname")
                 Player.MessageFrom(homesystemname, "Usage: /delhome name")
-
-        elif command ==  "homes":
+        elif command == "homes":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             ini = self.Homes()
             id = Player.SteamID
             if ini.GetSetting("HomeNames", id):
-                homes = ini.GetSetting("HomeNames", id).split(',')
-                leng = len(homes)
-                for i in xrange(-1, leng):
-                    i += 1
-                    if i < leng:
-                        if self.isNoneOrEmptyOrBlankString(homes[i]):
-                            continue
-                        Player.MessageFrom(homesystemname, "Homes: " + homes[i])
+                homes = ini.GetSetting("HomeNames", id)
+                homes = homes[:-1]
+                homes = homes.split(',')
+                for h in homes:
+                    Player.MessageFrom(homesystemname, "Homes: " + h)
             else:
                 Player.MessageFrom(homesystemname, "You don't have homes!")
-
-        elif command ==  "addfriendh":
+        elif command == "addfriendh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             if len(args) == 0:
@@ -434,7 +394,7 @@ class HomeSystem:
                     Player.MessageFrom(homesystemname, "Player Whitelisted")
                 else:
                     Player.MessageFrom(homesystemname, "Player doesn't exist, or you tried to add yourself!");
-        elif command ==  "delfriendh":
+        elif command == "delfriendh":
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
             if len(args) == 0:
