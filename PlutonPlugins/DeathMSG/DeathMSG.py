@@ -119,9 +119,9 @@ class DeathMSG:
             loc.AddSetting("Messages", "AnimalDeath", "killer killed animal using weapon")
             loc.AddSetting("Messages", "Beartrap", "victim ran into bear trap")
             loc.AddSetting("Messages", "Bite", "victim was Bitten to Death")
-            loc.AddSetting("Settings", "Bow", "killer shot victim in bodypart, from dist using weapon")
+            loc.AddSetting("Settings", "Bow", "killer shot victim in bodypart, from dist, with: weapon & caused: dmg Damage")
             loc.AddSetting("Messages", "Bullet", "killer shot through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
-            loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist")
+            loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist. Damage: dmg")
             loc.AddSetting("Messages", "Bleeding", "victim bled out.")
             loc.AddSetting("Messages", "Cold", "victim Caught Cold, and died.")
             loc.AddSetting("Messages", "Drowned", "victim Drowned")
@@ -131,6 +131,7 @@ class DeathMSG:
             loc.AddSetting("Messages", "Hunger", "victim died from starvation")
             loc.AddSetting("Messages", "Radiation", "victim died from radiation")
             loc.AddSetting("Messages", "Thirst", "victim died from dehydration")
+            loc.AddSetting("Messages", "Stab", "killer hit victim in bodypart using weapon. Damage: dmg")
             loc.AddSetting("Messages", "Suicide", "COLOR#aaff55 victim COLOR#55aaff suicided COLOR#ff55aa...")
             loc.AddSetting("Messages", "Slash", "killer slashed through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
             #Sleeping Types, Stolen from Skully
@@ -138,10 +139,10 @@ class DeathMSG:
             loc.AddSetting("Messages", "BiteSleep", "victim was bitten to death while he was sleeping")
             loc.AddSetting("Messages", "BluntSleep", "killer hit victim while he was sleeping in bodypart using weapon from dist")
             loc.AddSetting("Messages", "BleedingSleep", "victim bled out while he was sleeping")
-            loc.AddSetting("Messages", "StabSleep", "killer hit victim while he was sleeping in bodypart using weapon")
-            loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist using weapon")
+            loc.AddSetting("Messages", "StabSleep", "killer hit victim while he was sleeping in bodypart using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist using weapon. Damage: dmg")
             loc.AddSetting("Messages", "BulletSleep", "killer shot victim while he was sleeping in bodypart, from dist using weapon")
-            loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist using weapon")
+            loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist using weapon. Damage: dmg")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -235,6 +236,7 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
         else:
+            damage = PlayerDeathEvent.DamageAmount
             Sleeping = False
             if victim.basePlayer.IsSleeping():
                 Sleeping = True
@@ -253,7 +255,6 @@ class DeathMSG:
                 vloc = victim.Location
                 aloc = attacker.Location
                 dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
-                damage = PlayerDeathEvent.DamageAmount
                 dmgmsg = dmgmsg.replace("killer", attackername)
                 dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
@@ -286,6 +287,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("killer", attackername)
                 dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dist", str(dist))
+                dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("weapon", Weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
@@ -310,6 +312,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("killer", attackername)
                 dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dist", str(dist))
+                dmgmsg = dmgmsg.replace("dmg", str(damage))
                 dmgmsg = dmgmsg.replace("weapon", Weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
