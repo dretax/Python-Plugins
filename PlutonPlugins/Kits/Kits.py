@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.5'
 
 import clr
 
@@ -118,17 +118,17 @@ class Kits:
                 cooldown = int(get[1])
                 if cooldown > 0:
                     systick = System.Environment.TickCount
-                    if DataStore.Get("startercooldown"+str(args[0]), Player.SteamID) is None:
-                        DataStore.Add("startercooldown"+str(args[0]), Player.SteamID, 7)
-                    time = DataStore.Get("startercooldown"+str(args[0]), Player.SteamID)
+                    if DataStore.Get("startercooldown" + str(args[0]), Player.SteamID) is None:
+                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, 7)
+                    time = DataStore.Get("startercooldown" + str(args[0]), Player.SteamID)
                     if (systick - time) < 0 or math.isnan(systick - time):
-                        DataStore.Add("startercooldown"+str(args[0]), Player.SteamID, 7)
+                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, 7)
                         time = 7
                     calc = systick - time
                     if calc >= cooldown or time == 7:
                         loadout = Server.LoadOuts[args[0]]
                         loadout.ToInv(Player.Inventory)
-                        DataStore.Add("startercooldown"+str(args[0]), Player.SteamID, System.Environment.TickCount)
+                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, System.Environment.TickCount)
                     else:
                         Player.Message("You have to wait before using this again!")
                         done = round((calc / 1000) / 60, 2)
@@ -199,17 +199,17 @@ class Kits:
                     cooldown = int(cd[1])
                     if cooldown > 0:
                         systick = System.Environment.TickCount
-                        if DataStore.Get("startercooldown"+str(get[0]), Player.SteamID) is None:
-                            DataStore.Add("startercooldown"+str(get[0]), Player.SteamID, 7)
-                        time = DataStore.Get("startercooldown"+str(get[0]), Player.SteamID)
+                        if DataStore.Get("startercooldown" + str(get[0]), Player.SteamID) is None:
+                            DataStore.Add("startercooldown" + str(get[0]), Player.SteamID, 7)
+                        time = DataStore.Get("startercooldown" + str(get[0]), Player.SteamID)
                         if (systick - time) < 0 or math.isnan(systick - time):
-                            DataStore.Add("startercooldown"+str(get[0]), Player.SteamID, 7)
+                            DataStore.Add("startercooldown" + str(get[0]), Player.SteamID, 7)
                             time = 7
                         calc = systick - time
                         if calc >= cooldown or time == 7:
                             loadout = Server.LoadOuts[get[0]]
                             loadout.ToInv(Player.Inventory)
-                            DataStore.Add("startercooldown"+str(get[0]), Player.SteamID, System.Environment.TickCount)
+                            DataStore.Add("startercooldown" + str(get[0]), Player.SteamID, System.Environment.TickCount)
                         else:
                             done = round((calc / 1000) / 60, 2)
                             done2 = round((cooldown / 1000) / 60, 2)
