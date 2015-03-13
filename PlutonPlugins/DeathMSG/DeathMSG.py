@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.0'
+__version__ = '2.1'
 
 import clr
 
@@ -215,7 +215,7 @@ class DeathMSG:
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.Name)
         victimname = str(victim.Name)
-        if PlayerDeathEvent.Attacker.ToPlayer() is None:
+        if attacker.ToPlayer() is None:
             atnn = self.Objects.get(attackername, None)
             if atnn is None or not atnn:
                 return
@@ -229,7 +229,8 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
                 return
-            if self.AnimalKills:
+            if self.AnimalKills and attacker.IsNPC():
+                attackername = self.IsAnimal.get(attackername, attackername)
                 msg = self.Animal
                 msg = msg.replace("killer", attackername)
                 msg = msg.replace("victim", victimname)
