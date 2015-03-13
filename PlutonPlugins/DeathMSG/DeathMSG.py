@@ -119,6 +119,7 @@ class DeathMSG:
             loc.AddSetting("Messages", "AnimalDeath", "killer killed animal using weapon")
             loc.AddSetting("Messages", "Beartrap", "victim ran into bear trap")
             loc.AddSetting("Messages", "Bite", "victim was Bitten to Death")
+            loc.AddSetting("Settings", "Bow", "killer shot victim in bodypart, from dist using weapon")
             loc.AddSetting("Messages", "Bullet", "killer shot through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
             loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist")
             loc.AddSetting("Messages", "Bleeding", "victim bled out.")
