@@ -215,8 +215,6 @@ class DeathMSG:
         attackername = str(attacker.Name)
         victimname = str(victim.Name)
         if PlayerDeathEvent.Attacker.ToPlayer() is None:
-            if not isinstance(PlayerDeathEvent.Attacker.name, str):
-                return
             atnn = self.Objects.get(attackername, None)
             if atnn is None or not atnn:
                 return
