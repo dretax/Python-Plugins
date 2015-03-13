@@ -239,7 +239,6 @@ class DeathMSG:
             if victim.basePlayer.IsSleeping():
                 Sleeping = True
             type = str(PlayerDeathEvent.DamageType)
-            weapon = PlayerDeathEvent.Weapon.Name
             if type == "Suicide":
                 if self.NaturalDies:
                     msg = getattr(self, type)
@@ -247,6 +246,7 @@ class DeathMSG:
                     Server.BroadcastFrom(self.SysName, msg)
                     return
             elif type == "Bullet" or type == "Slash":
+                weapon = PlayerDeathEvent.Weapon.Name
                 dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
                 bpart = self.BodyParts.get(bodypart, bodypart)
@@ -272,7 +272,7 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, bmsg)
             # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
-                Weapon = PlayerDeathEvent.Weapon.Name
+                weapon = PlayerDeathEvent.Weapon.Name
                 if Sleeping:
                     dmgmsg = self.BluntSleep
                 else:
@@ -286,13 +286,13 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
-                dmgmsg = dmgmsg.replace("weapon", Weapon)
+                dmgmsg = dmgmsg.replace("weapon", weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Stab":
-                Weapon = PlayerDeathEvent.Weapon.Name
-                if Weapon == "Hunting Bow":
+                weapon = PlayerDeathEvent.Weapon.Name
+                if weapon == "Hunting Bow":
                     if Sleeping:
                         dmgmsg = self.BowSleep
                     else:
@@ -311,7 +311,7 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("victim", victimname)
                 dmgmsg = dmgmsg.replace("dist", str(dist))
                 dmgmsg = dmgmsg.replace("dmg", str(damage))
-                dmgmsg = dmgmsg.replace("weapon", Weapon)
+                dmgmsg = dmgmsg.replace("weapon", weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
