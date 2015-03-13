@@ -119,9 +119,9 @@ class DeathMSG:
             loc.AddSetting("Messages", "AnimalDeath", "killer killed animal using weapon")
             loc.AddSetting("Messages", "Beartrap", "victim ran into bear trap")
             loc.AddSetting("Messages", "Bite", "victim was Bitten to Death")
-            loc.AddSetting("Settings", "Bow", "killer shot victim in bodypart, from dist, with: weapon & caused: dmg Damage")
-            loc.AddSetting("Messages", "Bullet", "killer shot through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
-            loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist. Damage: dmg")
+            loc.AddSetting("Settings", "Bow", "killer shot victim in bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Bullet", "killer shot through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "Bleeding", "victim bled out.")
             loc.AddSetting("Messages", "Cold", "victim Caught Cold, and died.")
             loc.AddSetting("Messages", "Drowned", "victim Drowned")
@@ -133,16 +133,16 @@ class DeathMSG:
             loc.AddSetting("Messages", "Thirst", "victim died from dehydration")
             loc.AddSetting("Messages", "Stab", "killer hit victim in bodypart using weapon. Damage: dmg")
             loc.AddSetting("Messages", "Suicide", "COLOR#aaff55 victim COLOR#55aaff suicided COLOR#ff55aa...")
-            loc.AddSetting("Messages", "Slash", "killer slashed through victim's bodypart, from dist, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Slash", "killer slashed through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
             #Sleeping Types, Stolen from Skully
             loc.AddSetting("Messages", "Sleeping Types", "-----------------------------")
             loc.AddSetting("Messages", "BiteSleep", "victim was bitten to death while he was sleeping")
-            loc.AddSetting("Messages", "BluntSleep", "killer hit victim while he was sleeping in bodypart using weapon from dist")
+            loc.AddSetting("Messages", "BluntSleep", "killer hit victim while he was sleeping in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "BleedingSleep", "victim bled out while he was sleeping")
             loc.AddSetting("Messages", "StabSleep", "killer hit victim while he was sleeping in bodypart using weapon. Damage: dmg")
-            loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist using weapon. Damage: dmg")
-            loc.AddSetting("Messages", "BulletSleep", "killer shot victim while he was sleeping in bodypart, from dist using weapon")
-            loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "BulletSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon")
+            loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -234,7 +234,7 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
         else:
-            damage = PlayerDeathEvent.DamageAmounts[9]
+            damage = round(PlayerDeathEvent.DamageAmounts[9], 2)
             Sleeping = False
             if victim.basePlayer.IsSleeping():
                 Sleeping = True
