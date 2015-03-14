@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.1'
+__version__ = '3.7.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -291,6 +291,8 @@ class TpFriend:
                     DataStore.Add("tpfriendpending2", idt, id)
                     self.KillJob(Player)
                     self.KillJob(playertor)
+                    Pending.append(Player)
+                    Pending.append(playertor)
                     self.addJob(stuff, Player, playertor, 2, id, idt)
                 else:
                     Player.MessageFrom(self.sys, "You have to wait before teleporting again!")
