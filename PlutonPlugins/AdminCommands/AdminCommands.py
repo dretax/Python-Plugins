@@ -23,6 +23,8 @@ class AdminCommands:
 
     ohash = None
     mhash = None
+    Disconnect = False
+    Join = False
 
     def On_PluginInit(self):
         ini = self.AdminCmdConfig()
@@ -38,11 +40,16 @@ class AdminCommands:
             ini.SetSetting("Settings", "ModeratorPassword", hashed)
             ini.Save()
             self.mhash = hashed
+        self.Disconnect = bool(ini.GetSetting("Settings", "DisconnectMessage"))
+        self.Join = bool(ini.GetSetting("Settings", "JoinMessage"))
 
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
             loc = Plugin.CreateIni("AdminCmdConfig")
             loc.AddSetting("Settings", "OwnerPassword", "SetThisToSomethingElse")
+            loc.AddSetting("Settings", "ModeratorPassword", "SetThisToSomethingElse")
+            loc.AddSetting("Settings", "JoinMessage", "True")
+            loc.AddSetting("Settings", "DisconnectMessage", "True")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
 
@@ -366,7 +373,11 @@ class AdminCommands:
             EntityHurtEvent.Victim.ToBuildingPart().Destroy()
 
     def On_PlayerConnected(self, Player):
+        if not self.Join:
+            return
         Server.Broadcast(Player.Name + " joined the server.")
 
     def On_PlayerDisconnected(self, Player):
+        if not self.Disconnect:
+            return
         Server.Broadcast(Player.Name + " disconnected.")
