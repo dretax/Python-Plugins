@@ -12,6 +12,7 @@ import sys
 path = Util.GetPublicFolder()
 sys.path.append(path + "\\Python\\Lib\\")
 import hashlib
+import random
 
 """
     Class
@@ -324,6 +325,15 @@ class AdminCommands:
                 s = s + pl.Name + ', '
             Player.Message("Online Players:")
             Player.Message(s)
+        """elif cmd.cmd == "bulletrain":
+            x = Player.X
+            z = Player.Z
+            y = Player.Y + 45
+            Player.Message("TAKE COVER")
+            for number in xrange(0, 20):
+                #xr = float(random.randrange(int(x) - 10, int(x) + 10))
+                #zr = float(random.randrange(int(z) - 10, int(z) + 10))
+                World.SpawnMapEntity("fx/impacts/bullet/metal/metal1", x, y, z)"""
 
     def On_DoorUse(self, DoorEvent):
         if DataStore.Get("adoor", DoorEvent.Player.SteamID):
