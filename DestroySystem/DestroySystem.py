@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5'
+__version__ = '1.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -127,6 +127,17 @@ class DestroySystem:
                 DataStore.Remove("DestroySystem", Player.SteamID)
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy mode!")
+        elif cmd == "destroyall":
+            if not DataStore.ContainsKey("DestroySystem", Player.SteamID):
+                DataStore.Add("DestroySystem", Player.SteamID, 1)
+                Player.Message("---DestroySystem---")
+                Player.Message("You are in Destroy ALL mode")
+                Player.Message("If you finished, don't forget to quit from It!")
+                Player.Message("Shotgun cannot be used in destroy mode!")
+            else:
+                DataStore.Remove("DestroySystem", Player.SteamID)
+                Player.Message("---DestroySystem---")
+                Player.Message("You quit Destroy ALL mode!")
         elif cmd == "sharefoundation":
             if len(args) == 0:
                 Player.Message("Usage: /sharefoundation name")
@@ -166,15 +177,22 @@ class DestroySystem:
             gun = HurtEvent.WeaponName
             if gun == "Shotgun":
                 return
-            get = DataStore.Get("DestroySystem", str(id))
+            get = DataStore.Get("DestroySystem", id)
             OwnerID = self.GetIt(HurtEvent.Entity)
             if OwnerID is None:
                 return
             if (long(id) == long(OwnerID) or self.IsFriend(OwnerID, id)) and bool(get):
-                if self.IsEligible(HurtEvent):
-                    EntityName = HurtEvent.Entity.Name
-                    HurtEvent.Entity.Destroy()
-                    ini = self.DestroySys()
-                    giveback = int(ini.GetSetting("options", "giveback"))
-                    if giveback == 1:
-                        HurtEvent.Attacker.Inventory.AddItem(EntityName)
+                ini = self.DestroySys()
+                giveback = int(ini.GetSetting("options", "giveback"))
+                if get == "True":
+                    if self.IsEligible(HurtEvent):
+                        EntityName = HurtEvent.Entity.Name
+                        HurtEvent.Entity.Destroy()
+                        if giveback == 1:
+                            HurtEvent.Attacker.Inventory.AddItem(EntityName)
+                elif get == 1:
+                    structs = HurtEvent.Entity.GetLinkedStructs()
+                    for ent in structs:
+                        if giveback == 1:
+                            HurtEvent.Attacker.Inventory.AddItem(HurtEvent.Entity.Name)
+                        ent.Destroy()
