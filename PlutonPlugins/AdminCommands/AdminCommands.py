@@ -13,6 +13,7 @@ path = Util.GetPublicFolder()
 sys.path.append(path + "\\Python\\Lib\\")
 import hashlib
 import random
+import re
 
 """
     Class
@@ -31,11 +32,15 @@ class AdminCommands:
         password = ini.GetSetting("Settings", "OwnerPassword")
         password2 = ini.GetSetting("Settings", "ModeratorPassword")
         if password != "SetThisToSomethingElse":
+            if bool(re.findall(r"([a-fA-F\d]{32})", password)):
+                return
             hashed = hashlib.md5(password).hexdigest()
             ini.SetSetting("Settings", "OwnerPassword", hashed)
             ini.Save()
             self.ohash = hashed
         if password2 != "SetThisToSomethingElse":
+            if bool(re.findall(r"([a-fA-F\d]{32})", password2)):
+                return
             hashed = hashlib.md5(password2).hexdigest()
             ini.SetSetting("Settings", "ModeratorPassword", hashed)
             ini.Save()
