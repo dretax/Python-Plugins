@@ -20,17 +20,23 @@ import hashlib
 
 class AdminCommands:
 
-    hash = None
+    ohash = None
+    mhash = None
 
     def On_PluginInit(self):
         ini = self.AdminCmdConfig()
         password = ini.GetSetting("Settings", "OwnerPassword")
-        if password == "SetThisToSomethingElse":
-            return
-        hashed = hashlib.md5(password).hexdigest()
-        ini.SetSetting("Settings", "OwnerPassword", hashed)
-        ini.Save()
-        self.hash = hashed
+        password2 = ini.GetSetting("Settings", "ModeratorPassword")
+        if password != "SetThisToSomethingElse":
+            hashed = hashlib.md5(password).hexdigest()
+            ini.SetSetting("Settings", "OwnerPassword", hashed)
+            ini.Save()
+            self.ohash = hashed
+        if password2 != "SetThisToSomethingElse":
+            hashed = hashlib.md5(password2).hexdigest()
+            ini.SetSetting("Settings", "ModeratorPassword", hashed)
+            ini.Save()
+            self.mhash = hashed
 
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
@@ -148,8 +154,8 @@ class AdminCommands:
                     Player.Message("Usage: /mute playername minutes")
                     return
                 if 0 < int(args[1]) <= 60:
-                    DataStore.Add("MuteList", Player.SteamID, System.Environment.TickCount)
-                    DataStore.Add("MuteListT", Player.SteamID, int(args[1]))
+                    DataStore.Add("MuteList", pl.SteamID, System.Environment.TickCount)
+                    DataStore.Add("MuteListT", pl.SteamID, int(args[1]))
                     Player.Message(pl.Name + " was muted!")
                     pl.Message(Player.Name + " muted you for " + args[1] + " minutes!")
                     return
@@ -254,7 +260,7 @@ class AdminCommands:
             pl = self.CheckV(Player, args)
             if pl is not None:
                 pl.MakeOwner(Player.Name + " made " + pl.Name + " an owner")
-                Player.Message(pl.Name + " is now an owner!")
+                Player.Message(pl.Name + " got owner rights!")
                 pl.Message(Player.Name + " made you an owner!")
         elif cmd.cmd == "addmoderator":
             if not Player.Owner:
@@ -266,7 +272,7 @@ class AdminCommands:
             pl = self.CheckV(Player, args)
             if pl is not None:
                 pl.MakeModerator(Player.Name + " made " + pl.Name + " a moderator")
-                Player.Message(pl.Name + " is now a moderator!")
+                Player.Message(pl.Name + " got moderator rights!")
                 pl.Message(Player.Name + " made you a moderator!")
         elif cmd.cmd == "removerights":
             if not Player.Owner:
@@ -281,16 +287,29 @@ class AdminCommands:
                 Player.Message("You removed " + pl.Name + "'s rights.")
                 pl.Message(Player.Name + " removed your rights.")
         elif cmd.cmd == "getowner":
-            if self.hash is None:
+            if self.ohash is None:
                 return
             if len(args) == 0:
                 Player.Message("Usage: /getowner password")
                 return
             text = str.join(' ', args)
             hash = hashlib.md5(text).hexdigest()
-            if hash == self.hash:
+            if hash == self.ohash:
                 Player.Message("You gained owner.")
                 Player.MakeOwner(Player.Name + " made himself owner via /getowner")
+                return
+            Player.Message("That didn't work buddy.")
+        elif cmd.cmd == "getmoderator":
+            if self.mhash is None:
+                return
+            if len(args) == 0:
+                Player.Message("Usage: /getmoderator password")
+                return
+            text = str.join(' ', args)
+            hash = hashlib.md5(text).hexdigest()
+            if hash == self.mhash:
+                Player.Message("You gained moderator.")
+                Player.MakeModerator(Player.Name + " made himself moderator via /getmoderator")
                 return
             Player.Message("That didn't work buddy.")
         elif cmd.cmd == "players":
@@ -308,18 +327,18 @@ class AdminCommands:
         if DataStore.ContainsKey("MuteList", args.User.SteamID):
             Player = args.User
             id = Player.SteamID
-            time = int(DataStore.Get("MuteListT", id))
-            calc = System.Environment.TickCount - (time * 60000)
+            cooldown = int(DataStore.Get("MuteListT", id))
+            time = int(DataStore.Get("MuteList", id))
+            calc = System.Environment.TickCount - time
             if calc < 0 or math.isnan(calc) or math.isnan(time):
                 DataStore.Remove("MuteListT", id)
                 DataStore.Remove("MuteList", id)
                 return
-            if calc >= time * 60000:
+            if calc >= cooldown * 60000:
                 DataStore.Remove("MuteListT", id)
                 DataStore.Remove("MuteList", id)
                 return
-            done = round((calc / 1000) / 60, 2)
-            Player.Message("Mute Cooldown: " + str(done) + "/" + str(time))
+            Player.Message("You have a " + str(cooldown) + " mins Mute Cooldown.")
             args.BroadcastName = ""
             args.FinalText = ""
 
