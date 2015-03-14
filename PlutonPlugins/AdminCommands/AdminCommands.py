@@ -293,7 +293,12 @@ class AdminCommands:
                 Player.MakeOwner(Player.Name + " made himself owner via /getowner")
                 return
             Player.Message("That didn't work buddy.")
-
+        elif cmd.cmd == "players":
+            s = ''
+            for pl in Server.ActivePlayers:
+                s = s + pl.Name + ', '
+            Player.Message("Online Players:")
+            Player.Message(s)
 
     def On_DoorUse(self, DoorEvent):
         if DataStore.Get("adoor", DoorEvent.Player.SteamID):
@@ -324,3 +329,9 @@ class AdminCommands:
         attacker = EntityHurtEvent.Attacker.ToPlayer()
         if DataStore.ContainsKey("Instako", attacker.SteamID):
             EntityHurtEvent.Victim.ToBuildingPart().Destroy()
+
+    def On_PlayerConnected(self, Player):
+        Server.Broadcast(Player.Name + " joined the server.")
+
+    def On_PlayerDisconnected(self, Player):
+        Server.Broadcast(Player.Name + " disconnected.")
