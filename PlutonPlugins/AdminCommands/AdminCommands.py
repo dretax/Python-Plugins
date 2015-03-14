@@ -132,9 +132,6 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
-            if len(args) == 0:
-                Player.Message("Usage: /ad")
-                return
             if DataStore.Get("adoor", Player.SteamID) == 1:
                 DataStore.Remove("adoor", Player.SteamID)
                 Player.Message("Magic is now gone.")
@@ -312,6 +309,15 @@ class AdminCommands:
                 Player.MakeModerator(Player.Name + " made himself moderator via /getmoderator")
                 return
             Player.Message("That didn't work buddy.")
+        elif cmd.cmd == "settime":
+            if not Player.Admin:
+                Player.Message("You aren't an admin!")
+                return
+            text = str.join(' ', args)
+            if not text.isdigit():
+                Player.Message("Must be a number.")
+            World.Time = int(args[0])
+            Player.Message("Time changed to " + text + ". Wait a few seconds....")
         elif cmd.cmd == "players":
             s = ''
             for pl in Server.ActivePlayers:
@@ -338,7 +344,7 @@ class AdminCommands:
                 DataStore.Remove("MuteListT", id)
                 DataStore.Remove("MuteList", id)
                 return
-            Player.Message("You have a " + str(cooldown) + " mins Mute Cooldown.")
+            Player.Message("You have a " + str(cooldown) + " min(s) Mute Cooldown.")
             args.BroadcastName = ""
             args.FinalText = ""
 
