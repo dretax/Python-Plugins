@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.1'
+__version__ = '2.2'
 
 import clr
 
@@ -82,6 +82,9 @@ class DeathMSG:
     StabSleep = None
     BowSleep = None
     BulletSleep = None
+    Poison = None
+    Explosion = None
+    ExplosionSleep = None
     SlashSleep = None
 
     def On_PluginInit(self):
@@ -132,11 +135,14 @@ class DeathMSG:
             loc.AddSetting("Messages", "Radiation", "victim died from radiation")
             loc.AddSetting("Messages", "Thirst", "victim died from dehydration")
             loc.AddSetting("Messages", "Stab", "killer hit victim in bodypart using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "Poison", "victim got poisoned.")
+            loc.AddSetting("Messages", "Explosion", "victim exploded.")
             loc.AddSetting("Messages", "Suicide", "COLOR#aaff55 victim COLOR#55aaff suicided COLOR#ff55aa...")
             loc.AddSetting("Messages", "Slash", "killer slashed through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
             #Sleeping Types, Stolen from Skully
             loc.AddSetting("Messages", "Sleeping Types", "-----------------------------")
             loc.AddSetting("Messages", "BiteSleep", "victim was bitten to death while he was sleeping")
+            loc.AddSetting("Messages", "ExplosionSleep", "victim exploded while he was sleeping")
             loc.AddSetting("Messages", "BluntSleep", "killer hit victim while he was sleeping in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "BleedingSleep", "victim bled out while he was sleeping")
             loc.AddSetting("Messages", "StabSleep", "killer hit victim while he was sleeping in bodypart using weapon. Damage: dmg")
@@ -174,19 +180,20 @@ class DeathMSG:
         return bool(rgbstringtemplate.match(value))
 
     #Objects and IsAnimals were stolen from Skully
-    Objects = {
-        'autospawn/animals/bear': 'bear',
-        'autospawn/animals/wolf': 'wolf',
-        'campfire_deployed(Clone)': 'fire',
-        'beartrap(Clone)': 'beartrap'
+    Misc = {
+        'autospawn/animals/bear': 'Bear',
+        'autospawn/animals/wolf': 'Wolf',
+        'campfire_deployed(Clone)': 'Fire',
+        'beartrap(Clone)': 'BearTrap',
+        'timed.explosive.deployed(Clone)': 'C4'
     }
 
     IsAnimal = {
-        'autospawn/animals/bear': 'bear',
-        'autospawn/animals/wolf': 'wolf',
-        'autospawn/animals/stag': 'stag',
-        'autospawn/animals/boar': 'boar',
-        'autospawn/animals/chicken': 'chicken'
+        'autospawn/animals/bear': 'Bear',
+        'autospawn/animals/wolf': 'Wolf',
+        'autospawn/animals/stag': 'Stag',
+        'autospawn/animals/boar': 'Boar',
+        'autospawn/animals/chicken': 'Chicken'
     }
 
     def On_NPCKilled(self, NPCDeathEvent):
@@ -215,8 +222,11 @@ class DeathMSG:
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.Name)
         victimname = str(victim.Name)
+        Sleeping = False
+        if victim.basePlayer.IsSleeping():
+            Sleeping = True
         if attacker.ToPlayer() is None:
-            atnn = self.Objects.get(attackername, None)
+            atnn = self.Misc.get(attackername, None)
             if atnn is None or not atnn:
                 return
             elif atnn == "fire":
@@ -229,6 +239,13 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
                 return
+            elif atnn == "C4":
+                if Sleeping:
+                    dmgmsg = self.ExplosionSleep
+                else:
+                    dmgmsg = self.Explosion
+                msg = dmgmsg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
             if self.AnimalKills and attacker.IsNPC():
                 attackername = self.IsAnimal.get(attackername, attackername)
                 msg = self.Animal
@@ -237,18 +254,15 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, msg)
         else:
             damage = round(PlayerDeathEvent.DamageAmounts[9], 2)
-            Sleeping = False
-            if victim.basePlayer.IsSleeping():
-                Sleeping = True
             type = str(PlayerDeathEvent.DamageType)
+            weapon = PlayerDeathEvent.Weapon.Name
             if type == "Suicide":
                 if self.NaturalDies:
-                    msg = getattr(self, type)
+                    msg = self.Suicide
                     msg = msg.replace("victim", victimname)
                     Server.BroadcastFrom(self.SysName, msg)
                     return
             elif type == "Bullet" or type == "Slash":
-                weapon = PlayerDeathEvent.Weapon.Name
                 dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
                 bpart = self.BodyParts.get(bodypart, bodypart)
@@ -274,7 +288,6 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, bmsg)
             # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
-                weapon = PlayerDeathEvent.Weapon.Name
                 if Sleeping:
                     dmgmsg = self.BluntSleep
                 else:
@@ -293,7 +306,6 @@ class DeathMSG:
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Stab":
-                weapon = PlayerDeathEvent.Weapon.Name
                 if weapon == "Hunting Bow":
                     if Sleeping:
                         dmgmsg = self.BowSleep
