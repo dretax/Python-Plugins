@@ -1,10 +1,12 @@
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.7'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
+clr.AddReferenceByPartialName("UnityEngine")
 import Pluton
+from UnityEngine import Vector3
 import System
 from System import *
 import math
@@ -24,13 +26,21 @@ class AdminCommands:
 
     ohash = None
     mhash = None
-    Disconnect = False
-    Join = False
+    Disconnect = None
+    Join = None
+    DutyFirst = None
+    Owners = None
+    DefaultVector = None
 
     def On_PluginInit(self):
         ini = self.AdminCmdConfig()
         password = ini.GetSetting("Settings", "OwnerPassword")
         password2 = ini.GetSetting("Settings", "ModeratorPassword")
+        self.Disconnect = bool(ini.GetSetting("Settings", "DisconnectMessage"))
+        self.Join = bool(ini.GetSetting("Settings", "JoinMessage"))
+        self.DutyFirst = bool(ini.GetSetting("Settings", "DutyFirst"))
+        self.Owners = bool(ini.GetSetting("Settings", "CanOwnersByPassDuty"))
+        self.DefaultVector = Vector3(0, 0, 0)
         if password != "SetThisToSomethingElse":
             if bool(re.findall(r"([a-fA-F\d]{32})", password)):
                 return
@@ -45,8 +55,6 @@ class AdminCommands:
             ini.SetSetting("Settings", "ModeratorPassword", hashed)
             ini.Save()
             self.mhash = hashed
-        self.Disconnect = bool(ini.GetSetting("Settings", "DisconnectMessage"))
-        self.Join = bool(ini.GetSetting("Settings", "JoinMessage"))
 
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
@@ -55,6 +63,11 @@ class AdminCommands:
             loc.AddSetting("Settings", "ModeratorPassword", "SetThisToSomethingElse")
             loc.AddSetting("Settings", "JoinMessage", "True")
             loc.AddSetting("Settings", "DisconnectMessage", "True")
+            loc.AddSetting("Settings", "DutyFirst", "True")
+            loc.AddSetting("Settings", "CanOwnersByPassDuty", "True")
+            loc.AddSetting("Settings", "LogGive", "True")
+            loc.AddSetting("Settings", "LogAirdropCalls", "True")
+            loc.AddSetting("Settings", "Log", "True")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
 
@@ -103,15 +116,40 @@ class AdminCommands:
             Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
+    # Duty idea taken from Jakkee from Fougerite
+    def IsonDuty(self, Player):
+        if not self.DutyFirst:
+            return True
+        if self.Owners and Player.Owner:
+            return True
+        if DataStore.ContainsKey("Duty", Player.SteamID):
+            return True
+        return False
+
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.quotedArgs
-        if cmd.cmd == "tpto":
+        if cmd.cmd == "duty":
+            if not Player.Admin:
+                Player.Message("You aren't an admin!")
+                return
+            if self.IsonDuty(Player):
+                DataStore.Remove("Duty", Player.SteamID)
+                Server.Broadcast(Player.Name + " is off duty.")
+                Plugin.Log("DutyLog", Player.Name + " off duty.")
+            else:
+                DataStore.Add("Duty", Player.SteamID, True)
+                Server.Broadcast(Player.Name + " is on duty. Let him know if you need anything.")
+                Plugin.Log("DutyLog", Player.Name + " on duty.")
+        elif cmd.cmd == "tpto":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
             if len(args) == 0:
                 Player.Message("Usage: /tpto name")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             pl = self.CheckV(Player, args)
             if pl is not None:
@@ -120,6 +158,9 @@ class AdminCommands:
         elif cmd.cmd == "tphere":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             if len(args) == 0:
                 Player.Message("Usage: /tphere name")
@@ -131,6 +172,9 @@ class AdminCommands:
         elif cmd.cmd == "god":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             if DataStore.Get("godmode", Player.SteamID) == 1:
                 DataStore.Remove("godmode", Player.SteamID)
@@ -145,6 +189,9 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             if DataStore.Get("adoor", Player.SteamID) == 1:
                 DataStore.Remove("adoor", Player.SteamID)
                 Player.Message("Magic is now gone.")
@@ -154,6 +201,9 @@ class AdminCommands:
         elif cmd.cmd == "mute":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             if len(args) <= 1:
                 Player.Message("Usage: /mute playername minutes")
@@ -174,6 +224,9 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             if len(args) == 0:
                 Player.Message("Usage: /unmute playername")
                 return
@@ -186,6 +239,9 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             if DataStore.ContainsKey("Instako", Player.SteamID):
                 DataStore.Remove("Instako", Player.SteamID)
                 Player.Message("InstaKO Off")
@@ -196,16 +252,22 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             if len(args) == 0:
                 Player.Message("Usage: /kick playername")
                 return
             pl = self.CheckV(Player, args)
             if pl is not None:
                 Player.Message("Kicked " + pl.Name + "!")
-                pl.Disconnect()
+                pl.Kick("Kicked by admin")
         elif cmd.cmd == "say":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             if len(args) == 0:
                 Player.Message("Usage: /say text")
@@ -216,12 +278,18 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             for x in Player.Inventory.AllItems():
                 x._item.Remove(1)
             Player.Message("Cleared!")
         elif cmd.cmd == "repairall":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
                 return
             for x in Player.Inventory.AllItems():
                 x._item.RepairCondition(x._item.maxCondition)
@@ -230,34 +298,44 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             if len(args) <= 1:
                 Player.Message("Usage: /give playername item amount")
                 return
             pl = self.CheckV(Player, args[0])
             if pl is not None:
+                num = 1
                 if len(args) == 2:
                     num = 1
-                else:
-                    if not args[2].isdigit():
-                        num = 1
-                    else:
+                elif len(args) == 3:
+                    if args[2].isdigit():
                         num = int(args[2])
+                else:
+                    Player.Message("Usage: /give playername item amount")
+                    Player.Message('Or Try: /give "playername" "item" amount (With quote)')
+                    return
                 item = args[1]
                 pl.Inventory.Add(item, num)
         elif cmd.cmd == "i":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            num = 1
             if len(args) == 0:
                 Player.Message("Usage: /i item amount")
                 return
-            if len(args) == 1:
-                num = 1
-            else:
-                if not args[1].isdigit():
-                    num = 1
-                else:
+            elif len(args) == 2:
+                if args[1].isdigit():
                     num = int(args[1])
+            else:
+                Player.Message("Usage: /i item amount")
+                Player.Message('Or Try: /i "item" amount (With quote)')
+                return
             item = args[0]
             Player.Inventory.Add(item, num)
         elif cmd.cmd == "addowner":
@@ -326,6 +404,9 @@ class AdminCommands:
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
                 return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
             text = str.join(' ', args)
             if not text.isdigit():
                 Player.Message("Must be a number.")
@@ -337,6 +418,71 @@ class AdminCommands:
                 s = s + pl.Name + ', '
             Player.Message("Online Players:")
             Player.Message(s)
+        elif cmd.cmd == "airdropr":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            Plugin.Log("AirdropCall", Player.Name + " called airdrop to a random place.")
+            World.AirDrop()
+            Player.Message("Called.")
+        elif cmd.cmd == "airdrop":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            Plugin.Log("AirdropCall", Player.Name + " called airdrop to himself.")
+            World.AirDropAtPlayer(Player)
+            Player.Message("Called to you.")
+        elif cmd.cmd == "freezetime":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            World.FreezeTime()
+            Player.Message("Time froze!.")
+        elif cmd.cmd == "unfreezetime":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            World.UnFreezeTime()
+            Player.Message("Time is running out now :)...")
+        elif cmd.cmd == "kill":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            if len(args) == 0:
+                Player.Message("Usage: /kill playername")
+                return
+            pl = self.CheckV(Player, args)
+            if pl is not None:
+                pl.Kill()
+                Player.Message(pl.Name + " killed!")
+        elif cmd.cmd == "vectortp":
+            if not Player.Admin:
+                Player.Message("You aren't a moderator!")
+                return
+            if not self.IsonDuty(Player):
+                Player.Message("You aren't on duty!")
+                return
+            vector = Player.GetLookPoint(2000)
+            if vector == self.DefaultVector:
+                Player.Message("Target is too far.")
+                return
+            Player.Teleport(vector)
+            Player.Message("Teleported!")
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
@@ -378,11 +524,9 @@ class AdminCommands:
             EntityHurtEvent.Victim.ToBuildingPart().Destroy()
 
     def On_PlayerConnected(self, Player):
-        if not self.Join:
-            return
-        Server.Broadcast(Player.Name + " joined the server.")
+        if self.Join:
+            Server.Broadcast(Player.Name + " joined the server.")
 
     def On_PlayerDisconnected(self, Player):
-        if not self.Disconnect:
-            return
-        Server.Broadcast(Player.Name + " disconnected.")
+        if self.Disconnect:
+            Server.Broadcast(Player.Name + " disconnected.")
