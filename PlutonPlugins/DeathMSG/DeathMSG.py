@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2'
+__version__ = '2.2.1'
 
 import clr
 
@@ -255,7 +255,6 @@ class DeathMSG:
         else:
             damage = round(PlayerDeathEvent.DamageAmounts[9], 2)
             type = str(PlayerDeathEvent.DamageType)
-            weapon = PlayerDeathEvent.Weapon.Name
             if type == "Suicide":
                 if self.NaturalDies:
                     msg = self.Suicide
@@ -263,6 +262,7 @@ class DeathMSG:
                     Server.BroadcastFrom(self.SysName, msg)
                     return
             elif type == "Bullet" or type == "Slash":
+                weapon = PlayerDeathEvent.Weapon.Name
                 dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
                 bpart = self.BodyParts.get(bodypart, bodypart)
@@ -288,6 +288,7 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, bmsg)
             # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
+                weapon = PlayerDeathEvent.Weapon.Name
                 if Sleeping:
                     dmgmsg = self.BluntSleep
                 else:
@@ -306,6 +307,7 @@ class DeathMSG:
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Stab":
+                weapon = PlayerDeathEvent.Weapon.Name
                 if weapon == "Hunting Bow":
                     if Sleeping:
                         dmgmsg = self.BowSleep
