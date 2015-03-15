@@ -1,8 +1,7 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
-
 clr.AddReferenceByPartialName("Pluton")
 clr.AddReferenceByPartialName("UnityEngine")
 import Pluton
@@ -55,7 +54,7 @@ class HomeSystem:
             Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             return
-        Player.GroundTeleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
+        Player.Teleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
         if safetp > 0:
             Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
