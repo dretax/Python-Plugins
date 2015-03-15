@@ -41,6 +41,9 @@ class AdminCommands:
         self.DutyFirst = bool(ini.GetSetting("Settings", "DutyFirst"))
         self.Owners = bool(ini.GetSetting("Settings", "CanOwnersByPassDuty"))
         self.DefaultVector = Vector3(0, 0, 0)
+        self.LogGive = bool(ini.GetSetting("Settings", "LogGive"))
+        self.LogAirdropCalls = bool(ini.GetSetting("Settings", "LogAirdropCalls"))
+        self.LogDuty = bool(ini.GetSetting("Settings", "LogDuty"))
         if password != "SetThisToSomethingElse":
             if bool(re.findall(r"([a-fA-F\d]{32})", password)):
                 return
@@ -67,7 +70,7 @@ class AdminCommands:
             loc.AddSetting("Settings", "CanOwnersByPassDuty", "True")
             loc.AddSetting("Settings", "LogGive", "True")
             loc.AddSetting("Settings", "LogAirdropCalls", "True")
-            loc.AddSetting("Settings", "Log", "True")
+            loc.AddSetting("Settings", "LogDuty", "True")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
 
@@ -136,11 +139,13 @@ class AdminCommands:
             if self.IsonDuty(Player):
                 DataStore.Remove("Duty", Player.SteamID)
                 Server.Broadcast(Player.Name + " is off duty.")
-                Plugin.Log("DutyLog", Player.Name + " off duty.")
+                if self.LogDuty:
+                    Plugin.Log("DutyLog", Player.Name + " off duty.")
             else:
                 DataStore.Add("Duty", Player.SteamID, True)
                 Server.Broadcast(Player.Name + " is on duty. Let him know if you need anything.")
-                Plugin.Log("DutyLog", Player.Name + " on duty.")
+                if self.LogDuty:
+                    Plugin.Log("DutyLog", Player.Name + " on duty.")
         elif cmd.cmd == "tpto":
             if not Player.Admin:
                 Player.Message("You aren't an admin!")
@@ -316,6 +321,8 @@ class AdminCommands:
                     Player.Message("Usage: /give playername item amount")
                     Player.Message('Or Try: /give "playername" "item" amount (With quote)')
                     return
+                if self.LogGive:
+                    Plugin.Log("ItemAdd", Player.Name + " gave to: " + str.join(' ', args))
                 item = args[1]
                 pl.Inventory.Add(item, num)
         elif cmd.cmd == "i":
@@ -336,6 +343,8 @@ class AdminCommands:
                 Player.Message("Usage: /i item amount")
                 Player.Message('Or Try: /i "item" amount (With quote)')
                 return
+            if self.LogGive:
+                Plugin.Log("ItemAdd", Player.Name + " gave himself: " + str.join(' ', args))
             item = args[0]
             Player.Inventory.Add(item, num)
         elif cmd.cmd == "addowner":
@@ -425,7 +434,8 @@ class AdminCommands:
             if not self.IsonDuty(Player):
                 Player.Message("You aren't on duty!")
                 return
-            Plugin.Log("AirdropCall", Player.Name + " called airdrop to a random place.")
+            if self.LogAirdropCalls:
+                Plugin.Log("AirdropCall", Player.Name + " called airdrop to a random place.")
             World.AirDrop()
             Player.Message("Called.")
         elif cmd.cmd == "airdrop":
@@ -435,7 +445,8 @@ class AdminCommands:
             if not self.IsonDuty(Player):
                 Player.Message("You aren't on duty!")
                 return
-            Plugin.Log("AirdropCall", Player.Name + " called airdrop to himself.")
+            if self.LogAirdropCalls:
+                Plugin.Log("AirdropCall", Player.Name + " called airdrop to himself.")
             World.AirDropAtPlayer(Player)
             Player.Message("Called to you.")
         elif cmd.cmd == "freezetime":
