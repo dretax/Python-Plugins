@@ -535,6 +535,8 @@ class AdminCommands:
             return
         attacker = EntityHurtEvent.Attacker.ToPlayer()
         if DataStore.ContainsKey("Instako", attacker.SteamID):
+            if EntityHurtEvent.Victim.ToBuildingPart() is None:
+                return
             EntityHurtEvent.Victim.ToBuildingPart().Destroy()
 
     def On_PlayerConnected(self, Player):
