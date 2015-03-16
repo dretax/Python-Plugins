@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -46,12 +46,7 @@ class Help:
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
-        if cmd.cmd == "playerlist":
-            all = ""
-            for pl in Server.ActivePlayers:
-                all = all + str(pl.Name) + ", "
-            Player.MessageFrom("Online Players", all)
-        elif cmd.cmd == "help":
+        if cmd.cmd == "help":
             if len(args) == 0:
                 ini = self.HelpCfg()
                 sys = ini.GetSetting("Settings", "SysName")
