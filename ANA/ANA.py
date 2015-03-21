@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.6.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -69,8 +69,8 @@ class ANA:
     def Rename(self, Player):
         name = Player.Name
         name = self.CutName(name)
-        name = re.sub(' +',' ', name)
-        name = re.sub('[\t]+','', name)
+        name = re.sub(' +', ' ', name)
+        name = re.sub('[\t]+', '', name)
         starts = name.startswith(' ')
         ends = name.endswith(' ')
         if starts is True:
@@ -78,7 +78,7 @@ class ANA:
         if ends is True:
             n = len(name)
             if n > 1:
-                name = name.replace(name[n-1], '')
+                name = name.replace(name[n - 1], '')
         a = re.match('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', name)
         if not a:
             name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
@@ -87,7 +87,7 @@ class ANA:
             n = 1
         if name.lower() in str(Restricted):
             n = 1
-        if name in Names:
+        if name.lower() in str(Names).lower():
             n = 1
         if n <= 1:
             name = "Stranger"
@@ -123,8 +123,8 @@ class ANA:
         if "Stranger" in name:
             ssw = [int(s) for s in name if s.isdigit()]
             ssw = int(''.join(str(e) for e in ssw))
-            if int(ssw) in RandNames:
-                RandNames.remove(int(ssw))
+            if ssw in RandNames:
+                RandNames.remove(ssw)
         try:
             Names.remove(name)
         except:
