@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7'
+__version__ = '1.8'
 
 import clr
 
@@ -31,6 +31,7 @@ class AdminCommands:
     DutyFirst = None
     Owners = None
     DefaultVector = None
+    Friends = None
     Sysname = None
 
     def On_PluginInit(self):
@@ -45,6 +46,7 @@ class AdminCommands:
         self.LogGive = bool(ini.GetSetting("Settings", "LogGive"))
         self.LogAirdropCalls = bool(ini.GetSetting("Settings", "LogAirdropCalls"))
         self.LogDuty = bool(ini.GetSetting("Settings", "LogDuty"))
+        self.Friends = bool(ini.GetSetting("Settings", "Friends"))
         self.Sysname = ini.GetSetting("Settings", "Sysname")
         if password != "SetThisToSomethingElse":
             if bool(re.findall(r"([a-fA-F\d]{32})", password)):
@@ -74,8 +76,21 @@ class AdminCommands:
             loc.AddSetting("Settings", "LogGive", "True")
             loc.AddSetting("Settings", "LogAirdropCalls", "True")
             loc.AddSetting("Settings", "LogDuty", "True")
+            loc.AddSetting("Settings", "Friends", "True")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
+
+    def FriendList(self):
+        if not Plugin.IniExists("Friends"):
+            loc = Plugin.CreateIni("Friends")
+            loc.Save()
+        return Plugin.GetIni("Friends")
+
+    def FriendOF(self, ofid, id):
+        ini = self.FriendList()
+        if ini.GetSetting(ofid, id) and ini.GetSetting(ofid, id) is not None:
+            return True
+        return False
 
     def GetPlayerName(self, namee):
         name = namee.lower()
@@ -497,6 +512,74 @@ class AdminCommands:
                 return
             Player.Teleport(vector)
             Player.MessageFrom(self.Sysname, "Teleported!")
+        elif cmd.cmd == "teleportto":
+            if not Player.Admin:
+                Player.MessageFrom(self.Sysname, "You aren't a moderator!")
+                return
+            text = str.join(' ', args)
+            if not ',' in text:
+                Player.MessageFrom(self.Sysname, "Usage: /teleportto x,y,z")
+                return
+            sp = text.split(',')
+            if len(sp) < 2:
+                Player.MessageFrom(self.Sysname, "Usage: /teleportto x,y,z")
+                return
+            Player.Teleport(float(sp[0]), float(sp[1]), float(sp[2]))
+            Player.MessageFrom(self.Sysname, "Teleported!")
+        elif cmd.cmd == "addfriend":
+            if not self.Friends:
+                Player.MessageFrom(self.Sysname, "Feature disabled.")
+                return
+            if len(args) == 0:
+                Player.MessageFrom(self.Sysname, "Usage: /addfriend name")
+                return
+            pl = self.CheckV(Player, args)
+            if pl is None:
+                return
+            if self.FriendOF(Player.SteamID, pl.SteamID):
+                Player.MessageFrom(self.Sysname, "You have him already as a friend.")
+                return
+            ini = self.FriendList()
+            ini.AddSetting(Player.SteamID, pl.SteamID, pl.Name)
+            ini.Save()
+            Player.MessageFrom(self.Sysname, "Added " + pl.Name + "!")
+        elif cmd.cmd == "delfriend":
+            if not self.Friends:
+                Player.MessageFrom(self.Sysname, "Feature disabled.")
+                return
+            id = Player.SteamID
+            if len(args) == 0:
+                Player.MessageFrom(self.Sysname, "Usage: /delfriend name")
+                return
+            ini = self.FriendList()
+            text = str.join(' ', args).lower()
+            enum = ini.EnumSection(id)
+            if len(enum) == 0:
+                Player.MessageFrom(self.Sysname, "You don't even have friends buddy.")
+                return
+            for playerid in enum:
+                nameof = ini.GetSetting(id, playerid).lower()
+                if nameof == text or text in nameof:
+                    ini.DeleteSetting(id, playerid)
+                    ini.Save()
+                    Player.MessageFrom(self.Sysname, str(nameof) + " was Removed from your list")
+                    return
+            Player.MessageFrom(self.Sysname, text + " is not on your list!")
+        elif cmd.cmd == "friends":
+            if not self.Friends:
+                Player.MessageFrom(self.Sysname, "Feature disabled.")
+                return
+            id = Player.SteamID
+            ini = self.FriendList()
+            enum = ini.EnumSection(id)
+            if len(enum) == 0:
+                Player.MessageFrom(self.Sysname, "You don't even have friends buddy.")
+                return
+            Player.MessageFrom(self.Sysname, "List of Friends:")
+            for playerid in enum:
+                nameof = ini.GetSetting(id, playerid)
+                if nameof:
+                    Player.MessageFrom(self.Sysname, "- " + str(nameof))
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
@@ -507,9 +590,11 @@ class AdminCommands:
                 #zr = float(random.randrange(int(z) - 10, int(z) + 10))
                 World.SpawnMapEntity("fx/impacts/bullet/metal/metal1", x, y, z)"""
 
-    def On_DoorUse(self, DoorEvent):
+    """def On_DoorUse(self, DoorEvent):
+        Server.Broadcast("ASd" + DoorEvent.Player.SteamID)
+        Server.Broadcast(str(DataStore.Get("adoor", DoorEvent.Player.SteamID)))
         if DataStore.Get("adoor", DoorEvent.Player.SteamID):
-            DoorEvent.Open = True
+            DoorEvent.Open = True"""
 
     def On_Chat(self, args):
         if DataStore.ContainsKey("MuteList", args.User.SteamID):
@@ -538,6 +623,17 @@ class AdminCommands:
             if EntityHurtEvent.Victim.ToBuildingPart() is None:
                 return
             EntityHurtEvent.Victim.ToBuildingPart().Destroy()
+
+    def On_PlayerHurt(self, HurtEvent):
+        if not self.Friends:
+            return
+        attacker = HurtEvent.Attacker
+        if not attacker.IsPlayer():
+            return
+        victim = HurtEvent.Victim
+        if self.FriendOF(attacker.SteamID, victim.SteamID):
+            for x in range(0, len(HurtEvent.DamageAmounts)):
+                HurtEvent.DamageAmounts[x] = 0
 
     def On_PlayerConnected(self, Player):
         if self.Join:
