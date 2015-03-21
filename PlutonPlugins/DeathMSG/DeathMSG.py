@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.1'
+__version__ = '2.2.2'
 
 import clr
 
@@ -200,22 +200,20 @@ class DeathMSG:
         #Skully
         if self.AnimalKills:
             Attacker = NPCDeathEvent.Attacker
-            if Attacker.IsNPC():
-                return
-            Victim = NPCDeathEvent.Victim
-            VictimName = self.IsAnimal.get(Victim.Name, Victim.Name)
-            Attacker = Server.Players[Attacker.basePlayer.userID]
-            AttackerName = Attacker.Name
-            Weapon = NPCDeathEvent.Weapon.Name
-            vloc = Victim.Location
-            aloc = Attacker.Location
-            dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
-            dmgmsg = self.AnimalDeath
-            dmgmsg = dmgmsg.replace("killer", AttackerName)
-            dmgmsg = dmgmsg.replace("animal", VictimName)
-            dmgmsg = dmgmsg.replace("dist", str(dist))
-            dmgmsg = dmgmsg.replace("weapon", Weapon)
-            Server.BroadcastFrom(self.SysName, dmgmsg)
+            if Attacker.IsPlayer():
+                Victim = NPCDeathEvent.Victim
+                VictimName = self.IsAnimal.get(Victim.Name, Victim.Name)
+                AttackerName = Attacker.Name
+                Weapon = NPCDeathEvent.Weapon.Name
+                vloc = Victim.Location
+                aloc = Attacker.Location
+                dist = round(Util.GetVectorsDistance(vloc, aloc), 2)
+                dmgmsg = self.AnimalDeath
+                dmgmsg = dmgmsg.replace("killer", AttackerName)
+                dmgmsg = dmgmsg.replace("animal", VictimName)
+                dmgmsg = dmgmsg.replace("dist", str(dist))
+                dmgmsg = dmgmsg.replace("weapon", Weapon)
+                Server.BroadcastFrom(self.SysName, dmgmsg)
 
     def On_PlayerDied(self, PlayerDeathEvent):
         attacker = PlayerDeathEvent.Attacker
@@ -253,7 +251,6 @@ class DeathMSG:
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
         else:
-            damage = round(PlayerDeathEvent.DamageAmounts[9], 2)
             type = str(PlayerDeathEvent.DamageType)
             if type == "Suicide":
                 if self.NaturalDies:
@@ -262,6 +259,10 @@ class DeathMSG:
                     Server.BroadcastFrom(self.SysName, msg)
                     return
             elif type == "Bullet" or type == "Slash":
+                if type == "Bullet":
+                    damage = round(PlayerDeathEvent.DamageAmounts[9], 2)
+                else:
+                    damage = round(PlayerDeathEvent.DamageAmounts[10], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
                 dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
@@ -288,6 +289,7 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, bmsg)
             # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
+                damage = round(PlayerDeathEvent.DamageAmounts[11], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
                 if Sleeping:
                     dmgmsg = self.BluntSleep
@@ -307,6 +309,7 @@ class DeathMSG:
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Stab":
+                damage = round(PlayerDeathEvent.DamageAmounts[15], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
                 if weapon == "Hunting Bow":
                     if Sleeping:
