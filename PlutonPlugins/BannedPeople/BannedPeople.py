@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.1'
+__version__ = '1.3'
 
 import clr
 
@@ -15,6 +15,8 @@ class BannedPeople:
     """
         Methods
     """
+    sysname = None
+    bannedreason = None
 
     def BannedPeopleConfig(self):
         if not Plugin.IniExists("BannedPeopleConfig"):
@@ -31,7 +33,9 @@ class BannedPeople:
         return Plugin.GetIni("BannedPeople")
 
     def On_PluginInit(self):
-        self.BannedPeopleConfig()
+        ini = self.BannedPeopleConfig()
+        self.sysname = ini.GetSetting("Main", "Name")
+        self.bannedreason = ini.GetSetting("Main", "BannedDrop")
 
     def argsToText(self, args):
         text = str.Join(" ", args)
@@ -60,49 +64,99 @@ class BannedPeople:
                 return pl
         return None
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
+    """
+        CheckV Assistants
+    """
+
+    def GetPlayerName(self, name, Mode=1):
+        Name = name.lower()
+        if Mode == 1:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+        elif Mode == 2:
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
+        else:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
         return None
 
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        Mode: Search mode (Default: 1)
+            1 = Search Online Players
+            2 = Search Offline Players
+            3 = Both
+        V5.0
     """
-    def CheckV(self, Player, args):
-        ini = self.BannedPeopleConfig()
-        systemname = ini.GetSetting("Main", "Name")
+
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(str.Join(" ", args))
+            p = self.GetPlayerName(str.Join(" ", args), Mode)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
-                for namePart in args:
-                    if namePart.lower() in pl.Name.lower():
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+        else:
+            p = self.GetPlayerName(str(args), Mode)
+            if p is not None:
+                return p
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
                         p = pl
                         count += 1
-                        continue
-        else:
-            p = self.GetPlayerName(str(args))
-            if p is not None:
-                return p
-            for pl in Server.ActivePlayers:
-                if str(args).lower() in pl.Name.lower():
-                    p = pl
-                    count += 1
-                    continue
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom(self.sysname, "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom(self.sysname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     def On_Command(self, cmd):
@@ -110,25 +164,22 @@ class BannedPeople:
         args = cmd.args
         if cmd.cmd == "banip":
             if Player.Admin:
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
-                bannedreason = ini.GetSetting("Main", "BannedDrop")
                 if len(args) > 0:
-                    playerr = self.CheckV(Player, args)
+                    playerr = self.CheckV(Player, args, 3)
                     if playerr is None:
                         return
 
                     else:
                         ini = self.BannedPeopleIni()
                         if playerr.Admin and Player.Moderator:
-                            Player.MessageFrom(sysname, "You cannot ban admins!")
+                            Player.MessageFrom(self.sysname, "You cannot ban admins!")
                             return
 
                         id = playerr.SteamID
                         ip = playerr.IP
                         name = playerr.Name
                         for pl in Server.ActivePlayers:
-                            if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
+                            if pl.Admin: pl.MessageFrom(self.sysname, "Message to Admins: " + name + " was banned by: " + Player.Name)
 
                         ini.AddSetting("Ips", ip, "1")
                         ini.AddSetting("Ids", id, "1")
@@ -139,20 +190,19 @@ class BannedPeople:
                         Player.Message("You banned " + name)
                         Player.Message("Player's IP: " + ip)
                         Player.Message("Player's ID: " + id)
-                        playerr.Message("You were banned from the server")
-                        checking = DataStore.Get("BanIp", Player.SteamID)
-                        if checking == "true":
-                            playerr.MessageFrom(sysname, "Admin, who banned you: UNKNOWN - Admin in Casing mode")
+                        if not "offlineplayer" in str(playerr).lower():
+                            playerr.Message("You were banned from the server")
+                            checking = DataStore.Get("BanIp", Player.SteamID)
+                            if checking == "true":
+                                playerr.MessageFrom(self.sysname, "Admin, who banned you: UNKNOWN - Admin in Casing mode")
 
-                        elif checking == "false" or checking == None:
-                            playerr.MessageFrom(sysname, "Admin, who banned you: " + Player.Name)
-                        playerr.Kick(bannedreason)
+                            elif checking == "false" or checking == None:
+                                playerr.MessageFrom(self.sysname, "Admin, who banned you: " + Player.Name)
+                            playerr.Kick(self.bannedreason)
                 else:
-                    Player.MessageFrom(sysname, "Specify a Name!")
+                    Player.MessageFrom(self.sysname, "Specify a Name!")
         elif cmd.cmd == "unbanip":
             if Player.Admin:
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 if len(args) > 0:
                     name = self.argsToText(args)
                     id = self.GetPlayerUnBannedID(name)
@@ -171,45 +221,41 @@ class BannedPeople:
                         ini.DeleteSetting("NameIds", name)
                         ini.Save()
                         for pl in Server.ActivePlayers:
-                            if pl.Admin: pl.MessageFrom(sysname, name + " was unbanned by: " + Player.Name)
+                            if pl.Admin: pl.MessageFrom(self.sysname, name + " was unbanned by: " + Player.Name)
 
-                        Player.MessageFrom(sysname, "Player " + name + " unbanned!")
+                        Player.MessageFrom(self.sysname, "Player " + name + " unbanned!")
                 else:
-                    Player.MessageFrom(sysname, "Specify a Name!")
+                    Player.MessageFrom(self.sysname, "Specify a Name!")
         elif cmd.cmd == "banhidename":
             if Player.Admin:
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 if len(args) == 0:
-                    Player.MessageFrom(sysname, "BanIp HideName")
-                    Player.MessageFrom(sysname, "To activate use the command \"/banhidename true\"")
-                    Player.MessageFrom(sysname, "To deactivate use the command \"/banhidename false\"")
+                    Player.MessageFrom(self.sysname, "BanIp HideName")
+                    Player.MessageFrom(self.sysname, "To activate use the command \"/banhidename true\"")
+                    Player.MessageFrom(self.sysname, "To deactivate use the command \"/banhidename false\"")
 
                 elif len(args) == 1:
                     if args[0] == "true":
                         DataStore.Add("BanIp", Player.SteamID, "true")
-                        Player.MessageFrom(sysname, "Now hiding your name!")
+                        Player.MessageFrom(self.sysname, "Now hiding your name!")
 
                     elif args[0] == "false":
                         DataStore.Add("BanIp", Player.SteamID, "false")
-                        Player.MessageFrom(sysname, "Now displaying your name!")
+                        Player.MessageFrom(self.sysname, "Now displaying your name!")
 
     def On_PlayerConnected(self, Player):
         id = Player.SteamID
         ip = Player.IP
-        ini = self.BannedPeopleConfig()
-        bannedreason = ini.GetSetting("Main", "BannedDrop")
         ini = self.BannedPeopleIni()
         if ini.GetSetting("Ips", ip) == "1" and ini.GetSetting("Ips", ip):
             if ini.GetSetting("Ids", id) is None:
                 ini.AddSetting("Ids", id, "1")
                 ini.AddSetting("NameIps", Player.Name, ip)
                 ini.AddSetting("NameIds", Player.Name, id)
-            Player.Kick(bannedreason)
+            Player.Kick(self.bannedreason)
             return
         if ini.GetSetting("Ids", id) == "1" and ini.GetSetting("Ids", id):
             if ini.GetSetting("Ips", ip) is None:
                 ini.AddSetting("Ips", ip, "1")
                 ini.AddSetting("NameIps", Player.Name, ip)
                 ini.AddSetting("NameIds", Player.Name, id)
-            Player.Kick(bannedreason)
+            Player.Kick(self.bannedreason)
