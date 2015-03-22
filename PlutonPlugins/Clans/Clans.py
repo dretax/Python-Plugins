@@ -870,7 +870,7 @@ class Clans:
                 serv = claninfo.GetSetting("ClanInfo" + clan, "Join" + id)
                 trans = self.TranslateToRank(rank)
                 Player.MessageFrom(sys, "Clan: [" + clan + "]")
-                Player.MessageFrom(sys, Player.Name + " |  Rank: " + trans)
+                Player.MessageFrom(sys, playerr.Name + " |  Rank: " + trans)
                 Player.MessageFrom(sys, "Serving Since: " + str(serv))
         elif command == "cmotd":
             if len(args) == 0:
