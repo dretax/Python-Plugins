@@ -1,12 +1,10 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
-from System import *
 import sys
 import re
 path = Util.GetPublicFolder()
@@ -117,6 +115,8 @@ class Clans:
         claninfo.AddSetting("ClanInfo" + Clan, "Creation", str(t))
         claninfo.AddSetting("ClanInfo" + Clan, "Owner", Name)
         claninfo.AddSetting("ClanInfo" + Clan, "FriendlyFire", "0")
+        claninfo.AddSetting("ClanInfo" + Clan, "Join" + ID, str(t))
+        claninfo.AddSetting("ClanInfo" + Clan, "Motd", "This clan has a default motd :( ")
         claninfo.AddSetting("ClanList", Clan, "1")
         claninfo.Save()
         #Todo: More to come.
@@ -139,6 +139,7 @@ class Clans:
         sec2 = ini.EnumSection("ClanOwners")
         sec3 = ini.EnumSection("ClanOfficers")
         sec4 = ini.EnumSection("ClanCoOwners")
+        sec5 = claninfo.EnumSection("ClanInfo" + Clan)
         for p in sec:
             n = ini.GetSetting("ClanMembers", p)
             if n == Clan:
@@ -155,13 +156,15 @@ class Clans:
             n = ini.GetSetting("ClanCoOwners", p)
             if n == Clan:
                 ini.DeleteSetting("ClanCoOwners", p)
+        for p in sec5:
+            claninfo.DeleteSetting("ClanInfo" + Clan, p)
         ini.Save()
-        claninfo.DeleteSetting("ClanInfo" + Clan, "Creation")
-        claninfo.DeleteSetting("ClanInfo" + Clan, "Owner")
+        #claninfo.DeleteSetting("ClanInfo" + Clan, "Creation")
+        #claninfo.DeleteSetting("ClanInfo" + Clan, "Owner")
         claninfo.DeleteSetting("ClanList", Clan)
         claninfo.Save()
 
-    def AddPlayerToClan(self, Clan, ID, Name, Rank = None):
+    def AddPlayerToClan(self, Clan, ID, Name, Rank=None):
         ini = self.Clans()
         ini.AddSetting(Clan, ID, Name)
         if Rank == 1 or Rank is None:
@@ -225,6 +228,7 @@ class Clans:
 
     def RemovePlayerFromClan(self, Clan, ID):
         ini = self.Clans()
+        claninfo = self.ClanInfo()
         rank = self.GetClanRank(ID)
         if rank == 1:
             ini.DeleteSetting(Clan, ID)
@@ -239,6 +243,7 @@ class Clans:
             ini.DeleteSetting(Clan, ID)
             ini.DeleteSetting("ClanOwners", ID)
         ini.Save()
+        claninfo.DeleteSetting("ClanInfo" + Clan, "Join" + ID)
 
     def GetClanMembers(self, Clan):
         ini = self.Clans()
@@ -256,7 +261,7 @@ class Clans:
         for id in sec:
             g = str(ini.GetSetting(Clan, id))
             g = g.lower()
-            names.update({id:g})
+            names.update({id: g})
         return names
 
     def GetKeyByValue(self, List, Value):
@@ -471,7 +476,7 @@ class Clans:
                 elif text == "2":
                     Player.MessageFrom(sys, "Clans Created by " + __author__ + " V" + __version__)
                     Player.MessageFrom(sys, "[PAGE 2/2]")
-                    Player.MessageFrom(sys, "/cmembers - Tells the specified or your clan's name")
+                    Player.MessageFrom(sys, "/cmembers - Lists the specified or your clan's members names")
                     Player.MessageFrom(sys, "/cm - Send a Message to your clan")
                     Player.MessageFrom(sys, "/cff 1 - 0 - Sets FriendlyFire on/off")
                     Player.MessageFrom(sys, "/ckick - Kicks the player from the clan (Could be used Only from Officer rank)")
@@ -514,6 +519,9 @@ class Clans:
         elif command == "cmembers":
             id = Player.SteamID
             if len(args) == 0:
+                if not self.HasClan(id):
+                    Player.MessageFrom(sys, "You don't have a clan!")
+                    return
                 clan = self.GetClanOfPlayer(id)
                 Player.MessageFrom(clan + ' Members', self.GetClanMembers(clan))
             else:
@@ -548,14 +556,14 @@ class Clans:
             claninfo.Save()
             Player.MessageFrom(sys, "Password " + qargs[0] + " set.")
         elif command == "cloginpw":
-            if len(args) == 0 or len(args) > 2:
+            if len(args) <= 1 or len(args) > 2:
                 Player.MessageFrom(sys, 'Usage /cloginpw "clanname" "password"')
                 Player.MessageFrom(sys, "Quotes are REQUIRED!")
                 return
             id = Player.SteamID
             name = Player.Name
-            if not self.HasClan(id):
-                Player.MessageFrom(sys, "You don't have a clan.")
+            if self.HasClan(id):
+                Player.MessageFrom(sys, "First Leave your clan!")
                 return
             if not Lib:
                 Player.MessageFrom(sys, "Sorry, this feature doesn't work on this server.")
@@ -567,8 +575,7 @@ class Clans:
                 return
             n = hashlib.md5(epw).hexdigest()
             pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
-            n2 = hashlib.md5(pw).hexdigest()
-            if n == n2:
+            if n == pw:
                 self.AddPlayerToClan(clan, id, name, 4)
                 Player.MessageFrom(sys, "Clan Ownership recovered.")
             else:
@@ -802,7 +809,7 @@ class Clans:
                 Player.MessageFrom(sys, "Heh. Silly you.")
                 return
             rank = self.GetClanRank(playerr.SteamID)
-            if rank > 0 and rank < 3:
+            if 0 < rank < 3:
                 self.PromotePlayer(playerr.SteamID)
             else:
                 Player.MessageFrom(sys, "You can't promote to Owner. Only one owner can exist.")
@@ -847,10 +854,11 @@ class Clans:
                 clan = self.GetClanOfPlayer(id)
                 serv = claninfo.GetSetting("ClanInfo" + clan, "Join" + id)
                 trans = self.TranslateToRank(rank)
+                Player.MessageFrom(sys, "Clan: [" + clan + "]")
                 Player.MessageFrom(sys, Player.Name + " |  Rank: " + trans)
                 Player.MessageFrom(sys, "Serving Since: " + str(serv))
             else:
-                playerr = self.CheckV(Player, args)
+                playerr = self.CheckV(Player, args, 3)
                 if playerr is None:
                     return
                 id = playerr.SteamID
@@ -861,6 +869,7 @@ class Clans:
                 clan = self.GetClanOfPlayer(id)
                 serv = claninfo.GetSetting("ClanInfo" + clan, "Join" + id)
                 trans = self.TranslateToRank(rank)
+                Player.MessageFrom(sys, "Clan: [" + clan + "]")
                 Player.MessageFrom(sys, Player.Name + " |  Rank: " + trans)
                 Player.MessageFrom(sys, "Serving Since: " + str(serv))
         elif command == "cmotd":
@@ -899,6 +908,8 @@ class Clans:
                         self.DeleteClan(clan)
                     else:
                         Player.MessageFrom(sys, "Wrong Password.")
+                else:
+                   Player.MessageFrom(sys, "You need to be an owner to do this.")
             else:
                 if rank == 4:
                     self.DeleteClan(clan)
