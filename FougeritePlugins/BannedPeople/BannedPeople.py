@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.5'
 
 import clr
 
@@ -74,14 +74,71 @@ class BannedPeople:
                     count += 1
                     continue
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
+            if Player is not None:
+                Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            if Player is not None:
+                Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
+    def On_Console(self, Player, Arg):
+        if Player is not None and (not Player.Admin or not self.isMod(Player.SteamID)):
+            Arg.ReplyWith("You aren't an admin!")
+            return
+        if Arg.Class == "fougerite":
+            cfg = self.BannedPeopleConfig()
+            sysname = cfg.GetSetting("Main", "Name")
+            if "unban" in Arg.Function and "-" in Arg.Function:
+                s = Arg.Function.split('-')
+                name = s[1]
+                id = self.GetPlayerUnBannedID(name)
+                ip = self.GetPlayerUnBannedIP(name)
+                if id is None:
+                    Arg.ReplyWith("Target: " + name + " isn't in the database, or you misspelled It!")
+                else:
+                    ini = self.BannedPeopleIni()
+                    name = id
+                    iprq = ini.GetSetting("NameIps", ip)
+                    idrq = ini.GetSetting("NameIds", id)
+                    ini.DeleteSetting("Ips", iprq)
+                    ini.DeleteSetting("Ids", idrq)
+                    ini.DeleteSetting("NameIps", name)
+                    ini.DeleteSetting("NameIds", name)
+                    ini.Save()
+                    for pl in Server.Players:
+                        if pl.Admin:
+                            pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + "Console!")
+                    Arg.ReplyWith("Player " + name + " unbanned!")
+            elif "ban" in Arg.Function and "-" in Arg.Function:
+                s = Arg.Function.split('-')
+                name = s[1]
+                pl = self.CheckV(None, name)
+                if pl is None:
+                    Arg.ReplyWith("Target: " + name + " isn't online!")
+                else:
+                    ini = self.BannedPeopleIni()
+                    if pl.Admin or self.isMod(pl.SteamID):
+                        Arg.ReplyWith("You cannot ban admins!")
+                        return
+
+                    id = pl.SteamID
+                    ip = pl.IP
+                    name = pl.Name
+                    for pl in Server.Players:
+                        if pl.Admin:
+                            pl.MessageFrom(sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: Console")
+
+                    ini.AddSetting("Ips", ip, "1")
+                    ini.AddSetting("Ids", id, "1")
+                    ini.AddSetting("NameIps", name, ip)
+                    ini.AddSetting("NameIds", name, id)
+                    ini.AddSetting("AdminWhoBanned", name, Player.Name)
+                    ini.Save()
+                    Server.Broadcast(name + " was banned by console.")
+                    Arg.ReplyWith("Player " + name + " banned!")
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -114,7 +171,7 @@ class BannedPeople:
             lower = pl.lower()
             if nameid is None:
                 return
-            if lower == namee or namee in lower:
+            if lower == namee:
                 return pl
         return None
 
@@ -128,7 +185,7 @@ class BannedPeople:
             lower = pl.lower()
             if nameid is None:
                 return
-            if lower == namee or namee in lower:
+            if lower == namee:
                 return pl
         return None
 
