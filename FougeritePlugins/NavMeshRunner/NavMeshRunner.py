@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -15,7 +15,7 @@ class NavMeshRunner:
     def On_PluginInit(self):
         self.char = Util.TryFindReturnType("Character")
         self.dmg = Util.TryFindReturnType("DamageEvent")
-        Plugin.CreateTimer("KillThem", 600000).Start()
+        Plugin.CreateTimer("KillThem", 1200000).Start()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -43,7 +43,7 @@ class NavMeshRunner:
     def KillThemCallback(self, timer):
         timer.Kill()
         self.Kill()
-        Plugin.CreateTimer("KillThem", 600000).Start()
+        Plugin.CreateTimer("KillThem", 1200000).Start()
 
     def On_Command(self, Player, cmd, args):
         if cmd == "navmeshcheck":
