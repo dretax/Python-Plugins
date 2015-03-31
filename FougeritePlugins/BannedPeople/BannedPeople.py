@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5'
+__version__ = '1.5.1'
 
 import clr
 
@@ -109,7 +109,7 @@ class BannedPeople:
                     ini.DeleteSetting("NameIds", name)
                     ini.Save()
                     for pl in Server.Players:
-                        if pl.Admin:
+                        if pl.Admin or self.isMod(pl.SteamID):
                             pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + "Console!")
                     Arg.ReplyWith("Player " + name + " unbanned!")
             elif "ban" in Arg.Function and "-" in Arg.Function:
@@ -128,14 +128,14 @@ class BannedPeople:
                     ip = pl.IP
                     name = pl.Name
                     for pl in Server.Players:
-                        if pl.Admin:
+                        if pl.Admin or self.isMod(pl.SteamID):
                             pl.MessageFrom(sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: Console")
 
                     ini.AddSetting("Ips", ip, "1")
                     ini.AddSetting("Ids", id, "1")
                     ini.AddSetting("NameIps", name, ip)
                     ini.AddSetting("NameIds", name, id)
-                    ini.AddSetting("AdminWhoBanned", name, Player.Name)
+                    ini.AddSetting("AdminWhoBanned", name, "Console")
                     ini.Save()
                     Server.Broadcast(name + " was banned by console.")
                     Arg.ReplyWith("Player " + name + " banned!")
@@ -210,7 +210,8 @@ class BannedPeople:
                         name = playerr.Name
                         loc = str(playerr.Location)
                         for pl in Server.Players:
-                            if pl.Admin: pl.MessageFrom(sysname, "Message to Admins: " + self.red +  name + self.white + " was banned by: " + Player.Name)
+                            if pl.Admin or self.isMod(pl.SteamID):
+                                pl.MessageFrom(sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: " + Player.Name)
 
                         ini.AddSetting("Ips", ip, "1")
                         ini.AddSetting("Ids", id, "1")
@@ -258,7 +259,7 @@ class BannedPeople:
                         ini.DeleteSetting("NameIds", name)
                         ini.Save()
                         for pl in Server.Players:
-                            if pl.Admin:
+                            if pl.Admin or self.isMod(pl.SteamID):
                                 pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + Player.Name)
 
                         Player.MessageFrom(sysname, "Player " + name + " unbanned!")
