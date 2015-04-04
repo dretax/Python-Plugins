@@ -298,6 +298,10 @@ class BannedPeople:
             elif len(args) == 1:
                 if Player.Admin or self.isMod(Player.SteamID):
                     id = str(args[0])
+                    if self.isMod(id):
+                        Player.MessageFrom(self.sysname, "This owner of the ID is a moderator.")
+                        Player.MessageFrom(self.sysname, "You need to remove him from the list first.")
+                        return
                     if "." in id:
                         ini.AddSetting("Ips", id, "IP OfflineBanned By " + Player.Name + " | " + Player.SteamID)
                         Player.MessageFrom(self.sysname, "Player IP (" + id + ") was banned.")
