@@ -297,7 +297,7 @@ class BannedPeople:
                 Player.MessageFrom(self.sysname, "Specify an ID or IP")
             elif len(args) == 1:
                 if Player.Admin or self.isMod(Player.SteamID):
-                    id = str(args[0])
+                    id = str(args[0]).strip(' ')
                     if self.isMod(id):
                         Player.MessageFrom(self.sysname, "This owner of the ID is a moderator.")
                         Player.MessageFrom(self.sysname, "You need to remove him from the list first.")
