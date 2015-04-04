@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.1'
+__version__ = '1.6'
 
 import clr
 
@@ -16,7 +16,13 @@ class BannedPeople:
         Methods
     """
 
+    sysname = None
+    bannedreason = None
+
     def On_PluginInit(self):
+        ini = self.BannedPeopleConfig()
+        self.sysname = ini.GetSetting("Main", "Name")
+        self.bannedreason = ini.GetSetting("Main", "BannedDrop")
         Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     red = "[color #FF0000]"
@@ -50,8 +56,6 @@ class BannedPeople:
             return None
 
     def CheckV(self, Player, args):
-        ini = self.BannedPeopleConfig()
-        systemname = ini.GetSetting("Main", "Name")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.join(" ", args))
@@ -75,13 +79,13 @@ class BannedPeople:
                     continue
         if count == 0:
             if Player is not None:
-                Player.MessageFrom(systemname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
+                Player.MessageFrom(self.sysname, "Couldn't find [color#00FF00]" + str.join(" ", args) + "[/color]!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
             if Player is not None:
-                Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+                Player.MessageFrom(self.sysname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def On_Console(self, Player, Arg):
@@ -89,8 +93,6 @@ class BannedPeople:
             Arg.ReplyWith("You aren't an admin!")
             return
         if Arg.Class == "fougerite":
-            cfg = self.BannedPeopleConfig()
-            sysname = cfg.GetSetting("Main", "Name")
             if "unban" in Arg.Function and "-" in Arg.Function:
                 s = Arg.Function.split('-')
                 name = s[1]
@@ -110,7 +112,7 @@ class BannedPeople:
                     ini.Save()
                     for pl in Server.Players:
                         if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + "Console!")
+                            pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " + self.green + "Console!")
                     Arg.ReplyWith("Player " + name + " unbanned!")
             elif "ban" in Arg.Function and "-" in Arg.Function:
                 s = Arg.Function.split('-')
@@ -129,7 +131,7 @@ class BannedPeople:
                     name = pl.Name
                     for pl in Server.Players:
                         if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: Console")
+                            pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: Console")
 
                     ini.AddSetting("Ips", ip, "1")
                     ini.AddSetting("Ids", id, "1")
@@ -190,9 +192,8 @@ class BannedPeople:
         return None
 
     def On_Command(self, Player, cmd, args):
+        ini = self.BannedPeopleIni()
         if cmd == "banip":
-            ini = self.BannedPeopleConfig()
-            sysname = ini.GetSetting("Main", "Name")
             if Player.Admin or self.isMod(Player.SteamID):
                 if len(args) > 0:
                     playerr = self.CheckV(Player, args)
@@ -200,9 +201,8 @@ class BannedPeople:
                         return
 
                     else:
-                        ini = self.BannedPeopleIni()
                         if playerr.Admin or self.isMod(playerr.SteamID):
-                            Player.MessageFrom(sysname, "You cannot ban admins!")
+                            Player.MessageFrom(self.sysname, "You cannot ban admins!")
                             return
 
                         id = playerr.SteamID
@@ -211,7 +211,7 @@ class BannedPeople:
                         loc = str(playerr.Location)
                         for pl in Server.Players:
                             if pl.Admin or self.isMod(pl.SteamID):
-                                pl.MessageFrom(sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: " + Player.Name)
+                                pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: " + Player.Name)
 
                         ini.AddSetting("Ips", ip, "1")
                         ini.AddSetting("Ids", id, "1")
@@ -226,30 +226,26 @@ class BannedPeople:
                         playerr.Message("You were banned from the server")
                         checking = DataStore.Get("BanIp", Player.SteamID)
                         if checking == "true":
-                            playerr.MessageFrom(sysname, self.red + "Admin, who banned you: UNKNOWN - Admin in Casing mode")
+                            playerr.MessageFrom(self.sysname, self.red + "Admin, who banned you: UNKNOWN - Admin in Casing mode")
 
                         elif checking == "false" or checking is None:
-                            playerr.MessageFrom(sysname, self.red + "Admin, who banned you: " + Player.Name)
+                            playerr.MessageFrom(self.sysname, self.red + "Admin, who banned you: " + Player.Name)
 
                         playerr.Disconnect()
                 else:
-                    Player.MessageFrom(sysname, "Specify a Name!")
+                    Player.MessageFrom(self.sysname, "Specify a Name!")
             else:
-                Player.MessageFrom(sysname, "You aren't an admin!")
+                Player.MessageFrom(self.sysname, "You aren't an admin!")
 
         elif cmd == "unbanip":
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 if len(args) > 0:
                     name = self.argsToText(args)
                     id = self.GetPlayerUnBannedID(name)
                     ip = self.GetPlayerUnBannedIP(name)
                     if id is None:
                         Player.Message("Target: " + name + " isn't in the database, or you misspelled It!")
-
                     else:
-                        ini = self.BannedPeopleIni()
                         name = id
                         iprq = ini.GetSetting("NameIps", ip)
                         idrq = ini.GetSetting("NameIds", id)
@@ -260,49 +256,56 @@ class BannedPeople:
                         ini.Save()
                         for pl in Server.Players:
                             if pl.Admin or self.isMod(pl.SteamID):
-                                pl.MessageFrom(sysname, self.red + name + self.white + " was unbanned by: " + self.green + Player.Name)
+                                pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " + self.green + Player.Name)
 
-                        Player.MessageFrom(sysname, "Player " + name + " unbanned!")
+                        Player.MessageFrom(self.sysname, "Player " + name + " unbanned!")
                 else:
-                    Player.MessageFrom(sysname, "Specify a Name!")
+                    Player.MessageFrom(self.sysname, "Specify a Name!")
         elif cmd == "banhidename":
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 if not DataStore.ContainsKey("BanIp", Player.SteamID):
                     DataStore.Add("BanIp", Player.SteamID, "true")
-                    Player.MessageFrom(sysname, "Now hiding your name!")
+                    Player.MessageFrom(self.sysname, "Now hiding your name!")
                 else:
                     DataStore.Remove("BanIp", Player.SteamID)
-                    Player.MessageFrom(sysname, "Now displaying your name!")
+                    Player.MessageFrom(self.sysname, "Now displaying your name!")
         elif cmd == "bans":
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleConfig()
-                sysname = ini.GetSetting("Main", "Name")
                 checkdist = ini.EnumSection("NameIds")
-                Player.MessageFrom(sysname, self.red + "Current Bans:")
+                Player.MessageFrom(self.sysname, self.red + "Current Bans:")
                 for pl in checkdist:
-                    Player.MessageFrom(sysname, str(pl))
+                    Player.MessageFrom(self.sysname, str(pl))
         elif cmd == "munbanip":
             if Player.Admin or self.isMod(Player.SteamID):
-                ini = self.BannedPeopleIni()
-                cfg = self.BannedPeopleConfig()
-                sysname = cfg.GetSetting("Main", "Name")
                 if len(args) == 0 or len(args) > 1:
-                    Player.MessageFrom(sysname, "Usage: /munbanip IDorIP")
+                    Player.MessageFrom(self.sysname, "Usage: /munbanip IDorIP")
                     return
                 v = str(args[0])
                 if ini.GetSetting("Ips", v) is not None and ini.GetSetting("Ips", v):
                     ini.DeleteSetting("Ips", v)
                     ini.Save()
-                    Player.MessageFrom(sysname, "Unbanned.")
+                    Player.MessageFrom(self.sysname, "Unbanned.")
                     return
                 if ini.GetSetting("Ids", v) is not None and ini.GetSetting("Ids", v):
                     ini.DeleteSetting("Ids", v)
                     ini.Save()
-                    Player.MessageFrom(sysname, "Unbanned.")
+                    Player.MessageFrom(self.sysname, "Unbanned.")
                     return
-                Player.MessageFrom(sysname, "Couldn't find " + v)
+                Player.MessageFrom(self.sysname, "Couldn't find " + v)
+        elif cmd == "offban":
+            if len(args) == 0:
+                Player.MessageFrom(self.sysname, "Specify an ID or IP")
+            elif len(args) == 1:
+                if Player.Admin or self.isMod(Player.SteamID):
+                    id = str(args[0])
+                    if "." in id:
+                        ini.AddSetting("Ips", id, "IP OfflineBanned By " + Player.Name + " | " + Player.SteamID)
+                        Player.MessageFrom(self.sysname, "Player IP (" + id + ") was banned.")
+                    else:
+                        ini.AddSetting("Ids", id, "ID OfflineBanned By " + Player.Name + " | " + Player.SteamID)
+                        Player.MessageFrom(self.sysname, "Player ID (" + id + ") was banned.")
+                    ini.Save()
+
 
     def On_PlayerConnected(self, Player):
         id = self.TrytoGrabID(Player)
@@ -313,9 +316,6 @@ class BannedPeople:
                 pass
             return
         ip = Player.IP
-        ini = self.BannedPeopleConfig()
-        sysname = ini.GetSetting("Main", "Name")
-        bannedreason = ini.GetSetting("Main", "BannedDrop")
         ini = self.BannedPeopleIni()
         if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip):
             if ini.GetSetting("Ids", id) is None:
@@ -323,7 +323,7 @@ class BannedPeople:
                 ini.AddSetting("NameIps", Player.Name, ip)
                 ini.AddSetting("NameIds", Player.Name, id)
                 ini.Save()
-            Player.MessageFrom(sysname, bannedreason)
+            Player.MessageFrom(self.sysname, self.bannedreason)
             Player.Disconnect()
             return
         if ini.GetSetting("Ids", id) is not None and ini.GetSetting("Ids", id):
@@ -332,5 +332,5 @@ class BannedPeople:
                 ini.AddSetting("NameIps", Player.Name, ip)
                 ini.AddSetting("NameIds", Player.Name, id)
                 ini.Save()
-            Player.MessageFrom(sysname, bannedreason)
+            Player.MessageFrom(self.sysname, self.bannedreason)
             Player.Disconnect()

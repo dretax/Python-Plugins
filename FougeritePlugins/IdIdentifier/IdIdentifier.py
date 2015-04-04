@@ -62,13 +62,6 @@ class IdIdentifier:
             return
         name = Player.Name
         ip = str(Player.IP)
-        banini = self.ManualBan()
-        if banini.GetSetting("Banned", sid) and banini.GetSetting("Banned", sid) == "1":
-            Player.Disconnect()
-            return
-        if banini.GetSetting("Banned", ip) and banini.GetSetting("Banned", ip) == "1":
-            Player.Disconnect()
-            return
         ini = self.PlayersIni()
         if ini.GetSetting("Track", sid) is not None:
             ini.SetSetting("Track", sid, name)
@@ -80,7 +73,7 @@ class IdIdentifier:
 
 
     def On_PlayerDisconnected(self, Player):
-        name = str(Player.Name)
+        name = Player.Name
         id = self.TrytoGrabID(Player)
         if id is None:
             return
@@ -101,16 +94,6 @@ class IdIdentifier:
                     DataStore.Remove("OwnerMode", id)
                     Player.Message("---Owner---")
                     Player.Message("You quit Owner mode!")
-        elif cmd == "offban":
-            ini = self.ManualBan()
-            if len(args) == 0:
-                Player.Message("Specify an ID")
-            elif len(args) == 1:
-                if Player.Admin or self.isMod(Player.SteamID):
-                    id = str(args[0])
-                    ini.AddSetting("Banned", id, "1")
-                    ini.Save()
-                    Player.Message("Player parameter (" + id + ") was banned.")
         elif cmd == "closedeployed":
             if Player.Admin or self.isMod(Player.SteamID):
                 loc = Player.Location
