@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.2'
+__version__ = '2.2.3'
 
 import clr
 
@@ -86,6 +86,13 @@ class DeathMSG:
     Explosion = None
     ExplosionSleep = None
     SlashSleep = None
+    SuicideWounded = None
+    BulletWounded = None
+    SlashWounded = None
+    BleedingWounded = None
+    BluntWounded = None
+    StabWounded = None
+    BowWounded = None
 
     def On_PluginInit(self):
         ini = self.DeathMSGConfig()
@@ -149,6 +156,14 @@ class DeathMSG:
             loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
             loc.AddSetting("Messages", "BulletSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon")
             loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
+            # Wounded....
+            loc.AddSetting("Messages", "SuicideWounded", "victim commited suicide while he was hurt!")
+            loc.AddSetting("Messages", "BulletWounded", "victim was shot by killer via weapon from dist m while he was hurt!")
+            loc.AddSetting("Messages", "SlashWounded", "victim got slashed by killer using weapon while he was hurt!")
+            loc.AddSetting("Messages", "BleedingWounded", "victim is bleeding while he was hurt!")
+            loc.AddSetting("Messages", "StabWounded", "victim was stabed in bodypart by killer via weapon while he was hurt!")
+            loc.AddSetting("Messages", "BluntWounded", "victim got hit by killer via weapon while he was hurt!")
+            loc.AddSetting("Messages", "BowWounded", "victim got shot by killer from dist m using weapon while he was hurt!")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -254,7 +269,10 @@ class DeathMSG:
             type = str(PlayerDeathEvent.DamageType)
             if type == "Suicide":
                 if self.NaturalDies:
-                    msg = self.Suicide
+                    if victim.IsWounded:
+                        msg = self.SuicideWounded
+                    else:
+                        msg = self.Suicide
                     msg = msg.replace("victim", victimname)
                     Server.BroadcastFrom(self.SysName, msg)
                     return
@@ -264,7 +282,12 @@ class DeathMSG:
                 else:
                     damage = round(PlayerDeathEvent.DamageAmounts[10], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
-                dmgmsg = getattr(self, type)
+                if victim.IsWounded:
+                    dmgmsg = getattr(self, type + "Wounded")
+                elif Sleeping and not victim.IsWounded:
+                    dmgmsg = getattr(self, type + "Sleeping")
+                else:
+                    dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
                 bpart = self.BodyParts.get(bodypart, bodypart)
                 vloc = victim.Location
@@ -280,18 +303,21 @@ class DeathMSG:
                 if self.KillLog:
                     Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
             elif type == "Bleeding":
-                if Sleeping:
+                if victim.IsWounded:
+                    bmsg = self.BleedingWounded
+                elif Sleeping and not victim.IsWounded:
                     bmsg = self.BleedingSleep
                 else:
                     bmsg = self.Bleeding
                 bmsg = bmsg.replace("victim", victimname)
-                bmsg = bmsg.replace("killer", attackername)
                 Server.BroadcastFrom(self.SysName, bmsg)
             # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
                 damage = round(PlayerDeathEvent.DamageAmounts[11], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
-                if Sleeping:
+                if victim.IsWounded:
+                    dmgmsg = self.BluntWounded
+                elif Sleeping and not victim.IsWounded:
                     dmgmsg = self.BluntSleep
                 else:
                     dmgmsg = self.Blunt
@@ -312,12 +338,16 @@ class DeathMSG:
                 damage = round(PlayerDeathEvent.DamageAmounts[15], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
                 if weapon == "Hunting Bow":
-                    if Sleeping:
+                    if victim.IsWounded:
+                        dmgmsg = self.BowWounded
+                    elif Sleeping and not victim.IsWounded:
                         dmgmsg = self.BowSleep
                     else:
                         dmgmsg = self.Bow
                 else:
-                    if Sleeping:
+                    if victim.IsWounded:
+                        dmgmsg = self.StabWounded
+                    elif Sleeping and not victim.IsWounded:
                         dmgmsg = self.StabSleep
                     else:
                         dmgmsg = self.Stab

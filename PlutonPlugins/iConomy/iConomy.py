@@ -1,17 +1,22 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
-from System import *
 
 """
     Class
 """
 
+Animal = {
+    'autospawn/animals/bear': 'bear',
+    'autospawn/animals/wolf': 'wolf',
+    'autospawn/animals/stag': 'stag',
+    'autospawn/animals/boar': 'boar',
+    'autospawn/animals/chicken': 'chicken'
+}
 class iConomy:
 
     #Plugin Settings
@@ -175,12 +180,6 @@ class iConomy:
             Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
-    def IsAnimal(self, String):
-        s = String.replace('(Clone)', '')
-        if s == 'stag' or s == 'wolf' or s == 'bear' or s == 'boar' or s == 'chicken':
-            return True
-        return False
-
     def On_PluginInit(self):
         ini = self.iConomy()
         #Plugin Settings
@@ -277,6 +276,14 @@ class iConomy:
                     DataStore.Add('iConomy', p.SteamID, self.__DefaultMoney__)
                     p.MessageFrom(self.__Sys__, "iConomy DataBase was Flushed.")
 
+    IsAnimal = {
+        'autospawn/animals/bear': 'bear',
+        'autospawn/animals/wolf': 'wolf',
+        'autospawn/animals/stag': 'stag',
+        'autospawn/animals/boar': 'boar',
+        'autospawn/animals/chicken': 'chicken'
+    }
+
 
     def On_PlayerConnected(self, Player):
         sid = Player.SteamID
@@ -285,10 +292,9 @@ class iConomy:
         Player.MessageFrom(self.__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + self.__MoneyMark__)
 
     def On_PlayerDied(self, PlayerDeathEvent):
-        if PlayerDeathEvent.Attacker.ToPlayer() is None:
-            if PlayerDeathEvent.Attacker.name and self.IsAnimal(PlayerDeathEvent.Attacker.name):
-                name = PlayerDeathEvent.Attacker.name
-                name = name.replace('(Clone)', '')
+        if not PlayerDeathEvent.Attacker.IsPlayer():
+            if self.IsAnimal.get(PlayerDeathEvent.Attacker.Name, None) is not None:
+                name = self.IsAnimal.get(PlayerDeathEvent.Attacker.Name, PlayerDeathEvent.Attacker.Name)
                 ini = self.iConomy()
                 NMoneyMode = int(ini.GetSetting(name + "KillSettings", "PercentageOrExtra"))
                 if NMoneyMode == 0:
@@ -316,7 +322,7 @@ class iConomy:
                     DataStore.Add("iConomy", victim.SteamID, c)
                     victim.MessageFrom(self.__Sys__, "You lost: " + str(NDeathPortion2) + self.__MoneyMark__)
             return
-        attacker = Server.GetPlayer(PlayerDeathEvent.Attacker)
+        attacker = PlayerDeathEvent.Attacker
         victim = PlayerDeathEvent.Victim
         aid = attacker.SteamID
         vid = victim.SteamID
@@ -332,13 +338,12 @@ class iConomy:
 
     def On_NPCKilled(self, NPCDeathEvent):
         NPC = NPCDeathEvent.Victim
-        try:
-            attacker = Server.GetPlayer(NPCDeathEvent.Attacker)
-        except:
+        attacker = NPCDeathEvent.Attacker
+        if not attacker.IsPlayer():
             return
         ini = self.iConomy()
-        name = str(NPC.Name)
-        name = name.replace('(Clone)', '')
+        name = NPC.Name
+        name = Animal.get(name, "UnKnown")
         #NPC Settings
         if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
             return
@@ -356,7 +361,7 @@ class iConomy:
                 c = round(n * NKillPortion, 2)
             DataStore.Add("iConomy", attacker.SteamID, c)
             if n is not None:
-               attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
+                attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
             else:
                 attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
         else:

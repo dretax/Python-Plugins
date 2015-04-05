@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8'
+__version__ = '1.8.1'
 
 import clr
 
@@ -21,7 +21,7 @@ import re
     Class
 """
 
-
+Animals = ['stag', 'boar', 'chicken', 'bear', 'wolf']
 class AdminCommands:
 
     ohash = None
@@ -92,49 +92,99 @@ class AdminCommands:
             return True
         return False
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
+    """
+        CheckV Assistants
+    """
+
+    def GetPlayerName(self, name, Mode=1):
+        Name = name.lower()
+        if Mode == 1:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+        elif Mode == 2:
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
+        else:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
         return None
 
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        Mode: Search mode (Default: 1)
+            1 = Search Online Players
+            2 = Search Offline Players
+            3 = Both
+        V5.0
     """
-    def CheckV(self, Player, args):
-        systemname = "AdminCommands"
+
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(String.Join(" ", args))
+            p = self.GetPlayerName(str.Join(" ", args), Mode)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
-                for namePart in args:
-                    if namePart.lower() in pl.Name.lower():
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+        else:
+            p = self.GetPlayerName(str(args), Mode)
+            if p is not None:
+                return p
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
                         p = pl
                         count += 1
-                        continue
-        else:
-            p = self.GetPlayerName(str(args))
-            if p is not None:
-                return p
-            s = str(args).lower()
-            for pl in Server.ActivePlayers:
-                if s in pl.Name.lower():
-                    p = pl
-                    count += 1
-                    continue
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
+            Player.MessageFrom("AdminCommands", "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("AdminCommands", "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     # Duty idea taken from Jakkee from Fougerite
@@ -174,10 +224,12 @@ class AdminCommands:
             if not self.IsonDuty(Player):
                 Player.MessageFrom(self.Sysname, "You aren't on duty!")
                 return
-            pl = self.CheckV(Player, args)
+            pl = self.CheckV(Player, args, 3)
             if pl is not None:
-                Player.GroundTeleport(pl.Location)
-                Player.Teleport(pl.Location)
+                if "offlineplayer" in str(pl).lower():
+                    Player.Teleport(pl.X, pl.Y, pl.Z)
+                else:
+                    Player.Teleport(pl.Location)
         elif cmd.cmd == "tphere":
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -190,7 +242,6 @@ class AdminCommands:
                 return
             pl = self.CheckV(Player, args)
             if pl is not None:
-                pl.GroundTeleport(Player.Location)
                 pl.Teleport(Player.Location)
         elif cmd.cmd == "god":
             if not Player.Admin:
@@ -580,6 +631,39 @@ class AdminCommands:
                 nameof = ini.GetSetting(id, playerid)
                 if nameof:
                     Player.MessageFrom(self.Sysname, "- " + str(nameof))
+        elif cmd.cmd == "spawn":
+            if len(args) > 2 or len(args) == 0:
+                Player.MessageFrom(self.Sysname, "Usage: /spawn animalname number")
+                Player.MessageFrom(self.Sysname, "Animal List: /spawn list")
+                Player.MessageFrom(self.Sysname, "Spawn All Animals: /spawn all number")
+                return
+            num = 1
+            if len(args) == 2:
+                num = args[1]
+                if not num.isnumeric():
+                    Player.MessageFrom(self.Sysname, "Second argument must be a number")
+                    return
+                num = int(num)
+            type = args[0]
+            vector = Player.GetLookPoint(2000)
+            if vector == self.DefaultVector:
+                Player.MessageFrom(self.Sysname, "Target is too far.")
+                return
+            if type == "all":
+                for a in Animals:
+                    for x in xrange(1, num + 1):
+                        World.SpawnAnimal(a, vector.x, vector.y + 1.0, vector.z)
+            elif type == "list":
+                Player.MessageFrom(self.Sysname, "List: " + str(Animals))
+                return
+            elif type.lower() in Animals:
+                for x in xrange(1, num + 1):
+                    World.SpawnAnimal(type.lower(), vector.x, vector.y + 1.0, vector.z)
+            else:
+                Player.MessageFrom(self.Sysname, "Couldn't find command.")
+                return
+            # Skully xD
+            Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
