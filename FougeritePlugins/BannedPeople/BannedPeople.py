@@ -85,21 +85,24 @@ class BannedPeople:
             return p
         else:
             if Player is not None:
-                Player.MessageFrom(self.sysname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+                Player.MessageFrom(self.sysname, "Found [color#FF0000]" + str(count) +
+                                   "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
-    def On_Console(self, Player, Arg):
-        if Player is not None and (not Player.Admin or not self.isMod(Player.SteamID)):
-            Arg.ReplyWith("You aren't an admin!")
+    def On_Console(self, Player, ConsoleEvent):
+        if Player is not None and not Player.Admin:
+            ConsoleEvent.ReplyWith("You aren't an admin!")
             return
-        if Arg.Class == "fougerite":
-            if "unban" in Arg.Function and "-" in Arg.Function:
-                s = Arg.Function.split('-')
-                name = s[1]
+        if ConsoleEvent.Class == "fougerite":
+            if "unban" in ConsoleEvent.Function:
+                if not ConsoleEvent.Args:
+                    ConsoleEvent.ReplyWith("Specify a name!")
+                    return
+                name = str.join(' ', ConsoleEvent.Args)
                 id = self.GetPlayerUnBannedID(name)
                 ip = self.GetPlayerUnBannedIP(name)
                 if id is None:
-                    Arg.ReplyWith("Target: " + name + " isn't in the database, or you misspelled It!")
+                    ConsoleEvent.ReplyWith("Target: " + name + " isn't in the database, or you misspelled It!")
                 else:
                     ini = self.BannedPeopleIni()
                     name = id
@@ -112,18 +115,21 @@ class BannedPeople:
                     ini.Save()
                     for pl in Server.Players:
                         if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " + self.green + "Console!")
-                    Arg.ReplyWith("Player " + name + " unbanned!")
-            elif "ban" in Arg.Function and "-" in Arg.Function:
-                s = Arg.Function.split('-')
-                name = s[1]
+                            pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " +
+                                           self.green + "Console!")
+                    ConsoleEvent.ReplyWith("Player " + name + " unbanned!")
+            elif "ban" in ConsoleEvent.Function:
+                if not ConsoleEvent.Args:
+                    ConsoleEvent.ReplyWith("Specify a name!")
+                    return
+                name = str.join(' ', ConsoleEvent.Args)
                 pl = self.CheckV(None, name)
                 if pl is None:
-                    Arg.ReplyWith("Target: " + name + " isn't online!")
+                    ConsoleEvent.ReplyWith("Target: " + name + " isn't online!")
                 else:
                     ini = self.BannedPeopleIni()
                     if pl.Admin or self.isMod(pl.SteamID):
-                        Arg.ReplyWith("You cannot ban admins!")
+                        ConsoleEvent.ReplyWith("You cannot ban admins!")
                         return
 
                     id = pl.SteamID
@@ -131,7 +137,8 @@ class BannedPeople:
                     name = pl.Name
                     for pl in Server.Players:
                         if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: Console")
+                            pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white +
+                                           " was banned by: Console")
 
                     ini.AddSetting("Ips", ip, "1")
                     ini.AddSetting("Ids", id, "1")
@@ -140,7 +147,7 @@ class BannedPeople:
                     ini.AddSetting("AdminWhoBanned", name, "Console")
                     ini.Save()
                     Server.Broadcast(name + " was banned by console.")
-                    Arg.ReplyWith("Player " + name + " banned!")
+                    ConsoleEvent.ReplyWith("Player " + name + " banned!")
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -211,7 +218,8 @@ class BannedPeople:
                         loc = str(playerr.Location)
                         for pl in Server.Players:
                             if pl.Admin or self.isMod(pl.SteamID):
-                                pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white + " was banned by: " + Player.Name)
+                                pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white +
+                                               " was banned by: " + Player.Name)
 
                         ini.AddSetting("Ips", ip, "1")
                         ini.AddSetting("Ids", id, "1")
@@ -256,7 +264,8 @@ class BannedPeople:
                         ini.Save()
                         for pl in Server.Players:
                             if pl.Admin or self.isMod(pl.SteamID):
-                                pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " + self.green + Player.Name)
+                                pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: "
+                                               + self.green + Player.Name)
 
                         Player.MessageFrom(self.sysname, "Player " + name + " unbanned!")
                 else:
