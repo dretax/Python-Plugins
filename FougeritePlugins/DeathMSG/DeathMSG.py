@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.4b'
+__version__ = '3.5.4c'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -184,7 +184,7 @@ class DeathMSG:
                 if kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
             elif bleed == "Melee":
-                if weapon == "Hunting Bow" and damage == 75:
+                if (weapon == "Hunting Bow" or weapon == "Unknown") and damage == 75:
                     hn = config.GetSetting("Settings", "huntingbow")
                     hn = hn.replace("victim", victim)
                     hn = hn.replace("killer", killer)
@@ -300,9 +300,11 @@ class DeathMSG:
 
     def Log(self, killer, weapon, dist, victim, body, dmg, tp):
         if tp is None:
-            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg))
+            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
+                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg))
         else:
-            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " + victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
+            Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
+                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
 
     def IsAnimal(self, Entity):
         if "NPC" in str(Entity):
