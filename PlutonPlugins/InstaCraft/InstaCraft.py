@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 clr.AddReferenceByPartialName("Pluton")
@@ -19,23 +19,32 @@ class InstaCraft:
                 ini.AddSetting("AllowCrafting", str(y.name), "True")
             ini.Save()
         ini = Plugin.GetIni("Items")
-        self.InstaCraft = bool(ini.GetSetting("Config", "InstaCraft"))
-        if self.InstaCraft:
+        self.InstaCraft = self.bool(ini.GetSetting("Config", "InstaCraft"))
+        if self.InstaCraft is True:
             return
         for x in ini.EnumSection("Items"):
             v = ini.GetSetting("Items", x)
             setattr(self, x, float(v))
         for x in ini.EnumSection("AllowCrafting"):
             v = ini.GetSetting("AllowCrafting", x)
-            setattr(self, x + "B", bool(v))
+            n = x + "Bool"
+            setattr(self, n, self.bool(v))
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def On_PlayerStartCrafting(self, CraftEvent):
-        name = CraftEvent.bluePrint.name
-        cb = getattr(self, name + "B")
+        name = str(CraftEvent.bluePrint.targetItem.name)
+        cb = getattr(self, name + "Bool")
         if not cb:
             CraftEvent.Stop("This item is banned.")
             return
-        if InstaCraft:
+        if InstaCraft is True:
             CraftEvent.CraftTime = float(0)
             return
         t = getattr(self, name)
