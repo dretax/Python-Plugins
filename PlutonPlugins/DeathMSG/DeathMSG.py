@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.3'
+__version__ = '2.2.4'
 
 import clr
 
@@ -99,17 +99,25 @@ class DeathMSG:
         self.SysName = ini.GetSetting("Settings", "SysName")
         SysNameColor = ini.GetSetting("Settings", "SysNameColor")
         self.SysName = self.ColorText(SysNameColor, self.SysName)
-        self.SleepingKills = bool(ini.GetSetting("Settings", "SleepingKills"))
-        self.NaturalDies = bool(ini.GetSetting("Settings", "NaturalDies"))
-        self.KillLog = bool(ini.GetSetting("Settings", "KillLog"))
-        self.AnimalKills = bool(ini.GetSetting("Settings", "AnimalKills"))
-        self.AnimalDeaths = bool(ini.GetSetting("Settings", "AnimalDeaths"))
+        self.SleepingKills = self.bool(ini.GetSetting("Settings", "SleepingKills"))
+        self.NaturalDies = self.bool(ini.GetSetting("Settings", "NaturalDies"))
+        self.KillLog = self.bool(ini.GetSetting("Settings", "KillLog"))
+        self.AnimalKills = self.bool(ini.GetSetting("Settings", "AnimalKills"))
+        self.AnimalDeaths = self.bool(ini.GetSetting("Settings", "AnimalDeaths"))
         enum = ini.EnumSection("Messages")
         for Key in enum:
             if Key == "Message Settings" or Key == "Sleeping Types":
                 continue
             v = ini.GetSetting("Messages", Key)
             self.ColorizeMessagesToMemory(Key, v)
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def DeathMSGConfig(self):
         if not Plugin.IniExists("DeathMSGConfig"):
