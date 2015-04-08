@@ -765,3 +765,4 @@ class AdminCommands:
     def On_PlayerDisconnected(self, Player):
         if self.Disconnect:
             Server.BroadcastFrom(self.Sysname, Player.Name + " disconnected.")
+        DataStore.Remove("Duty", Player.SteamID)
