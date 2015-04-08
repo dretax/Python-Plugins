@@ -59,11 +59,11 @@ class Clans:
         ini = self.Clans()
         if ini.ContainsSetting("ClanMembers", ID):
             return ini.GetSetting("ClanMembers", ID)
-        if ini.ContainsSetting("ClanOfficers", ID):
+        elif ini.ContainsSetting("ClanOfficers", ID):
             return ini.GetSetting("ClanOfficers", ID)
-        if ini.ContainsSetting("ClanOwners", ID):
+        elif ini.ContainsSetting("ClanOwners", ID):
             return ini.GetSetting("ClanOwners", ID)
-        if ini.ContainsSetting("ClanCoOwners", ID):
+        elif ini.ContainsSetting("ClanCoOwners", ID):
             return ini.GetSetting("ClanCoOwners", ID)
         return None
 
@@ -90,11 +90,11 @@ class Clans:
         ini = self.Clans()
         if ini.ContainsSetting("ClanMembers", ID):
             return 1
-        if ini.ContainsSetting("ClanOfficers", ID):
+        elif ini.ContainsSetting("ClanOfficers", ID):
             return 2
-        if ini.ContainsSetting("ClanCoOwners", ID):
+        elif ini.ContainsSetting("ClanCoOwners", ID):
             return 3
-        if ini.ContainsSetting("ClanOwners", ID):
+        elif ini.ContainsSetting("ClanOwners", ID):
             return 4
         return None
 
