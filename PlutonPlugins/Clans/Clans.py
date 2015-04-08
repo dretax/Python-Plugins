@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 import clr
 
@@ -73,7 +73,11 @@ class Clans:
         ids = []
         for id in sec:
             ids.append(id)
-        return ids
+        Players = []
+        for player in Server.ActivePlayers:
+            if player.SteamID in ids:
+                Players.append(player)
+        return Players
 
     def GetClanPopulation(self, Clan):
         ini = self.Clans()
@@ -127,11 +131,10 @@ class Clans:
         claninfo = self.ClanInfo()
         sys = cfg.GetSetting("Settings", "Sys")
         online = self.GetAllOnlinePlayersOfClan(Clan)
-        for player in Server.ActivePlayers:
-            if player.SteamID in online:
-                name = player.Name.replace('[' + Clan + ']', '').strip(' ')
-                player.basePlayer.displayName = name
-                player.MessageFrom(sys, "Your clan was disbanded.")
+        for player in online:
+            name = player.Name.replace('[' + Clan + ']', '').strip(' ')
+            player.basePlayer.displayName = name
+            player.MessageFrom(sys, "Your clan was disbanded.")
         enum = ini.EnumSection(Clan)
         for d in enum:
             ini.DeleteSetting(Clan, d)
@@ -182,7 +185,7 @@ class Clans:
         claninfo.AddSetting("ClanInfo" + Clan, "Join" + ID, str(t))
         claninfo.Save()
 
-    def PromotePlayer(self, ID):
+    def PromotePlayer(self, ID, pl):
         ini = self.Clans()
         cur = self.GetClanRank(ID)
         clan = self.GetClanOfPlayer(ID)
@@ -196,15 +199,12 @@ class Clans:
             pr = "Co-Owner"
         else:
             return
-        pl = Server.FindPlayer(ID)
-        if pl is not None:
-            online = self.GetAllOnlinePlayersOfClan(clan)
-            for player in Server.ActivePlayers:
-                if player.SteamID in online:
-                    player.MessageFrom("[" + clan + "]", pl.Name + " got promoted to: " + pr)
+        online = self.GetAllOnlinePlayersOfClan(clan)
+        for player in online:
+            player.MessageFrom("[" + clan + "]", pl.Name + " got promoted to: " + pr)
         ini.Save()
 
-    def DemotePlayer(self, ID):
+    def DemotePlayer(self, ID, pl):
         ini = self.Clans()
         cur = self.GetClanRank(ID)
         clan = self.GetClanOfPlayer(ID)
@@ -218,12 +218,9 @@ class Clans:
             dr = "Officer"
         else:
             return
-        pl = Server.FindPlayer(ID)
-        if pl is not None:
-            online = self.GetAllOnlinePlayersOfClan(clan)
-            for player in Server.ActivePlayers:
-                if player.SteamID in online:
-                    player.MessageFrom("[" + clan + "]", pl.Name + " got demoted to: " + dr)
+        online = self.GetAllOnlinePlayersOfClan(clan)
+        for player in online:
+            player.MessageFrom("[" + clan + "]", pl.Name + " got demoted to: " + dr)
         ini.Save()
 
     def RemovePlayerFromClan(self, Clan, ID):
@@ -276,9 +273,8 @@ class Clans:
 
     def SendPrivateMessage(self, Clan, FromPlayer, Message):
         online = self.GetAllOnlinePlayersOfClan(Clan)
-        for player in Server.ActivePlayers:
-            if player.SteamID in online:
-                player.MessageFrom("[" + Clan + "]", FromPlayer + " -> " + Message)
+        for player in online:
+            player.MessageFrom("[" + Clan + "]", FromPlayer + " -> " + Message)
 
     def MakePending(self, id, idinviter):
         DataStore.Add("Clans", id, idinviter)
@@ -333,6 +329,8 @@ class Clans:
     """
 
     def CheckV(self, Player, args, Mode=1):
+        cfg = self.ClansConfig()
+        sysname = cfg.GetSetting("Settings", "Sys")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.Join(" ", args), Mode)
@@ -385,12 +383,12 @@ class Clans:
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom(self.sysname, "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom(sysname, "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(self.sysname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom(sysname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     """
@@ -631,9 +629,8 @@ class Clans:
             playerr.MessageFrom(sys, "Clan " + clan + " invited you to join their forces!")
             playerr.MessageFrom(sys, "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
             online = self.GetAllOnlinePlayersOfClan(clan)
-            for player in Server.ActivePlayers:
-                if player.SteamID in online:
-                    player.MessageFrom("[" + clan + "]", Player.Name + " invited " + playerr.Name + " to join the clan.")
+            for player in online:
+                player.MessageFrom("[" + clan + "]", Player.Name + " invited " + playerr.Name + " to join the clan.")
             autokill = Plugin.CreateDict()
             autokill["PlayerR"] = Player.SteamID
             autokill["PlayerT"] = playerr.SteamID
@@ -663,9 +660,8 @@ class Clans:
             Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
             DataStore.Remove("Clans", id)
             online = self.GetAllOnlinePlayersOfClan(clan)
-            for player in Server.ActivePlayers:
-                if player.SteamID in online:
-                    player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
+            for player in online:
+                player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
         elif command == "cm":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cm message")
@@ -716,9 +712,8 @@ class Clans:
             else:
                 self.RemovePlayerFromClan(clan, id)
                 online = self.GetAllOnlinePlayersOfClan(clan)
-                for pl in Server.ActivePlayers:
-                    if pl.SteamID in online:
-                        pl.MessageFrom("[" + clan + "]", Player.Name + " left the clan.")
+                for pl in online:
+                    pl.MessageFrom("[" + clan + "]", Player.Name + " left the clan.")
                 Player.MessageFrom(clan, "You left your clan.")
         elif command == "ckick":
             if len(args) == 0:
@@ -754,10 +749,9 @@ class Clans:
                         namee = name
                 if namee:
                     online = self.GetAllOnlinePlayersOfClan(clan)
-                    for pl in Server.ActivePlayers:
-                        if pl.SteamID in online:
-                            pl.MessageFrom("[" + clan + "]", namee + " got kicked by: " + Player.Name)
-                            return
+                    for pl in online:
+                        pl.MessageFrom("[" + clan + "]", namee + " got kicked by: " + Player.Name)
+                        return
                 Player.MessageFrom(sys, "Couldn't find player.")
                 return
             else:
@@ -782,9 +776,8 @@ class Clans:
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
                 playerr.basePlayer.displayName = name
-                for pl in Server.ActivePlayers:
-                    if pl.SteamID in online:
-                        pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
+                for pl in online:
+                    pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
                 playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
         elif command == "cpromote":
             if len(args) == 0:
@@ -810,7 +803,7 @@ class Clans:
                 return
             rank = self.GetClanRank(playerr.SteamID)
             if 0 < rank < 3:
-                self.PromotePlayer(playerr.SteamID)
+                self.PromotePlayer(playerr.SteamID, playerr)
             else:
                 Player.MessageFrom(sys, "You can't promote to Owner. Only one owner can exist.")
         elif command == "cdemote":
@@ -843,7 +836,7 @@ class Clans:
             if selfrank == rank:
                 Player.MessageFrom(sys, "You can't demote people with the same rank.")
                 return
-            self.DemotePlayer(playerr.SteamID)
+            self.DemotePlayer(playerr.SteamID, playerr)
         elif command == "crank":
             if len(args) == 0:
                 id = Player.SteamID
@@ -887,9 +880,8 @@ class Clans:
                 claninfo.AddSetting("ClanInfo" + clan, "Motd", text)
                 claninfo.Save()
                 online = self.GetAllOnlinePlayersOfClan(clan)
-                for player in Server.ActivePlayers:
-                    if player.SteamID in online:
-                        player.MessageFrom("[" + clan + "]", "New Motd: " + text)
+                for player in online:
+                    player.MessageFrom("[" + clan + "]", "New Motd: " + text)
         elif command == "cdisband":
             id = Player.SteamID
             if not self.HasClan(id):
