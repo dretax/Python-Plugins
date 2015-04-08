@@ -663,6 +663,9 @@ class AdminCommands:
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't a moderator!")
                 return
+            if not self.IsonDuty(Player):
+                Player.MessageFrom(self.Sysname, "You aren't on duty!")
+                return
             if len(args) > 2 or len(args) == 0:
                 Player.MessageFrom(self.Sysname, "Usage: /spawn animalname number")
                 Player.MessageFrom(self.Sysname, "Animal List: /spawn list")
