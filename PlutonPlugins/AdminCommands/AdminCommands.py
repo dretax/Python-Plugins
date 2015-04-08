@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.2'
+__version__ = '1.8.3'
 
 import clr
 
@@ -63,15 +63,15 @@ class AdminCommands:
         ini = self.AdminCmdConfig()
         password = ini.GetSetting("Settings", "OwnerPassword")
         password2 = ini.GetSetting("Settings", "ModeratorPassword")
-        self.Disconnect = bool(ini.GetSetting("Settings", "DisconnectMessage"))
-        self.Join = bool(ini.GetSetting("Settings", "JoinMessage"))
-        self.DutyFirst = bool(ini.GetSetting("Settings", "DutyFirst"))
+        self.Disconnect = self.bool(ini.GetSetting("Settings", "DisconnectMessage"))
+        self.Join = self.bool(ini.GetSetting("Settings", "JoinMessage"))
+        self.DutyFirst = self.bool(ini.GetSetting("Settings", "DutyFirst"))
         self.Owners = bool(ini.GetSetting("Settings", "CanOwnersByPassDuty"))
         self.DefaultVector = Vector3(0, 0, 0)
-        self.LogGive = bool(ini.GetSetting("Settings", "LogGive"))
-        self.LogAirdropCalls = bool(ini.GetSetting("Settings", "LogAirdropCalls"))
-        self.LogDuty = bool(ini.GetSetting("Settings", "LogDuty"))
-        self.Friends = bool(ini.GetSetting("Settings", "Friends"))
+        self.LogGive = self.bool(ini.GetSetting("Settings", "LogGive"))
+        self.LogAirdropCalls = self.bool(ini.GetSetting("Settings", "LogAirdropCalls"))
+        self.LogDuty = self.bool(ini.GetSetting("Settings", "LogDuty"))
+        self.Friends = self.bool(ini.GetSetting("Settings", "Friends"))
         self.Sysname = ini.GetSetting("Settings", "Sysname")
         s = ''
         for x in Resources.keys():
@@ -108,6 +108,14 @@ class AdminCommands:
             loc.AddSetting("Settings", "Friends", "True")
             loc.Save()
         return Plugin.GetIni("AdminCmdConfig")
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def FriendList(self):
         if not Plugin.IniExists("Friends"):
@@ -220,9 +228,9 @@ class AdminCommands:
     def IsonDuty(self, Player):
         if not self.DutyFirst:
             return True
-        if self.Owners and Player.Owner:
+        elif DataStore.ContainsKey("Duty", Player.SteamID):
             return True
-        if DataStore.ContainsKey("Duty", Player.SteamID):
+        elif self.Owners and Player.Owner:
             return True
         return False
 
