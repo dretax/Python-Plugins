@@ -59,6 +59,7 @@ class AdminCommands:
     ResourceList = None
 
     def On_PluginInit(self):
+        DataStore.Flush('Duty')
         ini = self.AdminCmdConfig()
         password = ini.GetSetting("Settings", "OwnerPassword")
         password2 = ini.GetSetting("Settings", "ModeratorPassword")
