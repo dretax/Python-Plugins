@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.1'
+__version__ = '1.8.2'
 
 import clr
 
@@ -22,6 +22,29 @@ import re
 """
 
 Animals = ['stag', 'boar', 'chicken', 'bear', 'wolf']
+Resources = {
+    'sulfur': 'autospawn/resource/ores/resource_ore_sulfur',
+    'stone': 'autospawn/resource/ores/resource_ore_stone',
+    'metal': 'autospawn/resource/ores/resource_ore_metal',
+    'loot': 'autospawn/resource/loot/loot_barrel_01',
+    'loot2': 'autospawn/resource/loot/loot_barrel_02',
+    'bartree': 'autospawn/resource/beachside-arctic/tree-g-5',
+    'bartree2': 'autospawn/resource/beachside-arctic/tree-g-6',
+    'bartree3': 'autospawn/resource/beachside-arctic/tree-g-7',
+    'baritree': 'autospawn/resource/beachside-arid/tree-a2-1',
+    'baritree2': 'autospawn/resource/beachside-arid/tree-a2-2',
+    'baritree3': 'autospawn/resource/beachside-arid/tree-a2-3',
+    'fartree': 'autospawn/resource/fields-arid/tree-a-1',
+    'fartree2': 'autospawn/resource/fields-arid/tree-a-2',
+    'fartree3': 'autospawn/resource/fields-arid/tree-a-3',
+    'snowtree': 'autospawn/resource/forest-arctic/tree-f-snow-1',
+    'fortree': 'autospawn/resource/forestside-tundra/tree-g-1',
+    'fortree2': 'autospawn/resource/forestside-tundra/tree-g-2',
+    'fortree3': 'autospawn/resource/forestside-tundra/tree-g-3',
+    'treeroad': 'autospawn/resource/roadside/tree-roadside-1',
+    'treeroad2': 'autospawn/resource/roadside/tree-roadside-2',
+    'treeroad3': 'autospawn/resource/roadside/tree-roadside-3'
+}
 class AdminCommands:
 
     ohash = None
@@ -33,6 +56,7 @@ class AdminCommands:
     DefaultVector = None
     Friends = None
     Sysname = None
+    ResourceList = None
 
     def On_PluginInit(self):
         ini = self.AdminCmdConfig()
@@ -48,6 +72,10 @@ class AdminCommands:
         self.LogDuty = bool(ini.GetSetting("Settings", "LogDuty"))
         self.Friends = bool(ini.GetSetting("Settings", "Friends"))
         self.Sysname = ini.GetSetting("Settings", "Sysname")
+        s = ''
+        for x in Resources.keys():
+            s = s + x + ', '
+        self.ResourceList = s
         if password != "SetThisToSomethingElse":
             if bool(re.findall(r"([a-fA-F\d]{32})", password)):
                 return
@@ -632,10 +660,14 @@ class AdminCommands:
                 if nameof:
                     Player.MessageFrom(self.Sysname, "- " + str(nameof))
         elif cmd.cmd == "spawn":
+            if not Player.Admin:
+                Player.MessageFrom(self.Sysname, "You aren't a moderator!")
+                return
             if len(args) > 2 or len(args) == 0:
                 Player.MessageFrom(self.Sysname, "Usage: /spawn animalname number")
                 Player.MessageFrom(self.Sysname, "Animal List: /spawn list")
                 Player.MessageFrom(self.Sysname, "Spawn All Animals: /spawn all number")
+                Player.MessageFrom(self.Sysname, "Resources: " + self.ResourceList)
                 return
             num = 1
             if len(args) == 2:
@@ -644,7 +676,7 @@ class AdminCommands:
                     Player.MessageFrom(self.Sysname, "Second argument must be a number")
                     return
                 num = int(num)
-            type = args[0]
+            type = args[0].lower()
             vector = Player.GetLookPoint(2000)
             if vector == self.DefaultVector:
                 Player.MessageFrom(self.Sysname, "Target is too far.")
@@ -653,17 +685,21 @@ class AdminCommands:
                 for a in Animals:
                     for x in xrange(1, num + 1):
                         World.SpawnAnimal(a, vector.x, vector.y + 1.0, vector.z)
+                # Skully xD
+                Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
             elif type == "list":
                 Player.MessageFrom(self.Sysname, "List: " + str(Animals))
                 return
-            elif type.lower() in Animals:
+            elif type in Animals:
                 for x in xrange(1, num + 1):
-                    World.SpawnAnimal(type.lower(), vector.x, vector.y + 1.0, vector.z)
+                    World.SpawnAnimal(type, vector.x, vector.y + 1.0, vector.z)
+                # Skully xD
+                Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
+            elif type in Resources.keys():
+                for x in xrange(1, num + 1):
+                    World.SpawnMapEntity(Resources[type], vector.x, vector.y, vector.z)
             else:
                 Player.MessageFrom(self.Sysname, "Couldn't find command.")
-                return
-            # Skully xD
-            Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
