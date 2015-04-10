@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.3'
+__version__ = '1.8.4'
 
 import clr
 
@@ -23,27 +23,7 @@ import re
 
 Animals = ['stag', 'boar', 'chicken', 'bear', 'wolf']
 Resources = {
-    'sulfur': 'autospawn/resource/ores/resource_ore_sulfur',
-    'stone': 'autospawn/resource/ores/resource_ore_stone',
-    'metal': 'autospawn/resource/ores/resource_ore_metal',
-    'loot': 'autospawn/resource/loot/loot_barrel_01',
-    'loot2': 'autospawn/resource/loot/loot_barrel_02',
-    'bartree': 'autospawn/resource/beachside-arctic/tree-g-5',
-    'bartree2': 'autospawn/resource/beachside-arctic/tree-g-6',
-    'bartree3': 'autospawn/resource/beachside-arctic/tree-g-7',
-    'baritree': 'autospawn/resource/beachside-arid/tree-a2-1',
-    'baritree2': 'autospawn/resource/beachside-arid/tree-a2-2',
-    'baritree3': 'autospawn/resource/beachside-arid/tree-a2-3',
-    'fartree': 'autospawn/resource/fields-arid/tree-a-1',
-    'fartree2': 'autospawn/resource/fields-arid/tree-a-2',
-    'fartree3': 'autospawn/resource/fields-arid/tree-a-3',
-    'snowtree': 'autospawn/resource/forest-arctic/tree-f-snow-1',
-    'fortree': 'autospawn/resource/forestside-tundra/tree-g-1',
-    'fortree2': 'autospawn/resource/forestside-tundra/tree-g-2',
-    'fortree3': 'autospawn/resource/forestside-tundra/tree-g-3',
-    'treeroad': 'autospawn/resource/roadside/tree-roadside-1',
-    'treeroad2': 'autospawn/resource/roadside/tree-roadside-2',
-    'treeroad3': 'autospawn/resource/roadside/tree-roadside-3'
+
 }
 class AdminCommands:
 
@@ -66,17 +46,16 @@ class AdminCommands:
         self.Disconnect = self.bool(ini.GetSetting("Settings", "DisconnectMessage"))
         self.Join = self.bool(ini.GetSetting("Settings", "JoinMessage"))
         self.DutyFirst = self.bool(ini.GetSetting("Settings", "DutyFirst"))
-        self.Owners = bool(ini.GetSetting("Settings", "CanOwnersByPassDuty"))
+        self.Owners = self.bool(ini.GetSetting("Settings", "CanOwnersByPassDuty"))
         self.DefaultVector = Vector3(0, 0, 0)
         self.LogGive = self.bool(ini.GetSetting("Settings", "LogGive"))
         self.LogAirdropCalls = self.bool(ini.GetSetting("Settings", "LogAirdropCalls"))
         self.LogDuty = self.bool(ini.GetSetting("Settings", "LogDuty"))
         self.Friends = self.bool(ini.GetSetting("Settings", "Friends"))
         self.Sysname = ini.GetSetting("Settings", "Sysname")
-        s = ''
-        for x in Resources.keys():
-            s = s + x + ', '
-        self.ResourceList = s
+        res = Plugin.GetIni("Resources")
+        for x in res.EnumSection("Resources"):
+            Resources[x] = res.GetSetting("Resources", x)
         if password != "SetThisToSomethingElse":
             if bool(re.findall(r"([a-fA-F\d]{32})", password)):
                 return
@@ -679,8 +658,9 @@ class AdminCommands:
                 Player.MessageFrom(self.Sysname, "Usage: /spawn animalname number")
                 Player.MessageFrom(self.Sysname, "Animal List: /spawn list")
                 Player.MessageFrom(self.Sysname, "Spawn All Animals: /spawn all number")
-                Player.MessageFrom(self.Sysname, "Resources: " + self.ResourceList)
+                Player.MessageFrom(self.Sysname, "Resources: tree1-tree56, loot1-loot2, animalnamecorpse, orenameore")
                 return
+            res = Plugin.GetIni("Resources")
             num = 1
             if len(args) == 2:
                 num = args[1]
@@ -695,8 +675,9 @@ class AdminCommands:
                 return
             if type == "all":
                 for a in Animals:
+                    ani = res.GetSetting("Resources", a)
                     for x in xrange(1, num + 1):
-                        World.SpawnAnimal(a, vector.x, vector.y + 1.0, vector.z)
+                        World.SpawnAnimal(ani, vector.x, vector.y + 1.0, vector.z)
                 # Skully xD
                 Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
             elif type == "list":

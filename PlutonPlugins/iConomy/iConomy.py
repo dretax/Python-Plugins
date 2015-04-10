@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
 
@@ -10,12 +10,8 @@ import Pluton
     Class
 """
 
-Animal = {
-    'autospawn/animals/bear': 'bear',
-    'autospawn/animals/wolf': 'wolf',
-    'autospawn/animals/stag': 'stag',
-    'autospawn/animals/boar': 'boar',
-    'autospawn/animals/chicken': 'chicken'
+Resources = {
+
 }
 class iConomy:
 
@@ -69,12 +65,8 @@ class iConomy:
             ini.Save()
         return Plugin.GetIni("iConomy")
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
-        return None
+    def Resources(self):
+        return Plugin.GetIni("Resources")
 
     """
         Economy Methods
@@ -142,42 +134,98 @@ class iConomy:
 
 
     """
+        CheckV Assistants
+    """
+
+    def GetPlayerName(self, name, Mode=1):
+        Name = name.lower()
+        if Mode == 1:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+        elif Mode == 2:
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
+        else:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == Name:
+                    return pl
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == Name:
+                    return pl
+        return None
+
+    """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        Mode: Search mode (Default: 1)
+            1 = Search Online Players
+            2 = Search Offline Players
+            3 = Both
+        V5.0
     """
-    def CheckV(self, Player, args):
-        ini = self.iConomy()
-        systemname = ini.GetSetting("Settings", "Sysname")
+
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(String.Join(" ", args))
+            p = self.GetPlayerName(str.Join(" ", args), Mode)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
-                for namePart in args:
-                    if namePart.lower() in pl.Name.lower():
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+        else:
+            p = self.GetPlayerName(str(args), Mode)
+            if p is not None:
+                return p
+            if Mode == 1:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
                         p = pl
                         count += 1
-                        continue
-        else:
-            p = self.GetPlayerName(str(args))
-            if p is not None:
-                return p
-            s = str(args).lower()
-            for pl in Server.ActivePlayers:
-                if s in pl.Name.lower():
-                    p = pl
-                    count += 1
-                    continue
+            elif Mode == 2:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
+            else:
+                for pl in Server.ActivePlayers:
+                    if str(args).lower() in pl.Name.lower():
+                        p = pl
+                        count += 1
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if str(args).lower() in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
+            Player.MessageFrom(self.__Sys__, "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom(self.__Sys__, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
     def On_PluginInit(self):
@@ -200,6 +248,10 @@ class iConomy:
         DataStore.Add("iConomy", "KillP2", str(self.__KillPortion2__))
         DataStore.Add("iConomy", "DeathP", str(self.__DeathPortion__))
         DataStore.Add("iConomy", "DeathP2", str(self.__DeathPortion2__))
+        res = self.Resources()
+        enum = res.EnumSection("Resources")
+        for x in enum:
+            Resources[x] = float(res.GetSetting("Resources", x))
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -343,7 +395,7 @@ class iConomy:
             return
         ini = self.iConomy()
         name = NPC.Name
-        name = Animal.get(name, "UnKnown")
+        name = self.IsAnimal.get(name, "UnKnown")
         #NPC Settings
         if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
             return
@@ -368,3 +420,12 @@ class iConomy:
             c = Aid + NKillPortion2
             DataStore.Add("iConomy", attacker.SteamID, c)
             attacker.MessageFrom(self.__Sys__, "You received: " + str(NKillPortion2) + self.__MoneyMark__)
+
+    def On_PlayerGathering(self, GatherEvent):
+        name = str(GatherEvent.Resource.Name)
+        get = Resources.get(name, None)
+        if get is None:
+            return
+        if get == 0:
+            return
+        self.GiveMoney(GatherEvent.Gatherer.SteamID, get)
