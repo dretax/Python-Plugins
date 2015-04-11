@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.3'
 
 import clr
 clr.AddReferenceByPartialName("Pluton")
@@ -39,13 +39,14 @@ class InstaCraft:
             raise ValueError
 
     def On_PlayerStartCrafting(self, CraftEvent):
+        if self.InstaCraft is True:
+            CraftEvent.CraftTime = float(0)
+            return
         name = str(CraftEvent.bluePrint.targetItem.name)
-        cb = getattr(self, name + "Bool")
+        b = name + "Bool"
+        cb = getattr(self, b)
         if not cb:
             CraftEvent.Stop("This item is banned.")
-            return
-        if InstaCraft is True:
-            CraftEvent.CraftTime = float(0)
             return
         t = getattr(self, name)
         CraftEvent.CraftTime = float(t)
