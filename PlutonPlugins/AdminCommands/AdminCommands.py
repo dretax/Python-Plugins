@@ -1,12 +1,13 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.4'
+__version__ = '1.8.5'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 clr.AddReferenceByPartialName("UnityEngine")
 import Pluton
-from UnityEngine import Vector3
+import UnityEngine
+from UnityEngine import Vector3 as Vector3
 import System
 from System import *
 import math
@@ -37,6 +38,7 @@ class AdminCommands:
     Friends = None
     Sysname = None
     ResourceList = None
+    BuildingPrivlidge = None
 
     def On_PluginInit(self):
         DataStore.Flush('Duty')
@@ -52,6 +54,7 @@ class AdminCommands:
         self.LogAirdropCalls = self.bool(ini.GetSetting("Settings", "LogAirdropCalls"))
         self.LogDuty = self.bool(ini.GetSetting("Settings", "LogDuty"))
         self.Friends = self.bool(ini.GetSetting("Settings", "Friends"))
+        self.BuildingPrivlidge = Util.TryFindReturnType("BuildingPrivlidge")
         self.Sysname = ini.GetSetting("Settings", "Sysname")
         res = Plugin.GetIni("Resources")
         for x in res.EnumSection("Resources"):
@@ -693,6 +696,21 @@ class AdminCommands:
                     World.SpawnMapEntity(Resources[type], vector.x, vector.y, vector.z)
             else:
                 Player.MessageFrom(self.Sysname, "Couldn't find command.")
+        elif cmd.cmd == "closeauthorized":
+            objects = UnityEngine.Object.FindObjectsOfType[self.BuildingPrivlidge]()
+            if len(objects) == 0:
+                return
+            c = 0
+            for x in objects:
+                dist = Util.GetInstance().GetVectorsDistance(x.transform.position, Player.Location)
+                if dist > 6.0:
+                    continue
+                c += 1
+                for z in x.authorizedPlayers:
+                    name = z.username
+                    id = z.userid
+                    Player.MessageFrom(self.Sysname, "---Object" + str(c) + "---")
+                    Player.MessageFrom(self.Sysname, "Authorized player: " + str(name) + " - " + str(id))
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
