@@ -697,6 +697,12 @@ class AdminCommands:
             else:
                 Player.MessageFrom(self.Sysname, "Couldn't find command.")
         elif cmd.cmd == "closeauthorized":
+            if not Player.Admin:
+                Player.MessageFrom(self.Sysname, "You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.MessageFrom(self.Sysname, "You aren't on duty!")
+                return
             objects = UnityEngine.Object.FindObjectsOfType[self.BuildingPrivlidge]()
             if len(objects) == 0:
                 return
