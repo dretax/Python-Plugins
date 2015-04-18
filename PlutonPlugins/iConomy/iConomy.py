@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4.1'
 
 import clr
 
@@ -62,6 +62,11 @@ class iConomy:
             ini.AddSetting("chickenKillSettings", "DeathPortion", "0.75")
             ini.AddSetting("chickenKillSettings", "KillPortion2", "5.0")
             ini.AddSetting("chickenKillSettings", "DeathPortion2", "4.0")
+            ini.AddSetting("horseKillSettings", "PercentageOrExtra", "1")
+            ini.AddSetting("horseKillSettings", "KillPortion", "1.25")
+            ini.AddSetting("horseKillSettings", "DeathPortion", "0.75")
+            ini.AddSetting("horseKillSettings", "KillPortion2", "5.0")
+            ini.AddSetting("horseKillSettings", "DeathPortion2", "4.0")
             ini.Save()
         return Plugin.GetIni("iConomy")
 
@@ -131,28 +136,18 @@ class iConomy:
             m = self.__DefaultMoney__
             DataStore.Add("iConomy", id, float(m))
 
-
-
     """
         CheckV Assistants
     """
 
     def GetPlayerName(self, name, Mode=1):
-        Name = name.lower()
-        if Mode == 1:
+        if Mode == 1 or Mode == 3:
             for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
-        elif Mode == 2:
+        if Mode == 2 or Mode == 3:
             for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
-                    return pl
-        else:
-            for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
-                    return pl
-            for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
         return None
 
@@ -164,68 +159,50 @@ class iConomy:
             1 = Search Online Players
             2 = Search Offline Players
             3 = Both
-        V5.0
+        V6.0
     """
 
     def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(str.Join(" ", args), Mode)
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
                     for namePart in args:
                         if namePart.lower() in pl.Name.lower():
                             p = pl
                             count += 1
-            elif Mode == 2:
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    for namePart in args:
-                        if namePart.lower() in offlineplayer.Name.lower():
-                            p = offlineplayer
-                            count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    for namePart in args:
-                        if namePart.lower() in pl.Name.lower():
-                            p = pl
-                            count += 1
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
                     for namePart in args:
                         if namePart.lower() in offlineplayer.Name.lower():
                             p = offlineplayer
                             count += 1
         else:
-            p = self.GetPlayerName(str(args), Mode)
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-            elif Mode == 2:
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
-                        p = offlineplayer
-                        count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
-                        p = pl
-                        count += 1
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
+                    if ag in offlineplayer.Name.lower():
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom(self.__Sys__, "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom("FindingThing", "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(self.__Sys__, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("FindingThing", "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
 
     def On_PluginInit(self):
@@ -333,7 +310,8 @@ class iConomy:
         'autospawn/animals/wolf': 'wolf',
         'autospawn/animals/stag': 'stag',
         'autospawn/animals/boar': 'boar',
-        'autospawn/animals/chicken': 'chicken'
+        'autospawn/animals/chicken': 'chicken',
+        'autospawn/animals/horse': 'horse'
     }
 
 

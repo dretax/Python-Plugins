@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.5'
+__version__ = '1.8.6'
 
 import clr
 
@@ -22,7 +22,7 @@ import re
     Class
 """
 
-Animals = ['stag', 'boar', 'chicken', 'bear', 'wolf']
+Animals = ['stag', 'boar', 'chicken', 'bear', 'wolf', 'horse']
 Resources = {
 
 }

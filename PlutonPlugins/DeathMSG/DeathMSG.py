@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.4'
+__version__ = '2.2.5'
 
 import clr
 
@@ -216,7 +216,8 @@ class DeathMSG:
         'autospawn/animals/wolf': 'Wolf',
         'autospawn/animals/stag': 'Stag',
         'autospawn/animals/boar': 'Boar',
-        'autospawn/animals/chicken': 'Chicken'
+        'autospawn/animals/chicken': 'Chicken',
+        'autospawn/animals/horse': 'Horse'
     }
 
     def On_NPCKilled(self, NPCDeathEvent):
@@ -293,7 +294,7 @@ class DeathMSG:
                 if victim.IsWounded:
                     dmgmsg = getattr(self, type + "Wounded")
                 elif Sleeping and not victim.IsWounded:
-                    dmgmsg = getattr(self, type + "Sleeping")
+                    dmgmsg = getattr(self, type + "Sleep")
                 else:
                     dmgmsg = getattr(self, type)
                 bodypart = str(PlayerDeathEvent.HitBone)
