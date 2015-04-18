@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.2'
+__version__ = '1.2.3'
 
 import clr
 
@@ -44,7 +44,8 @@ class Clans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or ini.ContainsSetting("ClanOwners", ID) or ini.ContainsSetting("ClanCoOwners", ID):
+        if ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or \
+                ini.ContainsSetting("ClanOwners", ID) or ini.ContainsSetting("ClanCoOwners", ID):
             return True
         else:
             return False
@@ -299,21 +300,13 @@ class Clans:
     """
 
     def GetPlayerName(self, name, Mode=1):
-        Name = name.lower()
-        if Mode == 1:
+        if Mode == 1 or Mode == 3:
             for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
-        elif Mode == 2:
+        if Mode == 2 or Mode == 3:
             for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
-                    return pl
-        else:
-            for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
-                    return pl
-            for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
         return None
 
@@ -325,70 +318,50 @@ class Clans:
             1 = Search Online Players
             2 = Search Offline Players
             3 = Both
-        V5.0
+        V6.0
     """
 
     def CheckV(self, Player, args, Mode=1):
-        cfg = self.ClansConfig()
-        sysname = cfg.GetSetting("Settings", "Sys")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(str.Join(" ", args), Mode)
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
                     for namePart in args:
                         if namePart.lower() in pl.Name.lower():
                             p = pl
                             count += 1
-            elif Mode == 2:
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    for namePart in args:
-                        if namePart.lower() in offlineplayer.Name.lower():
-                            p = offlineplayer
-                            count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    for namePart in args:
-                        if namePart.lower() in pl.Name.lower():
-                            p = pl
-                            count += 1
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
                     for namePart in args:
                         if namePart.lower() in offlineplayer.Name.lower():
                             p = offlineplayer
                             count += 1
         else:
-            p = self.GetPlayerName(str(args), Mode)
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-            elif Mode == 2:
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
-                        p = offlineplayer
-                        count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
-                        p = pl
-                        count += 1
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
+                    if ag in offlineplayer.Name.lower():
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom(sysname, "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom("FindingThing", "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(sysname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("FindingThing", "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
 
     """
@@ -477,7 +450,8 @@ class Clans:
                     Player.MessageFrom(sys, "/cmembers - Lists the specified or your clan's members names")
                     Player.MessageFrom(sys, "/cm - Send a Message to your clan")
                     Player.MessageFrom(sys, "/cff 1 - 0 - Sets FriendlyFire on/off")
-                    Player.MessageFrom(sys, "/ckick - Kicks the player from the clan (Could be used Only from Officer rank)")
+                    Player.MessageFrom(sys, "/ckick - Kicks the player from the clan (Could be used "
+                                            "Only from Officer rank)")
                     Player.MessageFrom(sys, "/cpromote - Promotes player (Can promote until Co-Owner)")
                     Player.MessageFrom(sys, "/cdemote - Demotes player (Can demote until Member)")
                     Player.MessageFrom(sys, "/crank - Gets the rank status of you or another player's")
@@ -629,8 +603,9 @@ class Clans:
             playerr.MessageFrom(sys, "Clan " + clan + " invited you to join their forces!")
             playerr.MessageFrom(sys, "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
             online = self.GetAllOnlinePlayersOfClan(clan)
+            nam = Player.Name.replace('[' + clan + ']', '').strip(' ')
             for player in online:
-                player.MessageFrom("[" + clan + "]", Player.Name + " invited " + playerr.Name + " to join the clan.")
+                player.MessageFrom("[" + clan + "]", nam + " invited " + playerr.Name + " to join the clan.")
             autokill = Plugin.CreateDict()
             autokill["PlayerR"] = Player.SteamID
             autokill["PlayerT"] = playerr.SteamID
@@ -657,11 +632,11 @@ class Clans:
             inv = DataStore.Get("Clans", id)
             clan = self.GetClanOfPlayer(inv)
             self.AddPlayerToClan(clan, id, str(Player.Name))
-            Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
             DataStore.Remove("Clans", id)
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in online:
                 player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
+            Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
         elif command == "cm":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cm message")
@@ -672,6 +647,7 @@ class Clans:
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
             clan = self.GetClanOfPlayer(id)
+            name = name.replace('[' + clan + ']', '').strip(' ')
             rank = self.GetClanRank(id)
             rank = self.TranslateToRank(rank)
             name = "(" + rank + ") " + name
@@ -696,25 +672,6 @@ class Clans:
             claninfo.SetSetting("ClanInfo" + clan, "FriendlyFire", str(v))
             claninfo.Save()
             Player.MessageFrom(sys, "Friendly fire was set to " + str(v))
-        elif command == "cleave":
-            id = Player.SteamID
-            if not self.HasClan(id):
-                Player.MessageFrom(sys, "You don't have a clan!")
-                return
-            rank = self.GetClanRank(id)
-            clan = self.GetClanOfPlayer(id)
-            lenn = self.GetClanPopulation(clan)
-            if lenn == 1:
-                self.DeleteClan(clan)
-                return
-            if rank == 4:
-                self.DeleteClan(clan)
-            else:
-                self.RemovePlayerFromClan(clan, id)
-                online = self.GetAllOnlinePlayersOfClan(clan)
-                for pl in online:
-                    pl.MessageFrom("[" + clan + "]", Player.Name + " left the clan.")
-                Player.MessageFrom(clan, "You left your clan.")
         elif command == "ckick":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /ckick playername")
@@ -910,6 +867,27 @@ class Clans:
             if not self.HasClan(id):
                 Player.MessageFrom(sys, "You don't have a clan!")
                 return
+            rank = self.GetClanRank(id)
+            clan = self.GetClanOfPlayer(id)
+            lenn = self.GetClanPopulation(clan)
+            if lenn == 1:
+                self.DeleteClan(clan)
+                return
+            if rank == 4:
+                self.DeleteClan(clan)
+            else:
+                self.RemovePlayerFromClan(clan, id)
+                online = self.GetAllOnlinePlayersOfClan(clan)
+                name = Player.Name.replace('[' + clan + ']', '').strip(' ')
+                Player.basePlayer.displayName = name
+                for pl in online:
+                    pl.MessageFrom("[" + clan + "]", name + " left the clan.")
+                Player.MessageFrom(clan, "You left your clan.")
+        """elif command == "cleave":
+            id = Player.SteamID
+            if not self.HasClan(id):
+                Player.MessageFrom(sys, "You don't have a clan!")
+                return
             clan = self.GetClanOfPlayer(id)
             rank = self.GetClanRank(id)
             name = Player.Name.replace('[' + clan + ']', '').strip(' ')
@@ -917,4 +895,4 @@ class Clans:
                 self.DeleteClan(clan)
                 return
             Player.basePlayer.displayName = name
-            self.RemovePlayerFromClan(clan, id)
+            self.RemovePlayerFromClan(clan, id)"""
