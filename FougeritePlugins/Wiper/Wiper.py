@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.3.1'
 
 import clr
 
@@ -188,6 +188,10 @@ class Wiper:
                 ent.Destroy()
                 c += 1
         for x in IdsToWipe:
+            idlist = os.listdir(path + self.Path + "/" + str(x))
+            for file in idlist:
+                os.remove(path + self.Path + "/" + str(x) + "/" + file)
+            os.rmdir(path + self.Path + "/" + str(x))
             ini.DeleteSetting("Objects", str(x))
             Plugin.Log("WipedIds", str(x) + " Objects: " + str(c))
         ini.Save()
