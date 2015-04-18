@@ -29,12 +29,16 @@ class Wiper:
     DecayTimer = None
     WipeTimer = None
     Path = None
+    Cooldown = None
+    Broadcast = None
 
     def On_PluginInit(self):
         ini = self.GetIni()
         num = ini.GetSetting("Settings", "DecayTimer")
         num2 = ini.GetSetting("Settings", "WipeCheckTimer")
         self.Path = ini.GetSetting("Settings", "UserDataPath")
+        self.Cooldown = int(ini.GetSetting("Settings", "MaxDays"))
+        self.Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
         self.DecayTimer = int(num) * 60000
         self.WipeTimer = int(num2) * 60000
         today = datetime.date.today()
@@ -164,7 +168,6 @@ class Wiper:
         ini = self.GetIni()
         enum = ini.EnumSection("Objects")
         c = 0
-        cooldown = int(ini.GetSetting("Settings", "MaxDays"))
         today = datetime.date.today()
         for id in enum:
             v = str(ini.GetSetting("Objects", id)).split('-')
@@ -178,7 +181,7 @@ class Wiper:
             count = count.replace(' day', '')
             count = count.replace('days', '')
             count = count.replace('day', '')
-            if int(count) > cooldown:
+            if int(count) > self.Cooldown:
                 IdsToWipe.append(long(id))
         for ent in World.Entities:
             if long(ent.OwnerID) in IdsToWipe:
@@ -208,13 +211,11 @@ class Wiper:
 
     def WipeCallback(self, timer):
         timer.Kill()
-        ini = self.GetIni()
-        Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
-        if Broadcast:
+        if self.Broadcast:
             Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped Objects: " + str(n))
-        if Broadcast:
+        if self.Broadcast:
             Server.BroadcastFrom("Wiper", "Wiped " + str(n) + " unused objects!")
         Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
 
@@ -236,12 +237,10 @@ class Wiper:
                 Player.MessageFrom("Wiper", "/wipeforced - Force a decay")
         elif cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
-                ini = self.GetIni()
-                Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
-                if Broadcast:
+                if self.Broadcast:
                     Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
                 n = self.LaunchCheck()
-                if Broadcast:
+                if self.Broadcast:
                     Server.BroadcastFrom("Wiper", "Wiped: " + str(n) + " objects.")
                 else:
                     Player.MessageFrom("Wiper", "Wiped: " + str(n) + " objects.")
