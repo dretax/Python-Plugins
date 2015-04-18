@@ -6,6 +6,15 @@ import clr
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import datetime
+import sys
+path = Util.GetRootFolder()
+sys.path.append(path + "\\Save\\Lib\\")
+
+try:
+    import os
+except ImportError:
+    Plugin.Log("Error", "Get the Extralibs!")
+    raise ImportError
 
 """
     Class
@@ -18,18 +27,32 @@ EntityList = {
 class Wiper:
 
     DecayTimer = None
+    WipeTimer = None
+    Path = None
 
     def On_PluginInit(self):
         ini = self.GetIni()
         num = ini.GetSetting("Settings", "DecayTimer")
+        num2 = ini.GetSetting("Settings", "WipeCheckTimer")
+        self.Path = ini.GetSetting("Settings", "UserDataPath")
         self.DecayTimer = int(num) * 60000
-        if bool(ini.GetSetting("Settings", "UseDayLimit")):
-            n = self.LaunchCheck()
-            Plugin.Log("Log", "Wiped: " + str(n))
-            Plugin.CreateTimer("Wipe", 3600000).Start()
-        if bool(ini.GetSetting("Settings", "UseDecay")):
+        self.WipeTimer = int(num2) * 60000
+        today = datetime.date.today()
+        if self.bool(ini.GetSetting("Settings", "UseDecay")):
             self.Assign()
             Plugin.CreateTimer("Decay", self.DecayTimer).Start()
+        if not "REMOVETHISCAPSLOCKEDWORD" in self.Path:
+            for id in os.listdir(path + self.Path):
+                if int(id) == 0:
+                    continue
+                if ini.GetSetting("Objects", id) is None:
+                    ini.AddSetting("Objects", id, str(today))
+        if self.bool(ini.GetSetting("Settings", "UseDayLimit")):
+            n = self.LaunchCheck()
+            Plugin.Log("Log", "Wiped: " + str(n))
+            Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
+        ini.Save()
+
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -42,6 +65,14 @@ class Wiper:
             return id
         except:
             return None
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def Assign(self):
         ini = Plugin.GetIni("Health")
@@ -87,7 +118,9 @@ class Wiper:
             ini.AddSetting("Settings", "MaxDays", "14")
             ini.AddSetting("Settings", "UseDecay", "True")
             ini.AddSetting("Settings", "DecayTimer", "180")
+            ini.AddSetting("Settings", "WipeCheckTimer", "30")
             ini.AddSetting("Settings", "Broadcast", "True")
+            ini.AddSetting("Settings", "UserDataPath", "REMOVETHISCAPSLOCKEDWORD/rust_server_Data/userdata/")
             ini.Save()
         return Plugin.GetIni("Settings")
 
@@ -146,33 +179,14 @@ class Wiper:
             count = count.replace('days', '')
             count = count.replace('day', '')
             if int(count) > cooldown:
-                IdsToWipe.append(id)
+                IdsToWipe.append(long(id))
         for ent in World.Entities:
-            if ent.OwnerID not in enum:
-                if ini.GetSetting("Objects", ent.OwnerID) is None and not ini.GetSetting("Objects", ent.OwnerID):
-                    ini.AddSetting("Objects", ent.OwnerID, str(today))
-                    ini.Save()
-                else:
-                    v = str(ini.GetSetting("Objects", ent.OwnerID))
-                    if v[1] == "0":
-                        continue
-                    lastseen = datetime.datetime(int(v[0]), int(self.Replace(v[1])), int(self.Replace(v[02])))
-                    count = str(today - lastseen)
-                    count = count.split(',')
-                    count = str(count[0]).replace(' days', '')
-                    count = count.replace(' day', '')
-                    count = count.replace('days', '')
-                    count = count.replace('day', '')
-                    if int(count) < cooldown:
-                        continue
-                    else:
-                        IdsToWipe.append(ent.OwnerID)
-            if ent.OwnerID in IdsToWipe:
+            if long(ent.OwnerID) in IdsToWipe:
                 ent.Destroy()
                 c += 1
         for x in IdsToWipe:
-            ini.DeleteSetting("Objects", x)
-            Plugin.Log("WipedIds", str(x))
+            ini.DeleteSetting("Objects", str(x))
+            Plugin.Log("WipedIds", str(x) + " Objects: " + str(c))
         ini.Save()
         del IdsToWipe[:]
         return c
@@ -195,14 +209,14 @@ class Wiper:
     def WipeCallback(self, timer):
         timer.Kill()
         ini = self.GetIni()
-        Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
+        Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
         if Broadcast:
             Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
         n = self.LaunchCheck()
         Plugin.Log("Log", "Wiped Objects: " + str(n))
         if Broadcast:
             Server.BroadcastFrom("Wiper", "Wiped " + str(n) + " unused objects!")
-        Plugin.CreateTimer("Wipe", 3600000).Start()
+        Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
 
     def DecayCallback(self, timer):
         timer.Kill()
@@ -223,7 +237,7 @@ class Wiper:
         elif cmd == "wipecheck":
             if Player.Admin or self.isMod(id):
                 ini = self.GetIni()
-                Broadcast = bool(ini.GetSetting("Settings", "Broadcast"))
+                Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
                 if Broadcast:
                     Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
                 n = self.LaunchCheck()
@@ -235,7 +249,7 @@ class Wiper:
             if Player.Admin or self.isMod(id):
                 Plugin.KillTimer("Wipe")
                 Plugin.KillTimer("Decay")
-                Plugin.CreateTimer("Wipe", 3600000).Start()
+                Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
                 Plugin.CreateTimer("Decay", self.DecayTimer).Start()
                 Player.MessageFrom("Wiper", "Timer restarted.")
         elif cmd == "wipeid":
