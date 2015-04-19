@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.3.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -36,10 +36,10 @@ class iConomy:
         self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
         self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
         self.__Sys__ = ini.GetSetting("Settings", "Sysname")
-        self.__Buy__ = bool(ini.GetSetting("Settings", "Buy"))
-        self.__Sell__ = bool(ini.GetSetting("Settings", "Sell"))
-        self.__AnimalKills__ = bool(ini.GetSetting("Settings", "AnimalKills"))
-        self.__PlayerKills__ = bool(ini.GetSetting("Settings", "PlayerKills"))
+        self.__Buy__ = self.bool(ini.GetSetting("Settings", "Buy"))
+        self.__Sell__ = self.bool(ini.GetSetting("Settings", "Sell"))
+        self.__AnimalKills__ = self.bool(ini.GetSetting("Settings", "AnimalKills"))
+        self.__PlayerKills__ = self.bool(ini.GetSetting("Settings", "PlayerKills"))
         #Player Settings!
         self.__MoneyMode__ = int(ini.GetSetting("PlayerKillSettings", "PercentageOrExtra"))
         self.__KillPortion__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion"))
@@ -58,6 +58,14 @@ class iConomy:
         DataStore.Add("iConomy", "PlayerKills", str(self.__PlayerKills__))
         DataStore.Add("iConomy", "Sell", str(self.__Sell__))
         DataStore.Add("iConomy", "Buy", str(self.__Buy__))
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def iConomy(self):
         if not Plugin.IniExists("iConomy"):
