@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.2'
+__version__ = '3.7.2b'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -213,14 +213,13 @@ class TpFriend:
                 loc = Util.CreateVector(float(loc[0]), float(loc[1]), float(loc[2]))
                 PlayerFrom.TeleportTo(loc)
                 DataStore.Remove("tpfriendy", id)
-                self.addJob(2, PlayerFrom, PlayerTo, 6, id, tid)
-                return
+                #self.addJob(2, PlayerFrom, PlayerTo, 6, id, tid)
             self.addJob(2, PlayerFrom, PlayerTo, 4, id, tid)
-        elif callback == 6:
+        """elif callback == 6:
             try:
                 PlayerFrom.Disconnect()
             except:
-                pass
+                pass"""
 
     def On_PlayerDisconnected(self, Player):
         id = self.TrytoGrabID(Player)
