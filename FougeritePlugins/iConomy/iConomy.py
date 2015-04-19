@@ -124,6 +124,7 @@ class iConomy:
         text = str.join(" ", array)
         if not '"' in text:
             Player.MessageFrom(self.__Sys__, 'Usage: /buy "Item" "Quantity"')
+            Player.MessageFrom(self.__Sys__, 'Usage: /sell "Item" "Quantity"')
             Player.MessageFrom(self.__Sys__, 'Quote signs (") are required.')
             return False
         groups = text.split('"')
@@ -371,7 +372,8 @@ class iConomy:
                     if d == 12:
                         Player.MessageFrom(self.__Sys__, "Player would have negative money. Cancelling.")
                         return
-                    Player.MessageFrom(self.__Sys__, "You took " + args[1] + self.__MoneyMark__  + " from " + playerr.Name)
+                    Player.MessageFrom(self.__Sys__, "You took " + args[1] + self.__MoneyMark__  + " from " +
+                                       playerr.Name)
         elif cmd == "setmoney":
             if len(args) == 0:
                 Player.MessageFrom(self.__Sys__, 'Usage: /setmoney "PlayerName" "amount"')
@@ -384,7 +386,8 @@ class iConomy:
                     if d == 12:
                         Player.MessageFrom(self.__Sys__, "Player would have negative money. Cancelling.")
                         return
-                    Player.MessageFrom(self.__Sys__, "You set " + playerr.Name + "'s balance to " + args[1] + self.__MoneyMark__)
+                    Player.MessageFrom(self.__Sys__, "You set " + playerr.Name + "'s balance to " + args[1] +
+                                       self.__MoneyMark__)
         elif cmd == "givemoney":
             if len(args) == 0:
                 Player.MessageFrom(self.__Sys__, 'Usage: /givemoney "PlayerName" "amount"')
@@ -403,7 +406,8 @@ class iConomy:
                     DataStore.Add('iConomy', p.SteamID, self.__DefaultMoney__)
                     p.MessageFrom(self.__Sys__, "iConomy DataBase was Flushed.")
         elif cmd == "shop":
-            Player.MessageFrom(self.__Sys__, "Economy Commands: /money, /buy [Item] [Quantity], /sell [Item] [Quantity], /price")
+            Player.MessageFrom(self.__Sys__, "Economy Commands: /money, /buy [Item] "
+                                             "[Quantity], /sell [Item] [Quantity], /price")
         elif cmd == "buy":
             array = self.GetQuoted(args, Player)
             if not array:
