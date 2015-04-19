@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.7'
+__version__ = '2.5.8'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -51,12 +51,20 @@ class HomeSystem:
         self.antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         self.type = Util.TryFindReturnType("StructureComponent")
         self.movec = int(config.GetSetting("Settings", "movecheck"))
-        self.found = bool(config.GetSetting("Settings", "foundationhome"))
+        self.found = self.bool(config.GetSetting("Settings", "foundationhome"))
         Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     """
         Functions
     """
+
+    def bool(self, s):
+        if s.lower() == 'true':
+            return True
+        elif s.lower() == 'false':
+            return False
+        else:
+            raise ValueError
 
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
@@ -318,7 +326,7 @@ class HomeSystem:
                 Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
                 Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " + Player.IP + " - " + str(Player.Location))
                 DataStore.Remove("homey", id)
-                self.addJob(Player, 2, 6, None)
+                #  self.addJob(Player, 2, 6, None)
                 # Handles those players who joined after X seconds. Dizzy hack bypasser.
         elif callback == 5:
             randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
@@ -336,11 +344,11 @@ class HomeSystem:
                 home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                 w = 3
             self.addJob(Player, 2, w, home)
-        elif callback == 6:
+        """elif callback == 6:
             try:
                 Player.Disconnect()
             except:
-                pass
+                pass"""
 
     def Check(self, Player, plloc):
         config = self.HomeConfig()
