@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -26,33 +26,18 @@ class HighPing:
             ini.Save()
         return Plugin.GetIni("PingConfig")
 
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
-
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
         Players.append(Player)
 
     def On_PlayerDisconnected(self, Player):
-        try:
+        if Player in Players:
             Players.remove(Player)
-        except:
-            pass
 
-    def PingCheckCallback(self):
-        Plugin.KillTimer("PingCheck")
+    def PingCheckCallback(self, timer):
+        timer.Kill()
         for pl in Players:
             if int(pl.Ping) >= self.MaxPing:
-                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) + " Maximum you can have: " + str(self.MaxPing) + ".")
+                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) +
+                               " Maximum you can have: " + str(self.MaxPing) + ".")
                 pl.Disconnect()
         Plugin.CreateTimer("PingCheck", self.Timer).Start()
