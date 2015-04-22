@@ -8,6 +8,8 @@ __version__ = '1.0'
 """
 import Ini
 class Plugin:
+    LibPath = None
+
     def Invoke(func, obj):
         """
         -Runs a method in another Plugin.
@@ -18,65 +20,54 @@ class Plugin:
         return
 
     def NormalizePath(StringPath):
+        return
 
+    def FormatException(Exception):
         return
 
     def ValidateRelativePath(StringPath):
-
         return
 
     def CreateDir(StringPath):
-
         return
 
     def DeleteLog(StringPath):
-
         return
 
     def Log(StringPath, StringText):
-
         return
 
     def GetIni(StringPath):
         return Ini
-    def IniExists(StringPath):
 
+    def IniExists(StringPath):
         return
 
     def CreateIni(StringPathOrName):
-
         return
 
     def GetInis(StringPath):
-
         return
 
     def GetPlugin(StringName):
-
         return
 
     def GetDate(self):
-
         return
 
     def GetTicks(self):
-
         return
 
     def GetTime(self):
-
         return
 
     def GetTimestamp(self):
-
         return
 
     def CreateTimer(Name, timeoutDelay):
-
         return
 
     def CreateTimer(StringName, timeoutDelay, Dictionary):
-
         return
 
     def GetTimer(StringName):

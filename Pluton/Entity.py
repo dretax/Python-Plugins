@@ -20,3 +20,21 @@ class Entity:
 
     def Kill(self):
         return
+
+    def IsBuildingPart(self):
+        return
+
+    def IsNPC(self):
+        return
+
+    def IsPlayer(self):
+        return
+
+    def ToBuildingPart(self):
+        return
+
+    def ToNPC(self):
+        return
+
+    def ToPlayer(self):
+        return

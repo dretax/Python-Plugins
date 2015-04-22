@@ -6,16 +6,15 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
+import ItemDefinition
+import Rarity
 
-class NPC:
+class ItemBlueprint:
 
-    baseNPC = None
-    ID = None
-    Health = None
-
-
-    def Kill(self):
-        return
-
-    def IsNPC(self):
-        return True
+    ingredients = []
+    amountToCreate = 1
+    userCraftable = True
+    targetItem = ItemDefinition
+    time = 0.0
+    defaultBlueprint = None
+    rarity = Rarity

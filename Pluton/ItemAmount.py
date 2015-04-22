@@ -7,15 +7,9 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class NPC:
-
-    baseNPC = None
-    ID = None
-    Health = None
-
-
-    def Kill(self):
-        return
-
-    def IsNPC(self):
-        return True
+import ItemDefinition
+class ItemAmount:
+    itemDef = ItemDefinition
+    amount = 0
+    startAmount = 0
+    itemid = 0

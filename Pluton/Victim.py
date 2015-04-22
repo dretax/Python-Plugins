@@ -7,130 +7,148 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
+"""
+    Please note that a Victim can be an NPC too!
+    It's useful (and if known that the victim is an NPC)
+    to define the variable as npc so you can see the methods of the NPC class
+    Example:
+    npc = DeathEvent.Victim
+"""
+
 class Victim:
 
-    def Find(nameOrSteamidOrIP):
+    GameID = None
+
+    def OnPlayerDeserialized(StreamingContext):
         return
 
-
-    def FindByGameID(UlongSteamID):
+    def Find(stringnameOrSteamidOrIP):
         return
 
-
-    def FindBySteamID(StringSteamID):
+    def FindByGameID(ulongsteamID):
         return
 
-
-    def Ban(StringReason):
+    def FindBySteamID(stringsteamID):
         return
 
-
-    def Kick(StringReason):
+    def Ban(stringreason = "no reason"):
         return
 
-
-    def Reject(StringReason):
+    def Kick(stringreason = "no reason"):
         return
 
-
-    def GetLookPoint(FloatmaxDist=500):
+    def Reject(stringreason = "no reason"):
         return
 
-
-    def GetLookHit(FloatmaxDist=500):
+    def GetLookPoint(FloatMaxDist = 500):
         return
 
-
-    def GetLookPlayer(FloatmaxDist=500):
+    def GetLookHit(FloatMaxDist = 500, intLayers = ""):
         return
 
-
-    def GetLookBuildingPart(FloatmaxDist=500):
+    def GetLookPlayer(FloatMaxDist = 500):
         return
 
+    def GetLookBuildingPart(FloatMaxDist = 500):
+        return
 
     def Kill(self):
         return
 
-
-    def MakeNone(StringReason="no reason"):
+    def KnowsBlueprint(intItemID):
         return
 
-
-    def MakeModerator(StringReason="no reason"):
+    def KnowsBlueprint(ItemBlueprint):
         return
 
-
-    def MakeOwner(StringReason="no reason"):
+    def KnowsBlueprint(ItemDefinition):
         return
 
-
-    def Message(StringMsg):
+    def KnowsBlueprints(itemIDs):
         return
 
-
-    def MessageFrom(StringFrom, StringMsg):
+    def KnowsBlueprints(itemBPs):
         return
 
-
-    def ConsoleMessage(StringMsg):
+    def KnowsBlueprints(itemdefs):
         return
 
-
-    def SendConsoleCommand(StringCmd):
+    def KnownBlueprints(self):
         return
 
-
-    def GroundTeleport(FloatX, FloatY, FloatZ):
+    def LearnBlueprint(intItemID):
         return
 
+    def LearnBlueprint(ItemBlueprint):
+        return
+
+    def LearnBlueprint(ItemDefinition):
+        return
+
+    def LearnBlueprints(itemIDs):
+        return
+
+    def LearnBlueprints(itembps):
+        return
+
+    def LearnBlueprints(itemdefs):
+        return
+
+    def MakeNone(stringreason = "no reason"):
+        return
+
+    def MakeModerator(stringreason = "no reason"):
+        return
+
+    def MakeOwner(stringreason = "no reason"):
+        return
+
+    def Message(stringmsg):
+        return
+
+    def MessageFrom(stringfrom, stringmsg):
+        return
+
+    def ConsoleMessage(stringmsg):
+        return
+
+    def IsPlayer(self):
+        return True
+
+    def SendConsoleCommand(stringcmd):
+        return
+
+    def GroundTeleport(floatX, floatY, floatZ):
+        return
 
     def GroundTeleport(Vector3):
         return
 
-
     def Teleport(Vector3):
         return
 
+    worldSizeHalf = None
+    firstLocations = []
 
-    def Teleport(FloatX, FloatY, FloatZ):
+    def Teleport(floatX, floatY, floatZ):
         return
 
 
-    firstLocations = None
-
     Admin = None
-
     AuthStatus = None
-
-    GameID = None
-
+    basePlayer = BasePlayer
     Health = None
-
     Inventory = None
-
     IP = None
-
+    IsWounded = None
     Location = None
-
     Moderator = None
-
     Name = None
-
+    Offline = None
     Owner = None
-
     OS = None
-
     Ping = None
-
     Stats = None
-
     SteamID = None
-
     TimeOnline = None
-
-    X = None
-
-    Y = None
-
-    Z = None
+    Teleporting = None

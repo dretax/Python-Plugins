@@ -6,10 +6,36 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
+import Zone2D
 class Util:
+    zones = {
+        'StringName', Zone2D
+    }
+
+    def GetZone(stringname):
+        return
+
+    def SetZone(Zone2DZone):
+        return
+
+    def CreateZone(stringname):
+        return
+
+    def LoadZones(self):
+        return
+
+    def SaveZones(self):
+        return
+
+    def ChangeTriggerRadius(TriggerBase, floatNewRadius):
+        return
+
     def ConsoleLog(String, BooleanAdminOnly = False):
         return
+
+    def CheckDependencies(self):
+        return
+
     def CreateLoadOut(StringName):
         return
 
@@ -56,6 +82,9 @@ class Util:
         return
 
     def GetServerFolder(self):
+        return
+
+    def GetStructuresFolder(self):
         return
 
     def GetUtil(self):

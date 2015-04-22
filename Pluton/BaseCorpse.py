@@ -6,11 +6,34 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
+import BaseEntity
 class BaseCorpse:
-    health = None
-    healthMax = None
-    parentEnt = None
-    parentEntity = None
-    name = None
-    transform = None
+    ragdollPrefab = None
+    parentEnt = BaseEntity
+
+    def ServerInit(self):
+        return
+
+    def InitCorpse(BaseEntity):
+        return
+
+    def CanRemove(self):
+        return
+
+    def RemoveCorpse(self):
+        return
+
+    def ResetRemovalTime(FloatDur):
+        return
+
+    def ResetRemovalTime(self):
+        return
+
+    def Save(BaseNetworkableSaveInfo):
+        return
+
+    def Load(BaseNetworkableLoadInfo):
+        return
+
+    def OnAttacked(HitInfo):
+        return

@@ -7,15 +7,10 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class NPC:
-
-    baseNPC = None
-    ID = None
-    Health = None
-
-
-    def Kill(self):
-        return
-
-    def IsNPC(self):
-        return True
+class Rarity:
+    none = None
+    Common = None
+    Uncommon = None
+    Rare = None
+    VeryRare = None
+    NoSpawn = None

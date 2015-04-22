@@ -8,15 +8,17 @@ __version__ = '1.0'
 """
 
 import Player
+import BuildingPart
 
 class BuildingEvent:
-    Sockets = None
-    _block  = None
-    BuildingPart = None
+    BuildingPart = BuildingPart
     Builder = Player
-    BlockFullName = None
-    BlockName = None
-    Tool = None
-    _info = None
+    Construction = None
+    Target = None
+    NeedsValidPlacement = None
 
-    Proficiency = None
+    DestroyReason = ""
+    DoDestroy = False
+
+    def Destroy(reason = "Plugin blocks building!"):
+        return

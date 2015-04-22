@@ -9,6 +9,7 @@ __version__ = '1.0'
 
 
 class Server:
+    Loaded = False
     Players = None
     OfflinePlayers = None
     LoadOuts = None
@@ -33,7 +34,6 @@ class Server:
 
     def FindPlayer(UlongSteamID):
         return
-
 
     def GetPlayer(BasePlayer):
         return

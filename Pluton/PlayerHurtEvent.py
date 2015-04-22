@@ -13,11 +13,7 @@ import _info
 class PlayerHurtEvent:
     _info = _info
     Victim = Player
-    DamageAmount = None
+    DamageAmounts = []
     DamageType = None
     Attacker = None
     Weapon = None
-
-
-    def PlayerHurtEvent(Player, HitInfo):
-       return

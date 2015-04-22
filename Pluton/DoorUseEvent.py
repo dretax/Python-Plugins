@@ -7,8 +7,14 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-import _info
-class BuildingHurtEvent:
-    Victim = None
-    _info = _info
-    Proficiency = None
+import Player
+import Entity
+class DoorUseEvent:
+    Open = None
+    Player = Player
+    Door = Entity
+
+    DenyReason = ""
+
+    def Deny(stringreason = ""):
+        return

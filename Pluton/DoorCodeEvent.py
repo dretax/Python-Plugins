@@ -9,6 +9,7 @@ __version__ = '1.0'
 
 import Player
 class DoorCodeEvent:
+    #todo needs fix in pluton
     codeLock = None
     msg = None
     doorCode = None

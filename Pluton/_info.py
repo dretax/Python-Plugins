@@ -8,38 +8,32 @@ __version__ = '1.0'
 """
 
 class _info:
-    def GetHashCode(self):
-        return
 
-    def GetType(self):
-        return
-
-    def IsBuilder(self):
-        return
-
-    def LoadFromAttack(ProtoBufAttack):
-        return
-
-    DidHit = None
-    DoHitEffects = None
-    HitBone = None
-    HitEntity = None
-    HitMaterial = None
-    HitNormalLocal = None
-    HitNormalWorld = None
-    HitPart = None
-    HitPositionLocal = None
-    HitPositionWorld = None
-    Initiaitor = None
-    IsPredicting = None
-    PointEnd = None
-    PointStart = None
-    Predicted = None
-    ProjectileID = None
+    DoHitEffects = True
+    damageTypes = None
+    Initiator = None
     Weapon = None
-    buildProficiency = None
-    damageAmount = None
-    damageType = None
-    demolishProficiency = None
+    IsPredicting = None
+    Predicted = None
+    DidHit = None
+    HitEntity = None
+    HitBone = None
+    HitPart = None
+    HitMaterial = None
+    HitPositionWorld = None
+    HitPositionLocal = None
+    HitNormalWorld = None
+    HitNormalLocal = None
+    PointStart = None
+    PointEnd = None
+    ProjectileID = None
+    HitVelocity = None
     material = None
-    resourceGatherProficiency = None
+    CanGather = None
+    DidGather = None
+    hasDamage = None
+    isHeadshot = None
+    boneName = None
+
+    def LoadFromAttack(Attack, boolserverSide):
+        return

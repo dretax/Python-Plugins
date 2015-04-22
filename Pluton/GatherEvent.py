@@ -8,18 +8,14 @@ __version__ = '1.0'
 """
 
 import Entity
-import _info
+import Player
+import ItemAmount
+
 class GatherEvent:
-    _info = _info
 
-    def GatherEvent(BaseResource, HitInfo):
-        return
-
-    DamageAmount = None
-    DamageType = None
-    Health = None
-    Prefab = None
-    Proficiency = None
-    Gatherer = None
-    Stage = None
-    Weapon = None
+    resourceDispenser = None
+    Gatherer = Player
+    Resource = Entity
+    ItemAmount = ItemAmount
+    Amount = 1
+    origAmount = 1

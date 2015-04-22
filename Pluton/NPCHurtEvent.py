@@ -14,7 +14,7 @@ class NPCHurtEvent:
     _info = _info
     dropLoot = True
     HitBone = None
-    DamageAmount = None
+    DamageAmounts = []
     DamageType = None
     Attacker = None
     Weapon = None

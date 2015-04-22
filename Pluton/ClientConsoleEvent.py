@@ -6,13 +6,14 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
+import Player
+import cmd
 class ClientConsoleEvent:
     Internal = None
-    User = None
-    cmd = None
-    Args = []
+    User = Player
+    cmd = cmd
+    Args = None
     Reply = None
 
-    def ReplyWith(StringMessage):
+    def ReplyWith(stringmsg):
         return

@@ -6,9 +6,9 @@ __version__ = '1.0'
     without looking at the wiki or the api.
     API showoff purposes only, and nothing else.
 """
-
+import Player
 class MetabolismDamageEvent:
-    Victim = None
+    Victim = Player
     HungerDamage = 0.0
     ThirstDamage = 0.0
     ColdDamage = 0.0

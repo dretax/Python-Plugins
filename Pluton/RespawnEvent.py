@@ -11,5 +11,6 @@ class RespawnEvent:
     GiveDefault = None
     ChangePos = None
     WakeUp = None
+    StartHealth = -1
     SpawnPos = None
     Player = Player

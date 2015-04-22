@@ -9,6 +9,9 @@ __version__ = '1.0'
 
 class DataStore:
 
+    def RemoveChars(string):
+        return
+
     def ToIni(StringInifileName = "DataStore"):
         return
 

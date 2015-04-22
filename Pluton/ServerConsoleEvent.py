@@ -9,5 +9,9 @@ __version__ = '1.0'
 
 class ServerConsoleEvent:
     cmd = None
+    _args = []
     Args = []
-    wantFeedback = None
+    Reply = ""
+
+    def ReplyWith(stringreply):
+        return

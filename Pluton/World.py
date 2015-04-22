@@ -9,8 +9,10 @@ __version__ = '1.0'
 
 
 class World:
+
     ResourceGatherMultiplier = 1.0
     freezeTimeTimer = None
+    frozenTime = -1
     Time = None
     Timescale = None
 
@@ -23,22 +25,25 @@ class World:
     def AirDrop(self):
         return
 
-    def AirDrop(FloatSpeed, FloatHeight=400):
+    def AirDrop(FloatSpeed, FloatHeight = 400):
         return
 
-    def AirDropAt(Vector3Position, FloatSpeed=50, FloatHeight=400):
+    def AirDropAt(Vector3Position, FloatSpeed = 50, FloatHeight = 400):
         return
 
-    def AirDropAt(FloatX, FloatY, FloatZ, FloatSpeed=50, FloatHeight=400):
+    def AirDropAt(FloatX, FloatY, FloatZ, FloatSpeed = 50, FloatHeight = 400):
         return
 
-    def AirDropAtPlayer(Player, FloatSpeed=50, FloatHeight=400):
+    def AirDropAtPlayer(Player, FloatSpeed = 50, FloatHeight = 400):
         return
 
     def GetGround(FloatX, FloatZ):
         return
 
     def GetGround(Vector3):
+        return
+
+    def GetPrefabNames(self):
         return
 
     def SpawnMapEntity(StringName, FloatX, FloatZ):
@@ -54,18 +59,18 @@ class World:
         return
 
     def SpawnAnimal(StringName, FloatX, FloatZ):
-        return
+            return
 
     def SpawnAnimal(StringName, Vector3):
         return
 
-    def SpawnEvent(StringEvent, FloatX, FloatZ):
+    def SpawnEvent(StringEVT, FloatX, FloatZ):
         return
 
-    def SpawnEvent(StringEvent, Vector3):
+    def SpawnEvent(StringEVT, Vector3):
         return
 
-    def SpawnEvent(StringEvent, FloatX, FloatY, FloatZ):
+    def SpawnEvent(StringEVT, FloatX, FloatY, FloatZ):
         return
 
     def SpawnAnimal(StringName, FloatX, FloatY, FloatZ):
@@ -77,11 +82,22 @@ class World:
     def FreezeTime(self):
         return
 
-    def UnFreezeTime(self):
+    def Freeze(ObjectSender, ElapsedEventArgs):
         return
+
+    def UnFreezeTime(self):
+        frozenTime = -1
+
+    def Initialize(self):
+        return
+
+    def CheckDependencies(self):
+        return True
 
     def GetWorld(self):
-        return
+        Instance = None
+        return Instance
 
+    list = None
     def PrintPrefabs(self):
         return

@@ -7,15 +7,20 @@ __version__ = '1.0'
     API showoff purposes only, and nothing else.
 """
 
-class NPC:
+class BuildingPart:
 
-    baseNPC = None
-    ID = None
-    Health = None
-
-
-    def Kill(self):
+    def FindSocket(stringname):
         return
 
-    def IsNPC(self):
+    def Destroy(self):
+        return
+
+    def IsBuildingPart(self):
         return True
+
+    def Rotate(self):
+        return
+
+    buildingBlock = None
+    Grade = None
+    Health = None

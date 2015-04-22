@@ -23,3 +23,6 @@ class OfflinePlayer:
 
     def Get(StringSteamID):
         return
+
+    def Update(Player):
+        return
