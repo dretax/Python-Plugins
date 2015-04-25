@@ -1,10 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.6'
+__version__ = '1.8.7'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 clr.AddReferenceByPartialName("UnityEngine")
+clr.AddReferenceByPartialName("Assembly-CSharp")
 import Pluton
 import UnityEngine
 from UnityEngine import Vector3 as Vector3
@@ -12,9 +13,13 @@ import System
 from System import *
 import math
 import sys
+import BasePlayer
 path = Util.GetPublicFolder()
 sys.path.append(path + "\\Python\\Lib\\")
-import hashlib
+try:
+    import hashlib
+except ImportError:
+    raise ImportError('Download the Extra IronPython Libs from pluton-team.org')
 import random
 import re
 
@@ -39,6 +44,8 @@ class AdminCommands:
     Sysname = None
     ResourceList = None
     BuildingPrivlidge = None
+    AmmoTypes = None
+    RocketAmmoType = None
 
     def On_PluginInit(self):
         DataStore.Flush('Duty')
@@ -55,6 +62,8 @@ class AdminCommands:
         self.LogDuty = self.bool(ini.GetSetting("Settings", "LogDuty"))
         self.Friends = self.bool(ini.GetSetting("Settings", "Friends"))
         self.BuildingPrivlidge = Util.TryFindReturnType("BuildingPrivlidge")
+        self.AmmoTypes = Util.TryFindReturnType("AmmoTypes")
+        self.RocketAmmoType = Util.TryFindReturnType("AmmoTypes")
         self.Sysname = ini.GetSetting("Settings", "Sysname")
         res = Plugin.GetIni("Resources")
         for x in res.EnumSection("Resources"):
@@ -110,6 +119,19 @@ class AdminCommands:
         if ini.GetSetting(ofid, id) and ini.GetSetting(ofid, id) is not None:
             return True
         return False
+
+    def Teleport(self, Player, Location):
+        Player.basePlayer.StartSleeping()
+        Player.basePlayer.transform.position = Location
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
+        Player.basePlayer.UpdateNetworkGroup()
+        Player.basePlayer.UpdatePlayerCollider(True, False)
+        Player.basePlayer.SendNetworkUpdateImmediate(False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
+        Player.basePlayer.SendFullSnapshot()
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
 
     """
         CheckV Assistants
@@ -246,9 +268,10 @@ class AdminCommands:
             pl = self.CheckV(Player, args, 3)
             if pl is not None:
                 if "offlineplayer" in str(pl).lower():
-                    Player.Teleport(pl.X, pl.Y, pl.Z)
+                    loc = Vector3(pl.X, pl.Y, pl.Z)
+                    self.Teleport(Player, loc)
                 else:
-                    Player.Teleport(pl.Location)
+                    self.Teleport(Player, pl.Location)
         elif cmd.cmd == "tphere":
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -261,7 +284,7 @@ class AdminCommands:
                 return
             pl = self.CheckV(Player, args)
             if pl is not None:
-                pl.Teleport(Player.Location)
+                self.Teleport(pl, Player.Location)
         elif cmd.cmd == "god":
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -447,6 +470,8 @@ class AdminCommands:
                 pl.MakeOwner(Player.Name + " made " + pl.Name + " an owner")
                 Player.MessageFrom(self.Sysname, pl.Name + " got owner rights!")
                 pl.MessageFrom(self.Sysname, Player.Name + " made you an owner!")
+                return
+            Player.MessageFrom(self.Sysname, "Couldn't find player.")
         elif cmd.cmd == "addmoderator":
             if not Player.Owner:
                 Player.MessageFrom(self.Sysname, "You aren't an owner!")
@@ -459,6 +484,8 @@ class AdminCommands:
                 pl.MakeModerator(Player.Name + " made " + pl.Name + " a moderator")
                 Player.MessageFrom(self.Sysname, pl.Name + " got moderator rights!")
                 pl.MessageFrom(self.Sysname, Player.Name + " made you a moderator!")
+                return
+            Player.MessageFrom(self.Sysname, "Couldn't find player.")
         elif cmd.cmd == "removerights":
             if not Player.Owner:
                 Player.MessageFrom(self.Sysname, "You aren't an owner!")
@@ -471,6 +498,8 @@ class AdminCommands:
                 pl.MakeNone()
                 Player.MessageFrom(self.Sysname, "You removed " + pl.Name + "'s rights.")
                 pl.MessageFrom(self.Sysname, Player.Name + " removed your rights.")
+                return
+            Player.MessageFrom(self.Sysname, "Couldn't find player.")
         elif cmd.cmd == "getowner":
             if self.ohash is None:
                 return
@@ -580,7 +609,7 @@ class AdminCommands:
             if vector == self.DefaultVector:
                 Player.MessageFrom(self.Sysname, "Target is too far.")
                 return
-            Player.Teleport(vector)
+            self.Teleport(Player, vector)
             Player.MessageFrom(self.Sysname, "Teleported!")
         elif cmd.cmd == "teleportto":
             if not Player.Admin:
@@ -594,7 +623,8 @@ class AdminCommands:
             if len(sp) < 2:
                 Player.MessageFrom(self.Sysname, "Usage: /teleportto x,y,z")
                 return
-            Player.Teleport(float(sp[0]), float(sp[1]), float(sp[2]))
+            loc = Vector3(float(sp[0]), float(sp[1]), float(sp[2]))
+            self.Teleport(Player, loc)
             Player.MessageFrom(self.Sysname, "Teleported!")
         elif cmd.cmd == "addfriend":
             if not self.Friends:
@@ -696,7 +726,7 @@ class AdminCommands:
                     World.SpawnMapEntity(Resources[type], vector.x, vector.y, vector.z)
             else:
                 Player.MessageFrom(self.Sysname, "Couldn't find command.")
-        elif cmd.cmd == "closeauthorized":
+        elif cmd.cmd == "boardusers":
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
                 return
@@ -705,6 +735,7 @@ class AdminCommands:
                 return
             objects = UnityEngine.Object.FindObjectsOfType[self.BuildingPrivlidge]()
             if len(objects) == 0:
+                Player.MessageFrom(self.Sysname, "Couldn't find any objects")
                 return
             c = 0
             for x in objects:
@@ -712,11 +743,29 @@ class AdminCommands:
                 if dist > 6.0:
                     continue
                 c += 1
+                Player.MessageFrom(self.Sysname, "---Object" + str(c) + "---")
+                if len(x.authorizedPlayers) == 0:
+                    Player.MessageFrom(self.Sysname, "No players in the object.")
+                    continue
                 for z in x.authorizedPlayers:
                     name = z.username
                     id = z.userid
-                    Player.MessageFrom(self.Sysname, "---Object" + str(c) + "---")
                     Player.MessageFrom(self.Sysname, "Authorized player: " + str(name) + " - " + str(id))
+        elif cmd.cmd == "apache":
+            if not Player.Admin:
+                Player.MessageFrom(self.Sysname, "You aren't an admin!")
+                return
+            if not self.IsonDuty(Player):
+                Player.MessageFrom(self.Sysname, "You aren't on duty!")
+                return
+            Inventory = Player.Inventory
+            for x in Inventory.InnerBelt.itemList:
+                name = str(x.info.name)
+                Player.Message(name)
+                if "rocket_launcher" in name:
+                    Player.Message("Da")
+                    Player.Message(str(x.flags))
+
         """elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z

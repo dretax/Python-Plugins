@@ -1,14 +1,16 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4.1'
 
 import clr
 clr.AddReferenceByPartialName("Pluton")
 clr.AddReferenceByPartialName("UnityEngine")
+clr.AddReferenceByPartialName("Assembly-CSharp")
 import Pluton
 import UnityEngine
 from UnityEngine import Vector3
 import math
 import System
+import BasePlayer
 from System import *
 import re
 
@@ -54,10 +56,24 @@ class HomeSystem:
             Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             return
-        Player.Teleport(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
-        if safetp > 0:
-            Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
+        loc = Vector3(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
+        self.Teleport(Player, loc)
+        #if safetp > 0:
+            #Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
+
+    def Teleport(self, Player, Location):
+        Player.basePlayer.StartSleeping()
+        Player.basePlayer.transform.position = Location
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
+        Player.basePlayer.UpdateNetworkGroup()
+        Player.basePlayer.UpdatePlayerCollider(True, False)
+        Player.basePlayer.SendNetworkUpdateImmediate(False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
+        Player.basePlayer.SendFullSnapshot()
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
 
 
     def HomeSafeTyCallback(self, timer):
@@ -78,7 +94,7 @@ class HomeSystem:
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             return
         Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 5.5, float(HLoc[2]))
-        Player.Teleport(Home)
+        self.Teleport(Player, Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
 
     """
@@ -409,8 +425,7 @@ class HomeSystem:
                 name = name.lower()
                 for playerid in players:
                     i += 1
-                    nameof = ini.GetSetting(id, playerid)
-                    lowered = Data.ToLower(nameof)
+                    lowered = ini.GetSetting(id, playerid).lower()
                     if lowered == name:
                         ini.DeleteSetting(id, playerid)
                         ini.Save()

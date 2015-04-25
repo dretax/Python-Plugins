@@ -1,13 +1,15 @@
 __author__ = 'DreTaX'
-__version__ = '1.8'
+__version__ = '1.8.1'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
+clr.AddReferenceByPartialName("Assembly-CSharp")
 import Pluton
 import System
 from System import *
 import math
+import BasePlayer
 
 """
     Class
@@ -62,7 +64,7 @@ class TpFriend:
                 return
             DataStore.Remove("tpfriendpending", id)
             DataStore.Remove("tpfriendpending2", id2)
-            PlayerFrom.Teleport(PlayerTo.X, PlayerTo.Y + 5.5, PlayerTo.Z)
+            self.Teleport(PlayerFrom, PlayerTo.Location)
             PlayerFrom.MessageFrom(systemname, "Teleported!")
             PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         elif callback == 2:
@@ -86,13 +88,6 @@ class TpFriend:
             loc.Save()
         return Plugin.GetIni("TpFriendConfig")
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
-        return None
-
     def addJob(self, xtime, PlayerFrom, PlayerTo, callback, id, id2):
         List = Plugin.CreateDict()
         List["PlayerR"] = PlayerFrom
@@ -107,42 +102,88 @@ class TpFriend:
             Pending.remove(Player)
 
     """
+        CheckV Assistants
+    """
+
+    def GetPlayerName(self, name, Mode=1):
+        if Mode == 1 or Mode == 3:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == name:
+                    return pl
+        if Mode == 2 or Mode == 3:
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == name:
+                    return pl
+        return None
+
+    """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        Mode: Search mode (Default: 1)
+            1 = Search Online Players
+            2 = Search Offline Players
+            3 = Both
+        V6.0
     """
-    def CheckV(self, Player, args):
-        ini = self.TpFriendConfig()
-        systemname = ini.GetSetting("Settings", "sysname")
+
+    def CheckV(self, Player, args, Mode=1):
+        config = self.TpFriendConfig()
+        systemname = config.GetSetting("Settings", "sysname")
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(String.Join(" ", args))
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
-                for namePart in args:
-                    if namePart.lower() in pl.Name.lower():
+            if Mode == 1 or Mode == 3:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+            if Mode == 2 or Mode == 3:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+        else:
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
+            if p is not None:
+                return p
+            if Mode == 1 or Mode == 3:
+                for pl in Server.ActivePlayers:
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-                        continue
-        else:
-            p = self.GetPlayerName(str(args))
-            if p is not None:
-                return p
-            for pl in Server.ActivePlayers:
-                if str(args).lower() in pl.Name.lower():
-                    p = pl
-                    count += 1
-                    continue
+            if Mode == 2 or Mode == 3:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if ag in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
+            Player.MessageFrom(systemname, "Couldn't find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom(systemname, "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
+
+    def Teleport(self, Player, Location):
+        Player.basePlayer.StartSleeping()
+        Player.basePlayer.transform.position = Location
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
+        Player.basePlayer.UpdateNetworkGroup()
+        Player.basePlayer.UpdatePlayerCollider(True, False)
+        Player.basePlayer.SendNetworkUpdateImmediate(False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
+        Player.basePlayer.SendFullSnapshot()
+        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
+        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
 
     def On_Command(self, cmd):
         Player = cmd.User
@@ -243,7 +284,7 @@ class TpFriend:
                         self.addJob(tpdelay, playerfromm, Player, 1, pending, id)
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
-                        playerfromm.Teleport(Player.X, Player.Y + 5.5, Player.Z)
+                        self.Teleport(playerfromm, Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, playerfromm.Name + " teleported to you!")
                 else:
