@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 
 import clr
 
@@ -21,6 +21,10 @@ except ImportError:
 """
 IdsToWipe = []
 EntityList = {
+
+}
+
+UserObj = {
 
 }
 
@@ -186,6 +190,7 @@ class Wiper:
         for ent in World.Entities:
             if long(ent.OwnerID) in IdsToWipe:
                 ent.Destroy()
+                UserObj[long(ent.OwnerID)] = UserObj.get(long(ent.OwnerID), 0) + 1
                 c += 1
         for x in IdsToWipe:
             pathtodir = path + self.Path + str(x)
@@ -195,7 +200,9 @@ class Wiper:
                     os.remove(path + self.Path + str(x) + "\\" + file)
                 os.rmdir(path + self.Path + str(x))
             ini.DeleteSetting("Objects", str(x))
-            Plugin.Log("WipedIds", str(x) + " Objects: " + str(c))
+            Plugin.Log("WipedIds", str(x) + " Objects: " + str(UserObj[x]))
+        Plugin.Log("WipedIds", "Total Objects: " + str(c))
+        UserObj.clear()
         ini.Save()
         del IdsToWipe[:]
         return c
