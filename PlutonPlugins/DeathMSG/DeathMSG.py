@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.5'
+__version__ = '2.2.6'
 
 import clr
 
@@ -93,6 +93,12 @@ class DeathMSG:
     BluntWounded = None
     StabWounded = None
     BowWounded = None
+    Explosion2 = None
+    Explosion3 = None
+    WoodBarricade = None
+    MetalBarricade = None
+    WiredWoodBarricade = None
+
 
     def On_PluginInit(self):
         ini = self.DeathMSGConfig()
@@ -137,9 +143,12 @@ class DeathMSG:
             loc.AddSetting("Messages", "AnimalDeath", "killer killed animal using weapon")
             loc.AddSetting("Messages", "Beartrap", "victim ran into bear trap")
             loc.AddSetting("Messages", "Bite", "victim was Bitten to Death")
-            loc.AddSetting("Messages", "Bow", "killer shot victim in bodypart, from dist m, with: weapon & caused: dmg Damage")
-            loc.AddSetting("Messages", "Bullet", "killer shot through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
-            loc.AddSetting("Messages", "Blunt", "killer hit victim in bodypart using weapon from dist m. Damage: dmg")
+            loc.AddSetting("Messages", "Bow",
+                           "killer shot victim in bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Bullet",
+                           "killer shot through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Blunt",
+                           "killer hit victim in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "Bleeding", "victim bled out.")
             loc.AddSetting("Messages", "Cold", "victim Caught Cold, and died.")
             loc.AddSetting("Messages", "Drowned", "victim Drowned")
@@ -151,27 +160,41 @@ class DeathMSG:
             loc.AddSetting("Messages", "Thirst", "victim died from dehydration")
             loc.AddSetting("Messages", "Stab", "killer hit victim in bodypart using weapon. Damage: dmg")
             loc.AddSetting("Messages", "Poison", "victim got poisoned.")
-            loc.AddSetting("Messages", "Explosion", "victim exploded.")
+            loc.AddSetting("Messages", "Explosion", "victim pressed the wrong button on C4")
+            loc.AddSetting("Messages", "Explosion2", "victim forgot to throw the grenade")
+            loc.AddSetting("Messages", "Explosion3", "victim flew a couple of meters by the help of a rocket")
             loc.AddSetting("Messages", "Suicide", "COLOR#aaff55 victim COLOR#55aaff suicided COLOR#ff55aa...")
-            loc.AddSetting("Messages", "Slash", "killer slashed through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "Slash",
+                           "killer slashed through victim's bodypart, from dist m, with: weapon & caused: dmg Damage")
+            loc.AddSetting("Messages", "WoodBarricade", "victim got himself hangin on a Wood Barricade")
+            loc.AddSetting("Messages", "MetalBarricade", "victim got himself hangin on a Metal Barricade")
+            loc.AddSetting("Messages", "WiredWoodBarricade", "victim got himself hangin on a Wired Wood Barricade")
             #Sleeping Types, Stolen from Skully
             loc.AddSetting("Messages", "Sleeping Types", "-----------------------------")
             loc.AddSetting("Messages", "BiteSleep", "victim was bitten to death while he was sleeping")
             loc.AddSetting("Messages", "ExplosionSleep", "victim exploded while he was sleeping")
-            loc.AddSetting("Messages", "BluntSleep", "killer hit victim while he was sleeping in bodypart using weapon from dist m. Damage: dmg")
+            loc.AddSetting("Messages", "BluntSleep",
+                           "killer hit victim while he was sleeping in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "BleedingSleep", "victim bled out while he was sleeping")
-            loc.AddSetting("Messages", "StabSleep", "killer hit victim while he was sleeping in bodypart using weapon. Damage: dmg")
-            loc.AddSetting("Messages", "BowSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
-            loc.AddSetting("Messages", "BulletSleep", "killer shot victim while he was sleeping in bodypart, from dist m using weapon")
-            loc.AddSetting("Messages", "SlashSleep", "killer slashed victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "StabSleep",
+                           "killer hit victim while he was sleeping in bodypart using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "BowSleep",
+                           "killer shot victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
+            loc.AddSetting("Messages", "BulletSleep",
+                           "killer shot victim while he was sleeping in bodypart, from dist m using weapon")
+            loc.AddSetting("Messages", "SlashSleep",
+                           "killer slashed victim while he was sleeping in bodypart, from dist m using weapon. Damage: dmg")
             # Wounded....
             loc.AddSetting("Messages", "SuicideWounded", "victim commited suicide while he was hurt!")
-            loc.AddSetting("Messages", "BulletWounded", "victim was shot by killer via weapon from dist m while he was hurt!")
+            loc.AddSetting("Messages", "BulletWounded",
+                           "victim was shot by killer via weapon from dist m while he was hurt!")
             loc.AddSetting("Messages", "SlashWounded", "victim got slashed by killer using weapon while he was hurt!")
             loc.AddSetting("Messages", "BleedingWounded", "victim is bleeding while he was hurt!")
-            loc.AddSetting("Messages", "StabWounded", "victim was stabed in bodypart by killer via weapon while he was hurt!")
+            loc.AddSetting("Messages", "StabWounded",
+                           "victim was stabed in bodypart by killer via weapon while he was hurt!")
             loc.AddSetting("Messages", "BluntWounded", "victim got hit by killer via weapon while he was hurt!")
-            loc.AddSetting("Messages", "BowWounded", "victim got shot by killer from dist m using weapon while he was hurt!")
+            loc.AddSetting("Messages", "BowWounded",
+                           "victim got shot by killer from dist m using weapon while he was hurt!")
             loc.Save()
         return Plugin.GetIni("DeathMSGConfig")
 
@@ -208,7 +231,13 @@ class DeathMSG:
         'autospawn/animals/wolf': 'Wolf',
         'campfire_deployed(Clone)': 'Fire',
         'beartrap(Clone)': 'BearTrap',
-        'timed.explosive.deployed(Clone)': 'C4'
+        'timed.explosive.deployed(Clone)': 'C4',
+        'items/barricades/barricade.wood': 'Wood Barricade',
+        'rocket_basic(Clone)': 'Rocket',
+        'items/barricades/barricade.metal': 'Metal Barricade',
+        'items/barricades/barricade.woodwire': 'Wired Wood Barricade',
+        'grenade.f1.deployed(Clone)': 'F1 Grenade'
+
     }
 
     IsAnimal = {
@@ -255,18 +284,36 @@ class DeathMSG:
                 msg = self.Heat
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
-                return
             elif atnn == "beartrap":
                 msg = self.Beartrap
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
-                return
             elif atnn == "C4":
                 if Sleeping:
                     dmgmsg = self.ExplosionSleep
                 else:
                     dmgmsg = self.Explosion
                 msg = dmgmsg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "F1 Grenade":
+                msg = self.Explosion2
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Rocket":
+                msg = self.Explosion3
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Wood Barricade":
+                msg = self.WoodBarricade
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Metal Barricade":
+                msg = self.MetalBarricade
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Wired Wood Barricade":
+                msg = self.WiredWoodBarricade
+                msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
             if self.AnimalKills and attacker.IsNPC():
                 attackername = self.IsAnimal.get(attackername, attackername)
