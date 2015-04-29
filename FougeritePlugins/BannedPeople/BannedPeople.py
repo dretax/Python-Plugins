@@ -1,10 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.1'
+__version__ = '1.6.2'
 
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
+import re
 
 """
     Class
@@ -94,61 +95,90 @@ class BannedPeople:
             ConsoleEvent.ReplyWith("You aren't an admin!")
             return
         if ConsoleEvent.Class == "fougerite":
+            ini = self.BannedPeopleIni()
+            name = str.join(' ', ConsoleEvent.Args)
+            ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
             if "unban" in ConsoleEvent.Function:
-                if not ConsoleEvent.Args:
+                if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
-                name = str.join(' ', ConsoleEvent.Args)
-                id = self.GetPlayerUnBannedID(name)
-                ip = self.GetPlayerUnBannedIP(name)
-                if id is None:
-                    ConsoleEvent.ReplyWith("Target: " + name + " isn't in the database, or you misspelled It!")
+                if name.isnumeric() and name.startswith("7656119"):
+                    if ini.ContainsSetting("Ids", name):
+                        ini.DeleteSetting("Ids", name)
+                        ini.Save()
+                        ConsoleEvent.ReplyWith("ID " + name + " unbanned!")
+                    else:
+                        ConsoleEvent.ReplyWith("Couldn't find " + name)
+                elif ipmatch:
+                    if ini.ContainsSetting("Ips", name):
+                        ini.DeleteSetting("Ips", name)
+                        ini.Save()
+                        ConsoleEvent.ReplyWith("IP " + name + " unbanned!")
+                    else:
+                        ConsoleEvent.ReplyWith("Couldn't find " + name)
                 else:
-                    ini = self.BannedPeopleIni()
-                    name = id
-                    iprq = ini.GetSetting("NameIps", ip)
-                    idrq = ini.GetSetting("NameIds", id)
-                    ini.DeleteSetting("Ips", iprq)
-                    ini.DeleteSetting("Ids", idrq)
-                    ini.DeleteSetting("NameIps", name)
-                    ini.DeleteSetting("NameIds", name)
-                    ini.Save()
-                    for pl in Server.Players:
-                        if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " +
-                                           self.green + "Console!")
+                    id = self.GetPlayerUnBannedID(name)
+                    ip = self.GetPlayerUnBannedIP(name)
+                    if id is None:
+                        ConsoleEvent.ReplyWith("Target: " + name + " isn't in the database, or you misspelled It!")
+                    else:
+                        name = id
+                        iprq = ini.GetSetting("NameIps", ip)
+                        idrq = ini.GetSetting("NameIds", id)
+                        ini.DeleteSetting("Ips", iprq)
+                        ini.DeleteSetting("Ids", idrq)
+                        ini.DeleteSetting("NameIps", name)
+                        ini.DeleteSetting("NameIds", name)
+                        ini.Save()
+                        for pl in Server.Players:
+                            if pl.Admin or self.isMod(pl.SteamID):
+                                pl.MessageFrom(self.sysname, self.red + name + self.white + " was unbanned by: " +
+                                               self.green + "Console!")
                     ConsoleEvent.ReplyWith("Player " + name + " unbanned!")
             elif "ban" in ConsoleEvent.Function:
-                if not ConsoleEvent.Args:
+                if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
-                name = str.join(' ', ConsoleEvent.Args)
-                pl = self.CheckV(None, name)
-                if pl is None:
-                    ConsoleEvent.ReplyWith("Target: " + name + " isn't online!")
+                if name.isnumeric() and name.startswith("7656119"):
+                    if not ini.ContainsSetting("Ids", name):
+                        ini.AddSetting("Ids", name)
+                        ini.Save()
+                        ConsoleEvent.ReplyWith("ID " + name + " banned!")
+                    else:
+                        ConsoleEvent.ReplyWith("ID " + name + " is already banned.")
+                elif ipmatch:
+                    if not ini.ContainsSetting("Ips", name):
+                        ini.AddSetting("Ips", name)
+                        ini.Save()
+                        ConsoleEvent.ReplyWith("IP " + name + " banned!")
+                    else:
+                        ConsoleEvent.ReplyWith("IP " + name + " is already banned.")
                 else:
-                    ini = self.BannedPeopleIni()
-                    if pl.Admin or self.isMod(pl.SteamID):
-                        ConsoleEvent.ReplyWith("You cannot ban admins!")
-                        return
-
-                    id = pl.SteamID
-                    ip = pl.IP
-                    name = pl.Name
-                    for pl in Server.Players:
+                    pl = self.CheckV(None, name)
+                    if pl is None:
+                        ConsoleEvent.ReplyWith("Target: " + name + " isn't online!")
+                    else:
                         if pl.Admin or self.isMod(pl.SteamID):
-                            pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white +
-                                           " was banned by: Console")
+                            ConsoleEvent.ReplyWith("You cannot ban admins!")
+                            return
 
-                    ini.AddSetting("Ips", ip, "1")
-                    ini.AddSetting("Ids", id, "1")
-                    ini.AddSetting("NameIps", name, ip)
-                    ini.AddSetting("NameIds", name, id)
-                    ini.AddSetting("AdminWhoBanned", name, "Console")
-                    ini.Save()
-                    Server.Broadcast(name + " was banned by console.")
-                    ConsoleEvent.ReplyWith("Player " + name + " banned!")
-                    pl.Disconnect()
+                        id = pl.SteamID
+                        ip = pl.IP
+                        name = pl.Name
+                        for pl in Server.Players:
+                            if pl.Admin or self.isMod(pl.SteamID):
+                                pl.MessageFrom(self.sysname, "Message to Admins: " + self.red + name + self.white +
+                                               " was banned by: Console")
+
+                        ini.AddSetting("Ips", ip, "1")
+                        ini.AddSetting("Ids", id, "1")
+                        ini.AddSetting("NameIps", name, ip)
+                        ini.AddSetting("NameIds", name, id)
+                        ini.AddSetting("AdminWhoBanned", name, "Console")
+                        ini.Save()
+                        Server.Broadcast(name + " was banned by console.")
+                        ConsoleEvent.ReplyWith("Player " + name + " banned!")
+                        pl.Disconnect()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
