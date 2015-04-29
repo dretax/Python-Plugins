@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.6.1'
 
 import clr
 
@@ -148,6 +148,7 @@ class BannedPeople:
                     ini.Save()
                     Server.Broadcast(name + " was banned by console.")
                     ConsoleEvent.ReplyWith("Player " + name + " banned!")
+                    pl.Disconnect()
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
