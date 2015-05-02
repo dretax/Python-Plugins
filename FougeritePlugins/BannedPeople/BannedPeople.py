@@ -97,20 +97,20 @@ class BannedPeople:
         if ConsoleEvent.Class == "fougerite":
             ini = self.BannedPeopleIni()
             name = str.join(' ', ConsoleEvent.Args)
-            ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
             if "unban" in ConsoleEvent.Function:
                 if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
+                ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
                 if name.isnumeric() and name.startswith("7656119"):
-                    if ini.ContainsSetting("Ids", name):
+                    if ini.GetSetting("Ids", name) is not None:
                         ini.DeleteSetting("Ids", name)
                         ini.Save()
                         ConsoleEvent.ReplyWith("ID " + name + " unbanned!")
                     else:
                         ConsoleEvent.ReplyWith("Couldn't find " + name)
                 elif ipmatch:
-                    if ini.ContainsSetting("Ips", name):
+                    if ini.GetSetting("Ips", name) is not None:
                         ini.DeleteSetting("Ips", name)
                         ini.Save()
                         ConsoleEvent.ReplyWith("IP " + name + " unbanned!")
@@ -139,15 +139,16 @@ class BannedPeople:
                 if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
+                ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
                 if name.isnumeric() and name.startswith("7656119"):
-                    if not ini.ContainsSetting("Ids", name):
+                    if not ini.GetSetting("Ids", name) is not None:
                         ini.AddSetting("Ids", name)
                         ini.Save()
                         ConsoleEvent.ReplyWith("ID " + name + " banned!")
                     else:
                         ConsoleEvent.ReplyWith("ID " + name + " is already banned.")
                 elif ipmatch:
-                    if not ini.ContainsSetting("Ips", name):
+                    if not ini.GetSetting("Ips", name) is not None:
                         ini.AddSetting("Ips", name)
                         ini.Save()
                         ConsoleEvent.ReplyWith("IP " + name + " banned!")
