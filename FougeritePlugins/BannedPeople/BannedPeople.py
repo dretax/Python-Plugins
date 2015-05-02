@@ -142,14 +142,14 @@ class BannedPeople:
                 ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
                 if name.isnumeric() and name.startswith("7656119"):
                     if not ini.GetSetting("Ids", name) is not None:
-                        ini.AddSetting("Ids", name)
+                        ini.AddSetting("Ids", name, "Console Ban")
                         ini.Save()
                         ConsoleEvent.ReplyWith("ID " + name + " banned!")
                     else:
                         ConsoleEvent.ReplyWith("ID " + name + " is already banned.")
                 elif ipmatch:
                     if not ini.GetSetting("Ips", name) is not None:
-                        ini.AddSetting("Ips", name)
+                        ini.AddSetting("Ips", name, "Console Ban")
                         ini.Save()
                         ConsoleEvent.ReplyWith("IP " + name + " banned!")
                     else:
