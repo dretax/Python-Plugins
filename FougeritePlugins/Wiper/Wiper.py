@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.3'
+__version__ = '1.3.4'
 
 import clr
 
@@ -200,7 +200,8 @@ class Wiper:
                     os.remove(path + self.Path + str(x) + "\\" + file)
                 os.rmdir(path + self.Path + str(x))
             ini.DeleteSetting("Objects", str(x))
-            Plugin.Log("WipedIds", str(x) + " Objects: " + str(UserObj[x]))
+            if x in UserObj.keys():
+                Plugin.Log("WipedIds", str(x) + " Objects: " + str(UserObj[x]))
         Plugin.Log("WipedIds", "Total Objects: " + str(c))
         UserObj.clear()
         ini.Save()
