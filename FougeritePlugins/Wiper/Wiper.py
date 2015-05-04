@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.4'
+__version__ = '1.3.4b'
 
 import clr
 
@@ -161,12 +161,8 @@ class Wiper:
             return
         today = datetime.date.today()
         ini = self.GetIni()
-        if ini.GetSetting("Objects", id) is None:
-            ini.AddSetting("Objects", id, str(today))
-            ini.Save()
-        else:
-            ini.SetSetting("Objects", id, str(today))
-            ini.Save()
+        ini.SetSetting("Objects", id, str(today))
+        ini.Save()
 
     def LaunchCheck(self):
         ini = self.GetIni()
@@ -213,7 +209,8 @@ class Wiper:
             v = EntityList.get(Entity.Name, None)
             if v is None:
                 continue
-            Entity.Health = Entity.Health - v
+            Entity.GetTakeDamage().health -= v
+            Entity.UpdateHealth()
 
     def WipeByID(self, id):
         c = 0
