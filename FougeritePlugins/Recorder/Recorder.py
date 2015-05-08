@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -59,9 +59,16 @@ class Recorder:
         DataStore.Flush('Recorder')
         DataStore.Flush('RecorderInit')
 
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
+
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
         if cmd == 'record':
+            if not Player.Admin or not self.isMod(Player.SteamID):
+                return
             state = DataStore.Get('Recorder', id)
             if len(args) == 0:
                 Player.MessageFrom('BRecorder', 'Usage: /record name')
@@ -75,6 +82,8 @@ class Recorder:
             DataStore.Add('Recorder_Name', id, name)
             Player.Message("Recording " + name + ".ini (/stop to finish!)")
         elif cmd == 'spawn':
+            if not Player.Admin or not self.isMod(Player.SteamID):
+                return
             if len(args) == 0:
                 Player.MessageFrom('BRecorder', 'Usage: /spawn name')
                 return
@@ -125,6 +134,8 @@ class Recorder:
                     DataStore.Add('SpawnedData' + id, 'Part' + str(i), go)
                 Player.Message(args[0] + " was spawned !")
         elif cmd == 'cancel':
+            if not Player.Admin or not self.isMod(Player.SteamID):
+                return
             cpt = DataStore.Count('SpawnedData' + id)
             for i in xrange(0, len(cpt)):
                 ent = DataStore.Get('SpawnedData' + id, 'Part' + str(i))
@@ -137,6 +148,8 @@ class Recorder:
             DataStore.Flush('SpawnedData' + id)
             Player.Message("Cancelled recording")
         elif cmd == 'stop':
+            if not Player.Admin or not self.isMod(Player.SteamID):
+                return
             name = DataStore.Get("Recorder_Name", id)
             file = Plugin.GetIni("Buildings\\" + name)
             if file is not None:
