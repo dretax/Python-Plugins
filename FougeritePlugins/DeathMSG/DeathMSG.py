@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.4c'
+__version__ = '3.5.4d'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -184,7 +184,8 @@ class DeathMSG:
                 if kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
             elif bleed == "Melee":
-                if (weapon == "Hunting Bow" or weapon == "Unknown") and damage == 75:
+                if (weapon == "Hunting Bow") and damage == 75:
+                    weapon = "Hunting Bow"
                     hn = config.GetSetting("Settings", "huntingbow")
                     hn = hn.replace("victim", victim)
                     hn = hn.replace("killer", killer)
