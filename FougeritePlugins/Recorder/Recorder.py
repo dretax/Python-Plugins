@@ -12,7 +12,7 @@ sys.path.append(path + "\\Save\\Lib\\")
 try:
     import random
 except ImportError:
-    pass
+    raise ImportError('Get IronPython libs!')
 
 prefabs = {
     "SingleBed": ";deploy_singlebed",
