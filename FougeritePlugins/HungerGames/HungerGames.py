@@ -510,7 +510,7 @@ class HungerGames:
                         return
                     ini.AddSetting("WallLocations", str(count + 1), str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
                     ini.Save()
-                    HurtEvent.Attacker.MessageFrom(sysname, "Added Doorway.")
+                    HurtEvent.Attacker.MessageFrom(sysname, "Added Wall.")
                 elif "box" in HurtEvent.Entity.Name.lower():
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("ChestLocations"))
