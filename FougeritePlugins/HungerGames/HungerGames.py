@@ -114,6 +114,11 @@ class HungerGames:
         str = re.sub('[(\)]', '', String)
         return str.split(',')
 
+    def isMod(self, id):
+        if DataStore.ContainsKey("Moderators", id):
+            return True
+        return False
+
     def TrytoGrabID(self, Player):
         try:
             id = Player.SteamID
@@ -176,7 +181,7 @@ class HungerGames:
             else:
                 arg = args[0]
                 if arg == "announce":
-                    if Player.Admin:
+                    if Player.Admin or self.isMod(Player.SteamID):
                         if self.IsActive:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
@@ -189,7 +194,7 @@ class HungerGames:
                     else:
                         Player.Message("You aren't admin!")
                 elif arg == "disable":
-                    if Player.Admin:
+                    if Player.Admin or self.isMod(Player.SteamID):
                         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                         Server.BroadcastFrom(sysname, "Hunger Games is now inactive.")
                         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
