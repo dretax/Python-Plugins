@@ -72,6 +72,7 @@ class HungerGames:
             Plugin.Log("Error", "Download IronPython Extralibs to run the plugin.")
         DataStore.Flush("HDoorMode")
         ini = self.HungerGames()
+        self.DefaultItems()
         enum = ini.EnumSection("RestrictedCommands")
         for x in enum:
             RestrictedCommands.append(ini.GetSetting("RestrictedCommands", x))
