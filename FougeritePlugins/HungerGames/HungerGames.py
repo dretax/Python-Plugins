@@ -216,23 +216,25 @@ class HungerGames:
                     #  Player.MessageFrom(sysname, "Don't forget to look for hidden stashes, those may contain C4, ")
                     #  Player.MessageFrom(sysname, "which allows you to blow 1x1 houses, which contain even better loot.")
                 elif arg == "addspawn":
-                    ini = self.HungerGames()
-                    count = len(ini.EnumSection("SpawnLocations"))
-                    if maxp == count:
-                        Player.MessageFrom(sysname, "You reached the max spawnpoints")
-                        return
-                    ini.AddSetting("SpawnLocations", str(count + 1), str(Player.Location))
-                    ini.Save()
-                    Player.MessageFrom(sysname, "Added.")
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        ini = self.HungerGames()
+                        count = len(ini.EnumSection("SpawnLocations"))
+                        if maxp == count:
+                            Player.MessageFrom(sysname, "You reached the max spawnpoints")
+                            return
+                        ini.AddSetting("SpawnLocations", str(count + 1), str(Player.Location))
+                        ini.Save()
+                        Player.MessageFrom(sysname, "Added.")
                 elif arg == "entity":
-                    if DataStore.ContainsKey("HDoorMode", id):
-                        DataStore.Remove("HDoorMode", id)
-                        Player.MessageFrom(sysname, "You quit Door Adding mode.")
-                    else:
-                        DataStore.Add("HDoorMode", id, 1)
-                        Player.MessageFrom(sysname, "You are in Entity Adding mode.")
-                        Player.MessageFrom(sysname, "Hit the SpawnPoint Shelter's door.")
-                        Player.MessageFrom(sysname, "You can't use shotgun.")
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        if DataStore.ContainsKey("HDoorMode", id):
+                            DataStore.Remove("HDoorMode", id)
+                            Player.MessageFrom(sysname, "You quit Door Adding mode.")
+                        else:
+                            DataStore.Add("HDoorMode", id, 1)
+                            Player.MessageFrom(sysname, "You are in Entity Adding mode.")
+                            Player.MessageFrom(sysname, "Hit the SpawnPoint Shelter's door.")
+                            Player.MessageFrom(sysname, "You can't use shotgun.")
                 elif arg == "join":
                     if not self.IsActive:
                         Player.MessageFrom(sysname, "HungerGames is not active.")
