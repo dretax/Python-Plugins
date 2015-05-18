@@ -37,7 +37,7 @@ green = "[color #009900]"
 purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
 sysname = "HungerGames"
-#MaxPlayers! This line is editable
+#  MaxPlayers! This line is editable
 maxp = 14
 
 WallsCache = {
