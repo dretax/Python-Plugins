@@ -202,11 +202,11 @@ class HungerGames:
                         return
                 elif arg == "info":
                     Player.MessageFrom(sysname, green + "HungerGames By DreTaX V" + blue + __version__)
-                    Player.MessageFrom(sysname, "You will start in a small house. In the middle of the area")
-                    Player.MessageFrom(sysname, "there are Boxes on a foundation which contains loot, and you may try to take it.")
-                    Player.MessageFrom(sysname, "You can head to the big buildings, which contains loot.")
-                    Player.MessageFrom(sysname, "Don't forget to look for hidden stashes, those may contain C4, ")
-                    Player.MessageFrom(sysname, "which allows you to blow 1x1 houses, which contain even better loot.")
+                    Player.MessageFrom(sysname, "You will start in a house. In the middle of an area")
+                    Player.MessageFrom(sysname, "there are Boxes what contains loot, and you may try to take it.")
+                    #  Player.MessageFrom(sysname, "You can head to the big buildings, which contains loot.")
+                    #  Player.MessageFrom(sysname, "Don't forget to look for hidden stashes, those may contain C4, ")
+                    #  Player.MessageFrom(sysname, "which allows you to blow 1x1 houses, which contain even better loot.")
                 elif arg == "addspawn":
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("SpawnLocations"))
