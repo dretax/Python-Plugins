@@ -24,8 +24,8 @@ except ImportError:
 """
 
 Players = []
-#Doors
-doors = []
+#Walls
+walls = []
 #Chests
 loot = []
 #Colors
@@ -37,31 +37,44 @@ green = "[color #009900]"
 purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
 sysname = "HungerGames"
-maxp = 2
+#MaxPlayers! This line is editable
+maxp = 14
 
-DoorCache = {
+WallsCache = {
 
 }
+
+RestrictedCommands = []
 class HungerGames:
     # Values
     IsActive = False
     HasStarted = False
-    bd = None
+    #  bd = None
     dp = None
+    st = None
     objects = None
     chests = None
+    structures = None
     RandomAdmin = None
 
     def On_PluginInit(self):
-        self.bd = Util.TryFindReturnType("BasicDoor")
+        """self.bd = Util.TryFindReturnType("BasicDoor")
         if self.bd is None:
-            Plugin.Log("Error", "Couldn't find return type.")
+            Plugin.Log("Error", "Couldn't find return type.")"""
         self.dp = Util.TryFindReturnType("DeployableObject")
         if self.dp is None:
             Plugin.Log("Error", "Couldn't find return type2.")
+        self.st = Util.TryFindReturnType("StructureComponent")
+        if self.st is None:
+            Plugin.Log("Error", "Couldn't find return type3.")
         Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
         if not Lib:
             Plugin.Log("Error", "Download IronPython Extralibs to run the plugin.")
+        DataStore.Flush("HDoorMode")
+        ini = self.HungerGames()
+        enum = ini.EnumSection("RestrictedCommands")
+        for x in enum:
+            RestrictedCommands.append(ini.GetSetting("RestrictedCommands", x))
 
     """
         Main Methods
@@ -70,6 +83,10 @@ class HungerGames:
     def HungerGames(self):
         if not Plugin.IniExists("HungerGames"):
             ini = Plugin.CreateIni("HungerGames")
+            ini.AddSetting("RestrictedCommands", "1", "tpa")
+            ini.AddSetting("RestrictedCommands", "2", "home")
+            ini.AddSetting("RestrictedCommands", "3", "shop")
+            ini.AddSetting("RestrictedCommands", "4", "destroy")
             ini.Save()
         return Plugin.GetIni("HungerGames")
 
@@ -136,23 +153,22 @@ class HungerGames:
                 Player.MessageFrom(sysname, "Inventory == null")
             DataStore.Remove("HungerGames", id)
         else:
-            Player.MessageFrom(sysname, "No Items found!")
+            Player.MessageFrom(sysname, green + "No Items of your last inventory found!")
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
-        if cmd != "hg":
-            if self.IsActive:
-                if Player in Players:
-                    Player.MessageFrom(sysname, "You can't do any other commands, while in the event!")
-                    Player.MessageFrom(sysname, "/hg leave - To leave the event.")
-                    return
-        else:
+        if self.IsActive or self.HasStarted:
+            if Player in Players and cmd in RestrictedCommands:
+                Player.MessageFrom(sysname, "You can't do any other commands, while in the event!")
+                self.RemovePlayerDirectly(Player)
+                return
+        if cmd == "hg":
             if len(args) == 0:
-                Player.MessageFrom(sysname, green + "Hunger Games By DreTaX! " + blue + __version__)
+                Player.MessageFrom(sysname, green + "Hunger Games By DreTaX! V" + blue + __version__)
                 Player.MessageFrom(sysname, "/hg join - Join HG")
                 Player.MessageFrom(sysname, "/hg leave - Leave HG")
                 Player.MessageFrom(sysname, "/hg info - HG info")
-                #Player.MessageFrom(sysname, "/hungergames inv - Gives your inventory back, if you didn't get it.")
+                #  Player.MessageFrom(sysname, "/hungergames inv - Gives your inventory back, if you didn't get it.")
                 return
             else:
                 arg = args[0]
@@ -176,7 +192,7 @@ class HungerGames:
                         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                         if self.HasStarted:
                             if len(Players) == 1:
-                                self.EndGame(Players[0]) #todo: prizez and shets
+                                self.EndGame(Players[0])
                             else:
                                 Player.MessageFrom(sysname, "You can't disable it, there are still more players alive than 1")
                         else:
@@ -185,7 +201,7 @@ class HungerGames:
                         Player.Message("You aren't admin!")
                         return
                 elif arg == "info":
-                    Player.MessageFrom(sysname, green + "HungerGames By DreTaX " + blue + __version__)
+                    Player.MessageFrom(sysname, green + "HungerGames By DreTaX V" + blue + __version__)
                     Player.MessageFrom(sysname, "You will start in a small house. In the middle of the area")
                     Player.MessageFrom(sysname, "there are Boxes on a foundation which contains loot, and you may try to take it.")
                     Player.MessageFrom(sysname, "You can head to the big buildings, which contains loot.")
@@ -252,7 +268,6 @@ class HungerGames:
                         else:
                             Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. ")
                             self.EndGame(Players[0])
-                            #todo check the prizes later. - maybe already did?
 
     def RemovePlayerDirectly(self, Player):
         Players.remove(Player)
@@ -262,11 +277,11 @@ class HungerGames:
         DataStore.Remove("HLastLoc", Player.SteamID)
         self.returnInventory(Player)
 
-    def FindDoor(self, location):
-        for door in self.objects:
-            Distance = Util.GetVectorsDistance(location, door.transform.position)
+    def FindWalls(self, location):
+        for wall in self.structures:
+            Distance = Util.GetVectorsDistance(location, wall.transform.position)
             if Distance < 1.5:
-                doors.append(Entity(door))
+                walls.append(Entity(wall))
                 return
         Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
 
@@ -290,32 +305,38 @@ class HungerGames:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             Server.BroadcastFrom(sysname, green + "Loading.........")
             ini = self.HungerGames()
-            enum = ini.EnumSection("DoorLocations")
+            #  enum = ini.EnumSection("DoorLocations")
             enum2 = ini.EnumSection("ChestLocations")
-            self.objects = UnityEngine.Object.FindObjectsOfType(self.bd)
+            enum3 = ini.EnumSection("WallLocations")
+            #  self.objects = UnityEngine.Object.FindObjectsOfType(self.bd)
+            self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
             self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
-            for door in enum:
+            """for door in enum:
                 l = ini.GetSetting("DoorLocations", door).split(',')
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                self.FindDoor(loc)
-            Server.BroadcastFrom(sysname, green + "Loaded 50%")
+                self.FindDoor(loc)"""
             for chest in enum2:
                 l = ini.GetSetting("ChestLocations", chest).split(',')
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 self.FindChest(loc)
+            Server.BroadcastFrom(sysname, green + "Loaded 50%")
+            for wall in enum3:
+                l = ini.GetSetting("WallLocations", wall).split(',')
+                loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                self.FindWalls(loc)
             Server.BroadcastFrom(sysname, green + "Loaded 75%")
             for chest in loot:
                 inv = chest.Inventory
                 if inv is None:
                     continue
                 inv.ClearAll()
-                if "large" not in chest.Name.lower():
-                    slot = random.randint(1, 11)
-                else:
-                    slot = random.randint(1, 35)
                 ini2 = self.DefaultItems()
                 times = int(ini2.GetSetting("Random", "Times"))
                 for i in xrange(0, times):
+                    if "large" not in chest.Name.lower():
+                        slot = random.randint(1, 11)
+                    else:
+                        slot = random.randint(1, 35)
                     item = int(ini2.GetSetting("Random", "Items"))
                     count = int(ini2.GetSetting("Random", "Count"))
                     itemr = random.randint(1, item)
@@ -336,12 +357,17 @@ class HungerGames:
         timer.Kill()
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
-        for door in doors:
+        """for door in doors:
             loc = door.Location
             spawnRot = door.Object.transform.rotation
-            DoorCache[loc] = spawnRot
+            DoorCache[loc] = spawnRot"""
+        for wall in walls:
+            loc = wall.Location
+            spawnRot = wall.Object.transform.rotation
+            WallsCache[loc] = spawnRot
             try:
-                Util.DestroyObject(door.Object.gameObject)
+                #Util.DestroyObject(doorw.Object.gameObject)
+                wall.Destroy()
             except Exception as e:
                 Server.BroadcastFrom(sysname, "Failed!")
                 Plugin.Log("Error", str(e))
@@ -349,6 +375,18 @@ class HungerGames:
     def Reset(self):
         if self.HasStarted:
             i = 0
+            for loc in WallsCache.keys():
+                spawnRot = WallsCache.get(loc)
+                try:
+                    sm = World.CreateSM(self.RandomAdmin, loc.x, loc.y, loc.z, spawnRot)
+                    ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
+                    sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
+                    walls[i] = ent
+                except Exception as e:
+                    Server.BroadcastFrom(sysname, "Failed!")
+                    Plugin.Log("Error", str(e))
+                i += 1
+            """i = 0
             for loc in DoorCache.keys():
                 spawnRot = DoorCache.get(loc)
                 try:
@@ -356,8 +394,8 @@ class HungerGames:
                     doors[i] = ent
                 except Exception as e:
                     Server.BroadcastFrom(sysname, "Failed!")
-                    Plugin.Log("Error", str(e))
-                i += 1
+                    Plugin.Log("Error2", str(e))
+                i += 1"""
         self.HasStarted = False
         self.IsActive = False
         for chest in loot:
@@ -367,7 +405,7 @@ class HungerGames:
             inv.ClearAll()
         for pl in Players:
             self.RemovePlayerDirectly(pl)
-        del doors[:]
+        del walls[:]
         del loot[:]
 
     def EndGame(self, Player):
@@ -382,16 +420,27 @@ class HungerGames:
             c = int(ini.GetSetting("Rewards", item))
             Player.Inventory.AddItem(item, c)
         i = 0
-        for loc in DoorCache.keys():
-            spawnRot = DoorCache.get(loc)
+        for loc in WallsCache.keys():
+            spawnRot = WallsCache.get(loc)
             try:
                 sm = World.CreateSM(self.RandomAdmin, loc.x, loc.y, loc.z, spawnRot)
-                ent = Entity(World.Spawn(';deploy_metal_door', loc.x, loc.y, loc.z, spawnRot))
-                doors[i] = ent
+                ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
+                sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
+                walls[i] = ent
             except Exception as e:
                 Server.BroadcastFrom(sysname, "Failed!")
                 Plugin.Log("Error", str(e))
             i += 1
+        """i = 0
+        for loc in DoorCache.keys():
+            spawnRot = DoorCache.get(loc)
+            try:
+                ent = Entity(World.Spawn(';deploy_metal_door', loc.x, loc.y, loc.z, spawnRot))
+                doors[i] = ent
+            except Exception as e:
+                Server.BroadcastFrom(sysname, "Failed!")
+                Plugin.Log("Error2", str(e))
+            i += 1"""
         self.Reset()
         Player.MessageFrom(sysname, red + "You received your rewards!")
 
@@ -400,7 +449,6 @@ class HungerGames:
             d = (HurtEvent.Victim not in Players and HurtEvent.Attacker in Players)
             if d:
                 HurtEvent.DamageAmount = float(0)
-                Server.Broadcast("This shit just executed")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
@@ -439,11 +487,10 @@ class HungerGames:
             if gun == "Shotgun":
                 return
             if HurtEvent.Attacker in Players:
-                #Todo: Add config option for this later.
                 HurtEvent.DamageAmount = float(0)
                 return
             if DataStore.ContainsKey("HDoorMode", id):
-                if HurtEvent.Entity.Name == "MetalDoor":
+                """if HurtEvent.Entity.Name == "MetalDoor":
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("DoorLocations"))
                     if maxp == count:
@@ -451,9 +498,17 @@ class HungerGames:
                         return
                     ini.AddSetting("DoorLocations", str(count + 1), str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
                     ini.Save()
-                    HurtEvent.Attacker.MessageFrom(sysname, "Added door.")
-                    return
-                if "box" in HurtEvent.Entity.Name.lower():
+                    HurtEvent.Attacker.MessageFrom(sysname, "Added door.")"""
+                if HurtEvent.Entity.Name == "WoodWall":
+                    ini = self.HungerGames()
+                    count = len(ini.EnumSection("DoorFrameLocations"))
+                    if maxp == count:
+                        HurtEvent.Attacker.MessageFrom(sysname, "You reached the max spawnpoints")
+                        return
+                    ini.AddSetting("WallLocations", str(count + 1), str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
+                    ini.Save()
+                    HurtEvent.Attacker.MessageFrom(sysname, "Added Doorway.")
+                elif "box" in HurtEvent.Entity.Name.lower():
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("ChestLocations"))
                     ini.AddSetting("ChestLocations", str(count + 1), str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
