@@ -504,7 +504,7 @@ class HungerGames:
                     HurtEvent.Attacker.MessageFrom(sysname, "Added door.")"""
                 if HurtEvent.Entity.Name == "WoodWall":
                     ini = self.HungerGames()
-                    count = len(ini.EnumSection("DoorFrameLocations"))
+                    count = len(ini.EnumSection("WallLocations"))
                     if maxp == count:
                         HurtEvent.Attacker.MessageFrom(sysname, "You reached the max spawnpoints")
                         return
