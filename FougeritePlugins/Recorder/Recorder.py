@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -55,9 +55,12 @@ prefabs = {
 
 class Recorder:
 
+    st = None
+
     def On_PluginInit(self):
         DataStore.Flush('Recorder')
         DataStore.Flush('RecorderInit')
+        self.st = Util.TryFindReturnType("StructureComponent")
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -127,7 +130,8 @@ class Recorder:
                     """if len(args) == 2 and args[1] == "protect":
                         World.Protect(go)"""
                 elif go.IsStructure():
-                    sm.AddStructureComponent(go.Object)
+                    #  sm.AddStructureComponent(go.Object)
+                    sm.AddStructureComponent(go.Object.gameObject.GetComponent[self.st]())
                     DataStore.Add('SpawnedData' + id, 'Part' + str(i), go.Object.gameObject)
                     Player.Message("Added!")
                 else:
