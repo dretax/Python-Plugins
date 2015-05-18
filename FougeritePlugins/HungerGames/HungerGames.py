@@ -39,6 +39,8 @@ white = "[color #FFFFFF]"
 sysname = "HungerGames"
 #  MaxPlayers! This line is editable
 maxp = 14
+#  Secs before match start
+secs = 30
 
 WallsCache = {
 
@@ -350,8 +352,8 @@ class HungerGames:
                     except:
                         pass
             Server.BroadcastFrom(sysname, green + "Loaded 100%!")
-            Plugin.CreateTimer("StartingIn", 5000).Start()
-            Server.BroadcastFrom(sysname, green + "HungerGames is starting in 5 seconds!")
+            Plugin.CreateTimer("StartingIn", secs * 1000).Start()
+            Server.BroadcastFrom(sysname, green + "HungerGames is starting in " + blue + str(secs) + green + " seconds!")
 
 
     def StartingInCallback(self, timer):
