@@ -197,6 +197,7 @@ class HungerGames:
                 Player.MessageFrom(sysname, "/hg leave - Leave HG")
                 Player.MessageFrom(sysname, "/hg info - HG info")
                 Player.MessageFrom(sysname, "/hg inventory - Gives your inventory back, if you didn't get it.")
+                Player.MessageFrom(sysname, "/hg alive - List the alive players!")
                 return
             else:
                 arg = args[0]
