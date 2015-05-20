@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -10,20 +10,18 @@ import Fougerite
 from Fougerite import Entity
 import re
 import sys
+
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
-Lib = True
 try:
     import random
 except ImportError:
-    Lib = False
     raise ImportError("Failed to import random! Download the lib!")
 
 """
     Class
 """
 
-Players = []
 #Walls
 walls = []
 #Chests
@@ -46,6 +44,10 @@ WallsCache = {
 
 }
 
+PlayerSlots = {
+
+}
+
 RestrictedCommands = []
 class HungerGames:
     # Values
@@ -58,6 +60,14 @@ class HungerGames:
     chests = None
     structures = None
     RandomAdmin = None
+    count = None
+    count2 = None
+    count3 = None
+    count4 = None
+    times = None
+    MTimes = None
+    item = None
+    Players = []
 
     def On_PluginInit(self):
         """self.bd = Util.TryFindReturnType("BasicDoor")
@@ -70,14 +80,21 @@ class HungerGames:
         if self.st is None:
             Plugin.Log("Error", "Couldn't find return type3.")
         Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
-        if not Lib:
-            Plugin.Log("Error", "Download IronPython Extralibs to run the plugin.")
         DataStore.Flush("HDoorMode")
         ini = self.HungerGames()
-        self.DefaultItems()
+        ini2 = self.DefaultItems()
         enum = ini.EnumSection("RestrictedCommands")
         for x in enum:
             RestrictedCommands.append(ini.GetSetting("RestrictedCommands", x))
+        self.count = int(ini2.GetSetting("Random", "Count"))
+        self.count2 = int(ini2.GetSetting("Random", "Count2"))
+        self.count3 = int(ini2.GetSetting("Random", "Count3"))
+        self.count4 = int(ini2.GetSetting("Random", "Count4"))
+        self.times = int(ini2.GetSetting("Random", "Times"))
+        self.MTimes = int(ini2.GetSetting("Random", "MTimes"))
+        self.item = int(ini2.GetSetting("Random", "Items"))
+        for x in xrange(1, maxp + 1):
+            PlayerSlots[x] = None
 
     """
         Main Methods
@@ -102,8 +119,12 @@ class HungerGames:
             ini.AddSetting("Rewards", "M4", "4")
             ini.AddSetting("Rewards", "Large Medkit", "20")
             ini.AddSetting("Random", "Items", "3")
-            ini.AddSetting("Random", "Count", "20")
-            ini.AddSetting("Random", "Times", "1")
+            ini.AddSetting("Random", "Count", "50")
+            ini.AddSetting("Random", "Count2", "5")
+            ini.AddSetting("Random", "Count3", "5")
+            ini.AddSetting("Random", "Count4", "20")
+            ini.AddSetting("Random", "MTimes", "2")
+            ini.AddSetting("Random", "Times", "5")
             ini.AddSetting("RandomItems", "1", "Stone Hatchet")
             ini.AddSetting("RandomItems", "2", "Pick Axe")
             ini.AddSetting("RandomItems", "3", "P250")
@@ -143,22 +164,19 @@ class HungerGames:
                 Inventory.append(myitem)
 
         DataStore.Add("HungerGames", id, Inventory)
+        DataStore.Save()
         Player.Inventory.ClearAll()
 
     def returnInventory(self, Player):
         id = Player.SteamID
-        Player.Inventory.ClearAll()
         if DataStore.ContainsKey("HungerGames", id):
             Inventory = DataStore.Get("HungerGames", id)
-            if Inventory:
-                Player.Inventory.ClearAll()
-                for i in xrange(0, len(Inventory)):
-                    Item = Inventory[i]
-                    if Item and Item['name']:
-                        Player.Inventory.AddItemTo(Item['name'], Item['slot'], Item['quantity'])
-                Player.MessageFrom(sysname, green + "Your have received your original inventory")
-            else:
-                Player.MessageFrom(sysname, "Inventory == null")
+            Player.Inventory.ClearAll()
+            for i in xrange(0, len(Inventory)):
+                Item = Inventory[i]
+                if Item and Item['name']:
+                    Player.Inventory.AddItemTo(Item['name'], Item['slot'], Item['quantity'])
+            Player.MessageFrom(sysname, green + "Your have received your original inventory")
             DataStore.Remove("HungerGames", id)
         else:
             Player.MessageFrom(sysname, green + "No Items of your last inventory found!")
@@ -166,8 +184,10 @@ class HungerGames:
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
         if self.IsActive or self.HasStarted:
-            if Player in Players and cmd in RestrictedCommands:
-                Player.MessageFrom(sysname, "You can't do any other commands, while in the event!")
+            if Player in self.Players and cmd in RestrictedCommands:
+                Server.BroadcastFrom(sysname, red + Player.Name +
+                                     " you can't do any other commands, while in the event!")
+                Server.BroadcastFrom(sysname, red + "We are now removing you from the event.")
                 self.RemovePlayerDirectly(Player)
                 return
         if cmd == "hg":
@@ -176,7 +196,7 @@ class HungerGames:
                 Player.MessageFrom(sysname, "/hg join - Join HG")
                 Player.MessageFrom(sysname, "/hg leave - Leave HG")
                 Player.MessageFrom(sysname, "/hg info - HG info")
-                #  Player.MessageFrom(sysname, "/hungergames inv - Gives your inventory back, if you didn't get it.")
+                Player.MessageFrom(sysname, "/hg inventory - Gives your inventory back, if you didn't get it.")
                 return
             else:
                 arg = args[0]
@@ -186,8 +206,10 @@ class HungerGames:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
                             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
-                            Server.BroadcastFrom(sysname, "Hunger Games is now active! Type /hungergames join to enter the battle!")
-                            Server.BroadcastFrom(sysname, "Type /hg info to know more!")
+                            Server.BroadcastFrom(sysname, "Hunger Games is now active! Type /hg join to enter the battle!")
+                            Server.BroadcastFrom(sysname, "Type /hg to know more!")
+                            Server.BroadcastFrom(sysname, green + "Pack your items at home just incase!")
+                            Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
                             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                             self.RandomAdmin = Player
                             self.IsActive = True
@@ -195,15 +217,18 @@ class HungerGames:
                         Player.Message("You aren't admin!")
                 elif arg == "disable":
                     if Player.Admin or self.isMod(Player.SteamID):
-                        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
-                        Server.BroadcastFrom(sysname, "Hunger Games is now inactive.")
-                        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                         if self.HasStarted:
-                            if len(Players) == 1:
-                                self.EndGame(Players[0])
+                            if len(self.Players) == 1:
+                                Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+                                Server.BroadcastFrom(sysname, "Hunger Games is now inactive.")
+                                Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+                                self.EndGame(self.Players[0])
                             else:
                                 Player.MessageFrom(sysname, "You can't disable it, there are still more players alive than 1")
                         else:
+                            Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+                            Server.BroadcastFrom(sysname, "Hunger Games is now inactive. (Not Started Yet)")
+                            Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                             self.Reset()
                     else:
                         Player.Message("You aren't admin!")
@@ -242,50 +267,75 @@ class HungerGames:
                     if self.HasStarted:
                         Player.MessageFrom(sysname, "There is a game in progress.")
                         return
-                    if Player in Players:
+                    if Player in self.Players:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
-                        Players.append(Player)
-                        leng = len(Players)
+                        self.Players.append(Player)
+                        leng = len(self.Players)
                         ini = self.HungerGames()
                         ini2 = self.DefaultItems()
+                        if PlayerSlots.get(leng) is not None:
+                            for x in PlayerSlots.keys():
+                                if PlayerSlots[x] is None:
+                                    leng = x
+                                    PlayerSlots[x] = Player
+                                    break
+                        else:
+                            PlayerSlots[leng] = Player
                         DataStore.Add("HLastLoc", Player.SteamID, str(Player.Location))
                         l = self.Replace(ini.GetSetting("SpawnLocations", str(leng)))
                         loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                        Player.SafeTeleportTo(loc)
+                        Player.TeleportTo(loc)
                         self.recordInventory(Player)
                         enum = ini2.EnumSection("DefaultItems")
                         for item in enum:
                             c = int(ini2.GetSetting("DefaultItems", item))
                             Player.Inventory.AddItem(item, c)
                         Player.MessageFrom(sysname, "You joined the game!")
+                        DataStore.Add("HGIG", id, "1")
                         self.StartGame()
                 elif arg == "leave":
                     if not self.IsActive:
                         Player.MessageFrom(sysname, "HungerGames is not active.")
                         return
-                    if Player not in Players:
+                    if Player not in self.Players:
                         Player.MessageFrom(sysname, "You are not even in the game, nab.")
                     else:
                         self.RemovePlayerDirectly(Player)
                         #  if self.HasStarted:
-                        leng = len(Players)
+                        leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
-                            leng = len(Players)
+                            leng = len(self.Players)
                             Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. " + green
                                                  + str(leng) + red + " Players are still alive.")
                         else:
                             Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. ")
-                            self.EndGame(Players[0])
+                            self.EndGame(self.Players[0])
+                elif arg == "inventory":
+                    self.returnInventory(Player)
+                elif arg == "alive":
+                    if len(self.Players) == 0:
+                        Player.MessageFrom(sysname, "There are 0 players in hungergames")
+                        return
+                    Player.MessageFrom(sysname, "Currently alive:")
+                    for x in self.Players:
+                        Player.MessageFrom(sysname, "- " + x.Name)
 
-    def RemovePlayerDirectly(self, Player):
-        Players.remove(Player)
-        l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
-        loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-        Player.SafeTeleportTo(loc)
-        DataStore.Remove("HLastLoc", Player.SteamID)
-        self.returnInventory(Player)
+    def RemovePlayerDirectly(self, Player, Disconnected=False):
+        if Player in self.Players:
+            self.Players.remove(Player)
+        DataStore.Remove("HGIG", Player.SteamID)
+        for x in PlayerSlots.keys():
+            if PlayerSlots[x] == Player:
+                PlayerSlots[x] = None
+        if not Disconnected:
+            if DataStore.ContainsKey("HLastLoc", Player.SteamID):
+                l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
+                loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                Player.TeleportTo(loc)
+                self.returnInventory(Player)
+                DataStore.Remove("HLastLoc", Player.SteamID)
 
     def FindWalls(self, location):
         for wall in self.structures:
@@ -306,11 +356,16 @@ class HungerGames:
     def StartGame(self):
         if self.HasStarted or not self.IsActive:
             return
-        leng = len(Players)
+        if Plugin.GetTimer("StartingIn") is not None:
+            Server.BroadcastFrom(sysname, red + "Something went wrong, I'm not starting the timer again.")
+            return
+        leng = len(self.Players)
         if leng < maxp:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             Server.BroadcastFrom(sysname, green + "Currently " + str(leng) + " of " + str(maxp) + " players are waiting.")
-            Server.BroadcastFrom(sysname, green + "Type /hungergames for the commands, and join!")
+            Server.BroadcastFrom(sysname, green + "Type /hg for the commands, and join!")
+            Server.BroadcastFrom(sysname, green + "Pack your items at home just incase!")
+            Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
         else:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             Server.BroadcastFrom(sysname, green + "Loading.........")
@@ -341,19 +396,23 @@ class HungerGames:
                     continue
                 inv.ClearAll()
                 ini2 = self.DefaultItems()
-                times = int(ini2.GetSetting("Random", "Times"))
+                times = random.randint(self.MTimes, self.times)
                 for i in xrange(0, times):
                     if "large" not in chest.Name.lower():
                         slot = random.randint(1, 11)
                     else:
                         slot = random.randint(1, 35)
-                    item = int(ini2.GetSetting("Random", "Items"))
-                    count = int(ini2.GetSetting("Random", "Count"))
-                    itemr = random.randint(1, item)
-                    countr = random.randint(1, count)
-                    #Server.Broadcast("Random number: " + str(itemr))
+                    itemr = random.randint(1, self.item)
+                    countr = 1
                     gitem = ini2.GetSetting("RandomItems", str(itemr))
-                    #Server.Broadcast("Item: " + str(gitem) + " Slot: " + str(slot) + " Count: " + str(countr))
+                    if "ammo" in gitem.lower() or "shell" in gitem.lower():
+                        countr = random.randint(1, self.count)
+                    elif "medkit" in gitem.lower():
+                        countr = random.randint(1, self.count2)
+                    elif "grenade" in gitem.lower():
+                        countr = random.randint(1, self.count3)
+                    elif "arrow" in gitem.lower():
+                        countr = random.randint(1, self.count4)
                     try:
                         inv.AddItemTo(gitem, slot, countr)
                     except:
@@ -376,14 +435,26 @@ class HungerGames:
             spawnRot = wall.Object.transform.rotation
             WallsCache[loc] = spawnRot
             try:
-                #Util.DestroyObject(doorw.Object.gameObject)
+                #  Util.DestroyObject(doorw.Object.gameObject)
                 wall.Destroy()
             except Exception as e:
-                Server.BroadcastFrom(sysname, "Failed!")
+                Server.BroadcastFrom(sysname, "Failed to destroy a wall!")
                 Plugin.Log("Error", str(e))
 
     def Reset(self):
-        if self.HasStarted:
+        self.HasStarted = False
+        self.IsActive = False
+        for chest in loot:
+            inv = chest.Inventory
+            if inv is None:
+                continue
+            inv.ClearAll()
+        for pl in self.Players:
+            self.RemovePlayerDirectly(pl)
+        del self.Players[:]
+        del walls[:]
+        del loot[:]
+        """if self.HasStarted:
             i = 0
             for loc in WallsCache.keys():
                 spawnRot = WallsCache.get(loc)
@@ -396,7 +467,7 @@ class HungerGames:
                     Server.BroadcastFrom(sysname, "Failed!")
                     Plugin.Log("Error", str(e))
                 i += 1
-            """i = 0
+            i = 0
             for loc in DoorCache.keys():
                 spawnRot = DoorCache.get(loc)
                 try:
@@ -405,27 +476,16 @@ class HungerGames:
                 except Exception as e:
                     Server.BroadcastFrom(sysname, "Failed!")
                     Plugin.Log("Error2", str(e))
-                i += 1"""
-        self.HasStarted = False
-        self.IsActive = False
-        for chest in loot:
-            inv = chest.Inventory
-            if inv is None:
-                continue
-            inv.ClearAll()
-        for pl in Players:
-            self.RemovePlayerDirectly(pl)
-        del walls[:]
-        del loot[:]
+                i += 1
+            """
 
     def EndGame(self, Player):
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
         Server.BroadcastFrom(sysname, green + Player.Name + " won the match! Congratulations!")
+        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
         self.RemovePlayerDirectly(Player)
         ini = self.DefaultItems()
         enum = ini.EnumSection("Rewards")
-        self.HasStarted = False
-        self.IsActive = False
         for item in enum:
             c = int(ini.GetSetting("Rewards", item))
             Player.Inventory.AddItem(item, c)
@@ -438,7 +498,7 @@ class HungerGames:
                 sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
                 walls[i] = ent
             except Exception as e:
-                Server.BroadcastFrom(sysname, "Failed!")
+                Server.BroadcastFrom(sysname, "Failed to place walls at the end of the game.")
                 Plugin.Log("Error", str(e))
             i += 1
         """i = 0
@@ -456,36 +516,42 @@ class HungerGames:
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
-            d = (HurtEvent.Victim not in Players and HurtEvent.Attacker in Players)
+            d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players)
             if d:
                 HurtEvent.DamageAmount = float(0)
 
     def On_PlayerKilled(self, DeathEvent):
-        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            if DeathEvent.Victim in Players and self.HasStarted:
+        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None:
+            if DeathEvent.Victim in self.Players and self.HasStarted:
                 self.RemovePlayerDirectly(DeathEvent.Victim)
-                leng = len(Players)
-                if len(Players) > 1:
+                leng = len(self.Players)
+                if len(self.Players) > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. " + green + str(leng) + red + " Players are still alive.")
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
-                    self.EndGame(Players[0])
+                    self.EndGame(self.Players[0])
+            elif DeathEvent.Victim in self.Players and self.IsActive:
+                self.RemovePlayerDirectly(DeathEvent.Victim)
+                Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
+                Server.BroadcastFrom(sysname, red + "The match didn't even start yet!")
 
     def On_PlayerDisconnected(self, Player):
-        if Player in Players:
-            Players.remove(Player)
-            leng = len(Players)
-            if leng > 1:
-                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. " + green + str(leng) + red + " Players are still alive.")
-            else:
-                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
-                self.EndGame(Players[0])
+        if Player in self.Players:
+            self.RemovePlayerDirectly(Player, True)
+            if self.IsActive or self.HasStarted:
+                leng = len(self.Players)
+                if leng > 1:
+                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. " + green + str(leng) + red + " Players are still alive.")
+                else:
+                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
+                    self.EndGame(self.Players[0])
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         if DataStore.ContainsKey("HLastLoc", Player.SteamID):
             l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-            Player.SafeTeleportTo(loc)
+            Player.TeleportTo(loc)
+            self.returnInventory(Player)
             DataStore.Remove("HLastLoc", Player.SteamID)
 
     def On_EntityHurt(self, HurtEvent):
@@ -496,7 +562,7 @@ class HungerGames:
             gun = HurtEvent.WeaponName
             if gun == "Shotgun":
                 return
-            if HurtEvent.Attacker in Players:
+            if HurtEvent.Attacker in self.Players:
                 HurtEvent.DamageAmount = float(0)
                 return
             if DataStore.ContainsKey("HDoorMode", id):
