@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.2b'
+__version__ = '3.7.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -234,7 +234,8 @@ class TpFriend:
             if Player.Admin or self.isMod(id):
                 self.clearTimers()
                 Player.MessageFrom(self.sys, "Cleared!")
-
+        elif cmd == "madafaka":
+            Player.Message(str(HungerGames.HungerGames().Players))
         elif cmd == "tpa":
             if len(args) == 0:
                 Player.MessageFrom(self.sys, "Teleport Usage:")
@@ -251,6 +252,9 @@ class TpFriend:
                     return
                 if playertor == Player:
                     Player.MessageFrom(self.sys, "Cannot teleport to yourself!")
+                    return
+                if DataStore.ContainsKey("HGIG", playertor.SteamID):
+                    Player.MessageFrom(self.sys, "You cannot teleport to this guy currently!")
                     return
                 name = Player.Name
                 id = Player.SteamID
