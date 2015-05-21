@@ -383,6 +383,8 @@ class HungerGames:
         if Plugin.GetTimer("StartingIn") is not None:
             Server.BroadcastFrom(sysname, red + "Something went wrong, I'm not starting the timer again.")
             return
+        if Plugin.GetTimer("Force") is not None:
+            Plugin.KillTimer("Force")
         leng = len(self.Players)
         if leng < maxp and not ForceStart:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
