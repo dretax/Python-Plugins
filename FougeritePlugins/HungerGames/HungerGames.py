@@ -244,17 +244,18 @@ class HungerGames:
                     else:
                         Player.Message("You aren't admin!")
                 elif arg == "cleanloot":
-                    if LootStackClean:
-                        self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
-                        c = 0
-                        for x in self.LootableObjects:
-                            if "lootsack" in x.name.lower():
-                                dist = Util.GetVectorsDistance(Player.Location, x.transform.position)
-                                if dist <= CDist:
-                                    x._inventory.Clear()
-                                    Util.DestroyObject(x.gameObject)
-                                    c += 1
-                        Player.MessageFrom(sysname, "Cleaned " + str(c) + " lootsacks!")
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        if LootStackClean:
+                            self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
+                            c = 0
+                            for x in self.LootableObjects:
+                                if "lootsack" in x.name.lower():
+                                    dist = Util.GetVectorsDistance(Player.Location, x.transform.position)
+                                    if dist <= CDist:
+                                        x._inventory.Clear()
+                                        Util.DestroyObject(x.gameObject)
+                                        c += 1
+                            Player.MessageFrom(sysname, "Cleaned " + str(c) + " lootsacks!")
                 elif arg == "disable":
                     if Player.Admin or self.isMod(Player.SteamID):
                         if self.HasStarted:
