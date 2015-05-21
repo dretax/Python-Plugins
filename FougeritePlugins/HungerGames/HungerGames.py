@@ -417,7 +417,8 @@ class HungerGames:
         if self.HasStarted or not self.IsActive:
             return
         if Plugin.GetTimer("StartingIn") is not None:
-            Server.BroadcastFrom(sysname, red + "Something went wrong, I'm not starting the timer again.")
+            Server.BroadcastFrom(sysname, red + "A player has joined while hungergames loaded. (Free Slot)")
+            Server.BroadcastFrom(sysname, red + "Current Players: " + str(len(self.Players)))
             return
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
