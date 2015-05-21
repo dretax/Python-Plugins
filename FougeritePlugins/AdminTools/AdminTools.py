@@ -96,7 +96,7 @@ class AdminTools:
                     Player.Message("---Decay---")
                     Player.Message("You are in Decay mode")
                     Player.Message("If you finished, don't forget to quit from It!")
-                    Player.Message("Shotgun cannot be used in Owner mode!")
+                    Player.Message("Shotgun cannot be used in Decay mode!")
                     DataStore.Add("DecayOff", id, "true")
                 else:
                     DataStore.Remove("DecayOff", id)
