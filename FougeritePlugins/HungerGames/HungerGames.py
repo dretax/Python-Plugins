@@ -568,6 +568,13 @@ class HungerGames:
                 if HurtEvent.Entity.Name == "WoodWall":
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("WallLocations"))
+                    enum = ini.EnumSection("ChestLocations")
+                    for x in enum:
+                        if ini.GetSetting("ChestLocations", x) == \
+                                (str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)):
+                                HurtEvent.Attacker.MessageFrom(sysname, "This wall is already in.")
+                                HurtEvent.DamageAmount = float(0)
+                                return
                     if maxp == count:
                         HurtEvent.Attacker.MessageFrom(sysname, "You reached the max spawnpoints")
                         return
@@ -577,6 +584,14 @@ class HungerGames:
                 elif "box" in HurtEvent.Entity.Name.lower():
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("ChestLocations"))
+                    enum = ini.EnumSection("ChestLocations")
+                    for x in enum:
+                        if ini.GetSetting("ChestLocations", x) == \
+                                (str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)):
+                            HurtEvent.Attacker.MessageFrom(sysname, "This chest is already in.")
+                            HurtEvent.DamageAmount = float(0)
+                            return
+
                     ini.AddSetting("ChestLocations", str(count + 1), str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
                     ini.Save()
                     HurtEvent.Attacker.MessageFrom(sysname, "Added Chest.")
