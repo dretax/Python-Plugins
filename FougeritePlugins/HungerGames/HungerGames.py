@@ -73,9 +73,11 @@ class HungerGames:
     count2 = None
     count3 = None
     count4 = None
+    count5 = None
     times = None
     MTimes = None
     item = None
+    sitem = None
     Players = []
     LootableObject = None
     LootableObjects = None
@@ -100,9 +102,11 @@ class HungerGames:
         self.count2 = int(ini2.GetSetting("Random", "Count2"))
         self.count3 = int(ini2.GetSetting("Random", "Count3"))
         self.count4 = int(ini2.GetSetting("Random", "Count4"))
+        self.count5 = int(ini2.GetSetting("Random", "Count5"))
         self.times = int(ini2.GetSetting("Random", "Times"))
         self.MTimes = int(ini2.GetSetting("Random", "MTimes"))
         self.item = int(ini2.GetSetting("Random", "Items"))
+        self.sitem = int(ini2.GetSetting("Random", "SItems"))
         for x in xrange(1, maxp + 1):
             PlayerSlots[x] = None
 
@@ -132,15 +136,19 @@ class HungerGames:
             ini.AddSetting("Rewards", "M4", "4")
             ini.AddSetting("Rewards", "Large Medkit", "20")
             ini.AddSetting("Random", "Items", "3")
+            ini.AddSetting("Random", "SItems", "2")
             ini.AddSetting("Random", "Count", "50")
             ini.AddSetting("Random", "Count2", "5")
             ini.AddSetting("Random", "Count3", "5")
             ini.AddSetting("Random", "Count4", "20")
+            ini.AddSetting("Random", "Count5", "2")
             ini.AddSetting("Random", "MTimes", "2")
             ini.AddSetting("Random", "Times", "5")
             ini.AddSetting("RandomItems", "1", "Stone Hatchet")
             ini.AddSetting("RandomItems", "2", "Pick Axe")
             ini.AddSetting("RandomItems", "3", "P250")
+            ini.AddSetting("SItems", "1", "Silencer")
+            ini.AddSetting("SItems", "2", "Holo sight")
             ini.Save()
         return Plugin.GetIni("DefaultItems")
 
@@ -329,7 +337,6 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
                         if leng == minp:
-                            Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                             Server.BroadcastFrom(sysname, purple + "Detected " + str(minp) + " players.")
                             Server.BroadcastFrom(sysname, purple + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
@@ -467,6 +474,19 @@ class HungerGames:
                         inv.AddItemTo(gitem, slot, countr)
                     except:
                         pass
+                if self.sitem > 0:
+                    if "large" not in chest.Name.lower():
+                        slot = random.randint(1, 11)
+                    else:
+                        slot = random.randint(1, 35)
+                    whichsight = random.randint(1, self.sitem)
+                    gitem = ini2.GetSetting("SItems", str(whichsight))
+                    countr = random.randint(1, self.count5)
+                    try:
+                        inv.AddItemTo(gitem, slot, countr)
+                    except:
+                        pass
+
             Server.BroadcastFrom(sysname, green + "Loaded 100%!")
             Plugin.CreateTimer("StartingIn", secs * 1000).Start()
             Server.BroadcastFrom(sysname, green + "HungerGames is starting in " + blue + str(secs) + green + " seconds!")
@@ -512,6 +532,8 @@ class HungerGames:
         self.RemovePlayerDirectly(Player)
         ini = self.DefaultItems()
         enum = ini.EnumSection("Rewards")
+        Player.Inventory.ClearAll()
+        self.returnInventory(Player)
         for item in enum:
             c = int(ini.GetSetting("Rewards", item))
             Player.Inventory.AddItem(item, c)
@@ -541,7 +563,10 @@ class HungerGames:
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
             d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players)
+            d2 = HurtEvent.Attacker in self.Players
             if d:
+                HurtEvent.DamageAmount = float(0)
+            if d2 and HurtEvent.Sleeper:
                 HurtEvent.DamageAmount = float(0)
 
     def On_PlayerKilled(self, DeathEvent):
@@ -562,13 +587,21 @@ class HungerGames:
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
             self.RemovePlayerDirectly(Player, True)
-            Player.Sleeper.Destroy()
-            if self.IsActive or self.HasStarted:
-                leng = len(self.Players)
-                if leng > 1:
-                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. " + green + str(leng) + red + " Players are still alive.")
-                else:
-                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
+            leng = len(self.Players)
+            if leng > 1:
+                if self.HasStarted:
+                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
+                                         + green + str(leng) + red + " Players are still alive.")
+                elif self.IsActive:
+                    if leng < minp:
+                        Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
+                        Server.BroadcastFrom(sysname, red + "Stopping timer...")
+                        Plugin.KillTimer("Force")
+                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
+                                         + green + str(leng) + red + " Players are still in-game.")
+            else:
+                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
+                if self.HasStarted:
                     self.EndGame(self.Players[0])
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
