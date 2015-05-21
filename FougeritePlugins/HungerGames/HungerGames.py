@@ -236,6 +236,7 @@ class HungerGames:
                             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                             self.RandomAdmin = Player
                             self.IsActive = True
+                            del self.Players[:]
                             if Plugin.GetTimer("StartingIn") is not None:
                                 Plugin.KillTimer("StartingIn")
                             if Plugin.GetTimer("Force") is not None:
@@ -311,6 +312,9 @@ class HungerGames:
                         Player.MessageFrom(sysname, purple + "You need to have atleast " + str(enum)
                                            + " free slots in your inventory!")
                         return
+                    if len(self.Players) == maxp:
+                        Player.MessageFrom(sysname, red + "HungerGames is full!")
+                        return
                     if Player in self.Players:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
@@ -375,7 +379,7 @@ class HungerGames:
                     if len(self.Players) == 0:
                         Player.MessageFrom(sysname, "There are 0 players in hungergames")
                         return
-                    Player.MessageFrom(sysname, "Currently alive: " + str(len(self.Players)))
+                    Player.MessageFrom(sysname, green + "Currently alive: " + str(len(self.Players)))
                     for x in self.Players:
                         Player.MessageFrom(sysname, "- " + x.Name)
 
@@ -475,17 +479,18 @@ class HungerGames:
                     except:
                         pass
                 if self.sitem > 0:
-                    if "large" not in chest.Name.lower():
-                        slot = random.randint(1, 11)
-                    else:
-                        slot = random.randint(1, 35)
-                    whichsight = random.randint(1, self.sitem)
-                    gitem = ini2.GetSetting("SItems", str(whichsight))
                     countr = random.randint(1, self.count5)
-                    try:
-                        inv.AddItemTo(gitem, slot, countr)
-                    except:
-                        pass
+                    for i in xrange(0, countr):
+                        if "large" not in chest.Name.lower():
+                            slot = random.randint(1, 11)
+                        else:
+                            slot = random.randint(1, 35)
+                        whichsight = random.randint(1, self.sitem)
+                        gitem = ini2.GetSetting("SItems", str(whichsight))
+                        try:
+                            inv.AddItemTo(gitem, slot, 1)
+                        except:
+                            pass
 
             Server.BroadcastFrom(sysname, green + "Loaded 100%!")
             Plugin.CreateTimer("StartingIn", secs * 1000).Start()
@@ -575,7 +580,8 @@ class HungerGames:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
                 leng = len(self.Players)
                 if len(self.Players) > 1:
-                    Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. " + green + str(leng) + red + " Players are still alive.")
+                    Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
+                                         + green + str(leng) + red + " Players are still alive.")
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                     self.EndGame(self.Players[0])
