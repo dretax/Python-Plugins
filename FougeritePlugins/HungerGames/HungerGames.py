@@ -536,6 +536,7 @@ class HungerGames:
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
             self.RemovePlayerDirectly(Player, True)
+            Player.Sleeper.Destroy()
             if self.IsActive or self.HasStarted:
                 leng = len(self.Players)
                 if leng > 1:
