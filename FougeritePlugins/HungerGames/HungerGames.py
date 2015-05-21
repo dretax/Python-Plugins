@@ -45,6 +45,10 @@ MinimumTime = 3
 maxp = 14
 #  Secs before match start
 secs = 30
+#  Cleanup loots Stacks after game in close range?
+LootStackClean = True
+#  Distance for loots if we look from the first spawn point?
+CDist = 400
 
 WallsCache = {
 
@@ -73,6 +77,9 @@ class HungerGames:
     MTimes = None
     item = None
     Players = []
+    LootableObject = None
+    LootableObjects = None
+    FirstLocation = None
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
@@ -81,6 +88,7 @@ class HungerGames:
         self.st = Util.TryFindReturnType("StructureComponent")
         if self.st is None:
             Plugin.Log("Error", "Couldn't find return type3.")
+        self.LootableObject = Util.TryFindReturnType("LootableObject")
         Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
         DataStore.Flush("HDoorMode")
         ini = self.HungerGames()
@@ -213,15 +221,31 @@ class HungerGames:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
                             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
-                            Server.BroadcastFrom(sysname, "Hunger Games is now active! Type /hg join to enter the battle!")
-                            Server.BroadcastFrom(sysname, "Type /hg to know more!")
-                            Server.BroadcastFrom(sysname, green + "Pack your items at home just incase!")
-                            Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
+                            Server.BroadcastFrom(sysname, green + "Hunger Games is now active! Type /hg join to enter the battle!")
+                            Server.BroadcastFrom(sysname, green + "Type /hg to know more!")
+                            Server.BroadcastFrom(sysname, teal + "Pack your items at home just incase!")
+                            Server.BroadcastFrom(sysname, teal + "The plugins saves your inventory when you join.")
                             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
                             self.RandomAdmin = Player
                             self.IsActive = True
+                            if Plugin.GetTimer("StartingIn") is not None:
+                                Plugin.KillTimer("StartingIn")
+                            if Plugin.GetTimer("Force") is not None:
+                                Plugin.KillTimer("Force")
                     else:
                         Player.Message("You aren't admin!")
+                elif arg == "cleanloot":
+                    if LootStackClean:
+                        self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
+                        c = 0
+                        for x in self.LootableObjects:
+                            if "lootsack" in x.name.lower():
+                                dist = Util.GetVectorsDistance(Player.Location, x.transform.position)
+                                if dist <= CDist:
+                                    x._inventory.Clear()
+                                    Util.DestroyObject(x.gameObject)
+                                    c += 1
+                        Player.MessageFrom(sysname, "Cleaned " + str(c) + " lootsacks!")
                 elif arg == "disable":
                     if Player.Admin or self.isMod(Player.SteamID):
                         if self.HasStarted:
@@ -305,8 +329,9 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
                         if leng == minp:
-                            Server.BroadcastFrom(sysname, teal + "Detected " + str(minp) + " players.")
-                            Server.BroadcastFrom(sysname, teal + "Forcing game start in " + str(MinimumTime) +
+                            Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+                            Server.BroadcastFrom(sysname, purple + "Detected " + str(minp) + " players.")
+                            Server.BroadcastFrom(sysname, purple + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
                             Plugin.CreateTimer("Force", MinimumTime * 1000)
                         self.StartGame()
@@ -343,7 +368,7 @@ class HungerGames:
                     if len(self.Players) == 0:
                         Player.MessageFrom(sysname, "There are 0 players in hungergames")
                         return
-                    Player.MessageFrom(sysname, "Currently alive:")
+                    Player.MessageFrom(sysname, "Currently alive: " + str(len(self.Players)))
                     for x in self.Players:
                         Player.MessageFrom(sysname, "- " + x.Name)
 
@@ -390,14 +415,17 @@ class HungerGames:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             Server.BroadcastFrom(sysname, green + "Currently " + str(leng) + " of " + str(maxp) + " players are waiting.")
             Server.BroadcastFrom(sysname, green + "Type /hg for the commands, and join!")
-            Server.BroadcastFrom(sysname, green + "Pack your items at home just in-case!")
-            Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
+            #  Server.BroadcastFrom(sysname, green + "Pack your items at home just in-case!")
+            #  Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
         else:
             Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
             if ForceStart:
                 Server.BroadcastFrom(sysname, green + "HungerGames force started!")
             Server.BroadcastFrom(sysname, green + "Loading.........")
             ini = self.HungerGames()
+            self.FirstLocation = ini.GetSetting("SpawnLocations", "1")
+            l = self.Replace(self.FirstLocation)
+            self.FirstLocation = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
             enum2 = ini.EnumSection("ChestLocations")
             enum3 = ini.EnumSection("WallLocations")
             self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
@@ -499,16 +527,14 @@ class HungerGames:
                 Server.BroadcastFrom(sysname, "Failed to place walls at the end of the game.")
                 Plugin.Log("Error", str(e))
             i += 1
-        """i = 0
-        for loc in DoorCache.keys():
-            spawnRot = DoorCache.get(loc)
-            try:
-                ent = Entity(World.Spawn(';deploy_metal_door', loc.x, loc.y, loc.z, spawnRot))
-                doors[i] = ent
-            except Exception as e:
-                Server.BroadcastFrom(sysname, "Failed!")
-                Plugin.Log("Error2", str(e))
-            i += 1"""
+        if LootStackClean:
+            self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
+            for x in self.LootableObjects:
+                if "lootsack" in x.name.lower():
+                    dist = Util.GetVectorsDistance(self.FirstLocation, x.transform.position)
+                    if dist <= CDist:
+                        x._inventory.Clear()
+                        Util.DestroyObject(x.gameObject)
         self.Reset()
         Player.MessageFrom(sysname, red + "You received your rewards!")
 
@@ -519,7 +545,7 @@ class HungerGames:
                 HurtEvent.DamageAmount = float(0)
 
     def On_PlayerKilled(self, DeathEvent):
-        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None:
+        if DeathEvent.Victim is not None:
             if DeathEvent.Victim in self.Players and self.HasStarted:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
                 leng = len(self.Players)
@@ -568,9 +594,9 @@ class HungerGames:
                 if HurtEvent.Entity.Name == "WoodWall":
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("WallLocations"))
-                    enum = ini.EnumSection("ChestLocations")
+                    enum = ini.EnumSection("WallLocations")
                     for x in enum:
-                        if ini.GetSetting("ChestLocations", x) == \
+                        if ini.GetSetting("WallLocations", x) == \
                                 (str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)):
                                 HurtEvent.Attacker.MessageFrom(sysname, "This wall is already in.")
                                 HurtEvent.DamageAmount = float(0)
