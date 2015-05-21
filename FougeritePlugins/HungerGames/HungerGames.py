@@ -347,7 +347,7 @@ class HungerGames:
                     for x in self.Players:
                         Player.MessageFrom(sysname, "- " + x.Name)
 
-    def RemovePlayerDirectly(self, Player, Disconnected=False):
+    def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False):
         if Player in self.Players:
             self.Players.remove(Player)
         DataStore.Remove("HGIG", Player.SteamID)
@@ -355,7 +355,7 @@ class HungerGames:
             if PlayerSlots[x] == Player:
                 PlayerSlots[x] = None
         if not Disconnected:
-            if DataStore.ContainsKey("HLastLoc", Player.SteamID):
+            if DataStore.ContainsKey("HLastLoc", Player.SteamID) and not Dead:
                 l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 Player.TeleportTo(loc)
@@ -521,7 +521,7 @@ class HungerGames:
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None:
             if DeathEvent.Victim in self.Players and self.HasStarted:
-                self.RemovePlayerDirectly(DeathEvent.Victim)
+                self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
                 leng = len(self.Players)
                 if len(self.Players) > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. " + green + str(leng) + red + " Players are still alive.")
@@ -529,7 +529,7 @@ class HungerGames:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                     self.EndGame(self.Players[0])
             elif DeathEvent.Victim in self.Players and self.IsActive:
-                self.RemovePlayerDirectly(DeathEvent.Victim)
+                self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
                 Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                 Server.BroadcastFrom(sysname, red + "The match didn't even start yet!")
 
