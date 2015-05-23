@@ -321,6 +321,12 @@ class HungerGames:
                                         Util.DestroyObject(x.gameObject)
                                         c += 1
                             Player.MessageFrom(sysname, "Cleaned " + str(c) + " lootsacks!")
+                elif arg == "forcestart":
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        if Plugin.GetTimer("StartingIn") is not None or self.HasStarted:
+                            Player.MessageFrom(sysname, red + "Game is already running!")
+                            return
+                        self.StartGame(True)
                 elif arg == "disable":
                     if Player.Admin or self.isMod(Player.SteamID):
                         if self.HasStarted:
@@ -337,6 +343,9 @@ class HungerGames:
                                 Player.MessageFrom(sysname,
                                                    "You can't disable it, there are still more players alive than 1")
                         else:
+                            if not self.IsActive:
+                                Player.MessageFrom(sysname, "Hunger Games is already in-active!")
+                                return
                             Server.BroadcastFrom(sysname, red +
                                                  "----------------------------"
                                                  "HUNGERGAMES--------------------------------")
@@ -416,7 +425,7 @@ class HungerGames:
                             Player.Inventory.AddItem(item, c)
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
-                        if leng == minp:
+                        if leng == minp and Plugin.GetTimer("Force") is None:
                             Server.BroadcastFrom(sysname, purple + "Detected " + str(minp) + " players.")
                             Server.BroadcastFrom(sysname, purple + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
@@ -445,7 +454,7 @@ class HungerGames:
                             if self.HasStarted:
                                 self.EndGame(self.Players[0])
                         leng = len(self.Players)
-                        if leng < minp:
+                        if leng < minp and Plugin.GetTimer("Force") is not None:
                             Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
                             Server.BroadcastFrom(sysname, red + "Stopping timer...")
                             Plugin.KillTimer("Force")
@@ -616,6 +625,10 @@ class HungerGames:
     def Reset(self):
         self.HasStarted = False
         self.IsActive = False
+        if Plugin.GetTimer("Force") is not None:
+            Plugin.KillTimer("Force")
+        if Plugin.GetTimer("StartingIn") is not None:
+            Plugin.KillTimer("StartingIn")
         for chest in loot:
             inv = chest.Inventory
             if inv is None:
@@ -704,7 +717,7 @@ class HungerGames:
                     Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
                                          + green + str(leng) + red + " Players are still alive.")
                 elif self.IsActive:
-                    if leng < minp:
+                    if leng < minp and Plugin.GetTimer("Force") is not None:
                         Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
                         Server.BroadcastFrom(sysname, red + "Stopping timer...")
                         Plugin.KillTimer("Force")
