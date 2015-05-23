@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.2'
+__version__ = '1.6.3'
 
 import clr
 
@@ -353,13 +353,7 @@ class BannedPeople:
 
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.SteamID
         ip = Player.IP
         ini = self.BannedPeopleIni()
         if ini.GetSetting("Ips", ip) is not None and ini.GetSetting("Ips", ip):
