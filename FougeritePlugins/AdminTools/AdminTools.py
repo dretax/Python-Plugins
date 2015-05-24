@@ -67,6 +67,12 @@ class AdminTools:
             ini.Save()
         Plugin.Log("LastJoin", str(name) + "|" + id + "|" + ip)
 
+    def On_PlayerDisconnected(self, Player):
+        name = Player.Name
+        id = Player.SteamID
+        location = str(Player.Location)
+        Plugin.Log("LastQuit", str(name) + "|" + id + "|" + location)
+
     def On_PlayerHurt(self, HurtEvent):
         if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.Sleeper:
             ini = self.Players()
@@ -102,6 +108,16 @@ class AdminTools:
                     DataStore.Remove("DecayOff", id)
                     Player.Message("---Decay---")
                     Player.Message("You quit Decay mode!")
+        elif cmd == "decayoffdeploy":
+            if Player.Admin or self.isMod(Player.SteamID):
+                loc = Player.Location
+                c = 0
+                for entity in World.Entities:
+                    if "spike" in entity.Name.lower() or "box" in entity.Name.lower():
+                        if Util.GetVectorsDistance(loc, entity.Location) < 400:
+                            entity.SetDecayEnabled(False)
+                            c += 1
+                Player.Message("Decay is disabled on " + str(c) + " objects.")
         elif cmd == "closedeployed":
             if Player.Admin or self.isMod(Player.SteamID):
                 loc = Player.Location
