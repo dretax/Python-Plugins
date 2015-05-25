@@ -27,54 +27,53 @@ class ResourceSpawner:
                 return
 
             num = 1
-            """if len(args) == 2:
+            if len(args) == 2:
                 numb = str(args[1])
-                Server.Broadcast(str(numb.isnumeric()))
                 if numb.isnumeric():
                     num = int(numb)
-                    Server.Broadcast(str(num))"""
-
+                resource = args[0]
+            else:
+                resource = str.join(' ', args).lower()
             loc = Util.Infront(Player, 10)
             y = World.GetGround(loc.x, loc.z)
             loc = Vector3(loc.x, y, loc.z)
-            resource = str.join(' ', args).lower()
-            if resource == "Wood".lower():
+            if resource == "wood":
                 World.Spawn(";res_woodpile", loc, num)
                 Player.Notice("\u2714", "Wood Pile has been spawned!", 3)
-            elif resource == "Sulfur".lower():
+            elif resource == "sulfur":
                 World.Spawn(";res_ore_1", loc, num)
                 Player.Notice("\u2714", "Sulfur Ore has been spawned!", 3)
-            elif resource == "Metal".lower():
+            elif resource == "metal":
                 World.Spawn(";res_ore_2", loc, num)
                 Player.Notice("\u2714", "Metal Ore has been spawned!", 3)
-            elif resource == "Stone".lower():
+            elif resource == "stone":
                 World.Spawn(";res_ore_3", loc, num)
                 Player.Notice("\u2714", "Stone Ore has been spawned!", 3)
-            elif resource == "Stag".lower():
+            elif resource == "stag":
                 World.Spawn(":stag_prefab", loc, num)
                 Player.Notice("\u2714", "Stag has been spawned!", 3)
-            elif resource == "Chicken".lower():
+            elif resource == "chicken":
                 World.Spawn(":chicken_prefab", loc, num)
                 Player.Notice("\u2714", "Chicken has been spawned!", 3)
-            elif resource == "Rabbit".lower():
+            elif resource == "rabbit":
                 World.Spawn(":rabbit_prefab_a", loc, num)
                 Player.Notice("\u2714", "Rabbit has been spawned!", 3)
-            elif resource == "Bear".lower():
+            elif resource == "bear":
                 World.Spawn(":bear_prefab", loc, num)
                 Player.Notice("\u2714", "Bear has been spawned!", 3)
-            elif resource == "MBear".lower():
+            elif resource == "mbear":
                 World.Spawn(":mutant_bear", loc, num)
                 Player.Notice("\u2714", "Mutant Bear has been spawned!", 3)
-            elif resource == "Pig".lower():
+            elif resource == "pig":
                 World.Spawn(":boar_prefab", loc, num)
                 Player.Notice("\u2714", "Pig has been spawned!", 3)
-            elif resource == "Wolf".lower():
+            elif resource == "wolf":
                 World.Spawn(":wolf_prefab", loc, num)
                 Player.Notice("\u2714", "Wolf has been spawned!", 3)
-            elif resource == "MWolf".lower():
+            elif resource == "mwolf":
                 World.Spawn(":mutant_wolf", loc, num)
                 Player.Notice("\u2714", "Mutant Wolf has been spawned!", 3)
-            elif resource == "Animals".lower():
+            elif resource == "animals":
                 loc1 = Util.Infront(Player, 16)
                 y = World.GetGround(loc.x, loc.z)
                 loc1 = Vector3(loc1.x, y, loc1.z)
@@ -99,22 +98,22 @@ class ResourceSpawner:
                     loc1 = Vector3(loc1.x, y, z)
                     World.Spawn(":mutant_wolf", loc1)
                 Player.Notice("\u2714", "Animals has been spawned!", 3)
-            elif resource == "Airdrop".lower():
+            elif resource == "airdrop":
                 World.AirdropAtPlayer(Player)
                 Player.Notice("\u2708", "Airdrop has been spawned!", 3)
-            elif resource == "AmmoBox".lower():
+            elif resource == "ammobox":
                 World.Spawn("AmmoLootBox", loc, num)
                 Player.Notice("\u2327", "Ammo Box has been spawned!", 3)
-            elif resource == "MedicalBox".lower():
+            elif resource == "medicalbox":
                 World.Spawn("MedicalLootBox", loc, num)
                 Player.Notice("\u2327", "Medical Box has been spawned!", 3)
-            elif resource == "LootBox".lower():
+            elif resource == "lootbox".lower():
                 World.Spawn("BoxLoot", loc, num)
                 Player.Notice("\u2327", "Loot Box has been spawned!", 3)
-            elif resource == "WeaponBox".lower():
+            elif resource == "weaponbox":
                 World.Spawn("WeaponLootBox", loc, num)
                 Player.Notice("\u2327", "Weapon Box has been spawned!", 3)
-            elif resource == "SupplyCrate".lower():
+            elif resource == "supplycrate":
                 World.Spawn("SupplyCrate", loc, num)
                 Player.Notice("\u2327", "SupplyCrate has been spawned!", 3)
                 """elif resource == "Human".lower():
