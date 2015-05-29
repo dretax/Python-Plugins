@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -89,18 +89,16 @@ class HungerGames:
     LootableObjects = None
     FirstLocation = None
     ItemRewards = None
+    StoreRewards = None
     MinRewards = None
     MaxRewards = None
+    Middle = None
+    AdminSpot = None
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
-        if self.dp is None:
-            Plugin.Log("Error", "Couldn't find return type2.")
         self.st = Util.TryFindReturnType("StructureComponent")
-        if self.st is None:
-            Plugin.Log("Error", "Couldn't find return type3.")
         self.LootableObject = Util.TryFindReturnType("LootableObject")
-        Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
         DataStore.Flush("HDoorMode")
         ini = self.HungerGames()
         ini2 = self.DefaultItems()
@@ -117,13 +115,21 @@ class HungerGames:
         self.item = int(ini2.GetSetting("Random", "Items"))
         self.sitem = int(ini2.GetSetting("Random", "SItems"))
         self.ItemRewards = self.bool(ini2.GetSetting("Random", "ItemRewards"))
+        self.StoreRewards = self.bool(ini2.GetSetting("Random", "StoreRewards"))
         self.MinRewards = int(ini2.GetSetting("Random", "MinRewards"))
         self.MaxRewards = int(ini2.GetSetting("Random", "MaxRewards"))
+        if ini.GetSetting("Middle", "1") is not None:
+            n = self.Replace(ini.GetSetting("Middle", "1"))
+            self.Middle = Util.CreateVector(float(n[0]), float(n[1]), float(n[2]))
+        if ini.GetSetting("AdminSpot", "1") is not None:
+            l = self.Replace(ini.GetSetting("AdminSpot", "1"))
+            self.AdminSpot = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
         for x in xrange(1, maxp + 1):
             PlayerSlots[x] = None
         enum = ini2.EnumSection("Rewards")
         for item in enum:
             Rewards[item] = int(ini2.GetSetting("Rewards", item))
+        Util.ConsoleLog("HungerGames by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     """
         Main Methods
@@ -170,6 +176,12 @@ class HungerGames:
             ini.AddSetting("SItems", "2", "Holo sight")
             ini.Save()
         return Plugin.GetIni("DefaultItems")
+
+    def Store(self):
+        if not Plugin.IniExists("Store"):
+            ini = Plugin.CreateIni("Store")
+            ini.Save()
+        return Plugin.GetIni("Store")
 
     def Freezer(self, Player, num, msg=True):
         if not Freeze:
@@ -242,7 +254,6 @@ class HungerGames:
                 Inventory.append(myitem)
 
         DataStore.Add("HungerGames", id, Inventory)
-        DataStore.Save()
         Player.Inventory.ClearAll()
 
     def returnInventory(self, Player):
@@ -270,9 +281,12 @@ class HungerGames:
                 if self.HasStarted:
                     Server.BroadcastFrom(sysname, green + str(len(self.Players))
                                          + " of " + str(maxp) + " players are alive.")
+                    if len(self.Players) == 1:
+                        self.EndGame(self.Players[0])
                 else:
                     Server.BroadcastFrom(sysname, green + "Currently " + str(len(self.Players))
                                          + " of " + str(maxp) + " players are waiting.")
+                self.returnInventory(Player)
                 return
         if cmd == "hg":
             if len(args) == 0:
@@ -310,12 +324,15 @@ class HungerGames:
                         Player.Message("You aren't admin!")
                 elif arg == "cleanloot":
                     if Player.Admin or self.isMod(Player.SteamID):
+                        if self.Middle is None:
+                            Player.MessageFrom(sysname, "Middle of HungerGames is not set!")
+                            return
                         if LootStackClean:
                             self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
                             c = 0
                             for x in self.LootableObjects:
                                 if "lootsack" in x.name.lower():
-                                    dist = Util.GetVectorsDistance(Player.Location, x.transform.position)
+                                    dist = Util.GetVectorsDistance(self.Middle, x.transform.position)
                                     if dist <= CDist:
                                         x._inventory.Clear()
                                         Util.DestroyObject(x.gameObject)
@@ -373,6 +390,29 @@ class HungerGames:
                         ini.AddSetting("SpawnLocations", str(count + 1), str(Player.Location))
                         ini.Save()
                         Player.MessageFrom(sysname, "Added.")
+                elif arg == "cleanchests":
+                    if not self.HasStarted and Plugin.GetTimer("StartingIn") is None:
+                        ini = self.HungerGames()
+                        enum2 = ini.EnumSection("ChestLocations")
+                        for chest in enum2:
+                            l = ini.GetSetting("ChestLocations", chest).split(',')
+                            loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                            self.FindChest(loc)
+                        for x in loot:
+                            x.Inventory.ClearAll()
+                        del loot[:]
+                        Player.MessageFrom(sysname, "All chests cleaned!")
+                elif arg == "middle":
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        ini = self.HungerGames()
+                        if ini.GetSetting("Middle", "1") is not None:
+                            Player.MessageFrom(sysname, "Middle Re-Set!")
+                            ini.SetSetting("Middle", "1", str(Player.Location))
+                            return
+                        ini.AddSetting("Middle", "1", str(Player.Location))
+                        ini.Save()
+                        self.Middle = Player.Location
+                        Player.MessageFrom(sysname, "Set!")
                 elif arg == "entity":
                     if Player.Admin or self.isMod(Player.SteamID):
                         if DataStore.ContainsKey("HDoorMode", id):
@@ -460,6 +500,24 @@ class HungerGames:
                             Plugin.KillTimer("Force")
                 elif arg == "inventory":
                     self.returnInventory(Player)
+                elif arg == "adminspot":
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        ini = self.HungerGames()
+                        if ini.GetSetting("AdminSpot", "1") is not None:
+                            Player.MessageFrom(sysname, "AdminSpot Re-Set!")
+                            ini.SetSetting("AdminSpot", "1", str(Player.Location))
+                            return
+                        ini.AddSetting("AdminSpot", "1", str(Player.Location))
+                        ini.Save()
+                        self.AdminSpot = Player.Location
+                        Player.MessageFrom(sysname, "Set!")
+                elif arg == "spot":
+                    if Player.Admin or self.isMod(Player.SteamID):
+                        if self.AdminSpot is not None:
+                            Player.TeleportTo(self.AdminSpot)
+                            Player.MessageFrom(sysname, "Teleported!")
+                        else:
+                            Player.MessageFrom(sysname, "Admin spot is not set!")
                 elif arg == "alive":
                     if len(self.Players) == 0:
                         Player.MessageFrom(sysname, "There are 0 players in hungergames")
@@ -469,11 +527,13 @@ class HungerGames:
                         Player.MessageFrom(sysname, "- " + x.Name)
                 elif arg == "decay":
                     if Player.Admin or self.isMod(Player.SteamID):
-                        loc = Player.Location
+                        if self.Middle is None:
+                            Player.MessageFrom(sysname, "Middle of HungerGames is not set!")
+                            return
                         c = 0
                         for entity in World.Entities:
                             if "spike" in entity.Name.lower() or "box" in entity.Name.lower():
-                                if Util.GetVectorsDistance(loc, entity.Location) < CDist:
+                                if Util.GetVectorsDistance(self.Middle, entity.Location) < CDist:
                                     entity.SetDecayEnabled(False)
                                     c += 1
                         Player.Message("Decay is disabled on " + str(c) + " objects.")
@@ -716,6 +776,8 @@ class HungerGames:
                 if self.HasStarted:
                     Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
                                          + green + str(leng) + red + " Players are still alive.")
+                    if len(self.Players) == 1:
+                        self.EndGame(self.Players[0])
                 elif self.IsActive:
                     if leng < minp and Plugin.GetTimer("Force") is not None:
                         Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
