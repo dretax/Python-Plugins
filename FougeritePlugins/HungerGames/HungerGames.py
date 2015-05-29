@@ -391,7 +391,8 @@ class HungerGames:
                         ini.Save()
                         Player.MessageFrom(sysname, "Added.")
                 elif arg == "cleanchests":
-                    if not self.HasStarted and Plugin.GetTimer("StartingIn") is None:
+                    if not self.HasStarted and Plugin.GetTimer("StartingIn") is None and \
+                                    Plugin.GetTimer("Force") is None:
                         ini = self.HungerGames()
                         enum2 = ini.EnumSection("ChestLocations")
                         for chest in enum2:
@@ -402,6 +403,8 @@ class HungerGames:
                             x.Inventory.ClearAll()
                         del loot[:]
                         Player.MessageFrom(sysname, "All chests cleaned!")
+                    else:
+                        Player.MessageFrom(sysname, "Can't clean right now.")
                 elif arg == "middle":
                     if Player.Admin or self.isMod(Player.SteamID):
                         ini = self.HungerGames()
