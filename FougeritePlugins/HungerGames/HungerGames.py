@@ -558,7 +558,7 @@ class HungerGames:
             if Distance < 1.5:
                 walls.append(Entity(wall))
                 return
-        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
+        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a wall at spawn point.")
 
     def FindChest(self, location):
         for chest in self.chests:
@@ -566,7 +566,7 @@ class HungerGames:
             if Distance < 1:
                 loot.append(Entity(chest))
                 return
-        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a door at spawnpoint.")
+        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a chest at spawn point.")
 
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
