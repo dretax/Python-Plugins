@@ -472,7 +472,7 @@ class HungerGames:
                             Server.BroadcastFrom(sysname, purple + "Detected " + str(minp) + " players.")
                             Server.BroadcastFrom(sysname, purple + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
-                            Plugin.CreateTimer("Force", MinimumTime * 1000).Start()
+                            Plugin.CreateTimer("Force", MinimumTime * 60000).Start()
                         self.StartGame()
                 elif arg == "leave":
                     if not self.IsActive:
