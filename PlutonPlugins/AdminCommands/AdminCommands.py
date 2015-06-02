@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.7'
+__version__ = '1.8.8'
 
 import clr
 
@@ -44,8 +44,6 @@ class AdminCommands:
     Sysname = None
     ResourceList = None
     BuildingPrivlidge = None
-    AmmoTypes = None
-    RocketAmmoType = None
 
     def On_PluginInit(self):
         DataStore.Flush('Duty')
@@ -62,8 +60,6 @@ class AdminCommands:
         self.LogDuty = self.bool(ini.GetSetting("Settings", "LogDuty"))
         self.Friends = self.bool(ini.GetSetting("Settings", "Friends"))
         self.BuildingPrivlidge = Util.TryFindReturnType("BuildingPrivlidge")
-        self.AmmoTypes = Util.TryFindReturnType("AmmoTypes")
-        self.RocketAmmoType = Util.TryFindReturnType("AmmoTypes")
         self.Sysname = ini.GetSetting("Settings", "Sysname")
         res = Plugin.GetIni("Resources")
         for x in res.EnumSection("Resources"):
@@ -691,7 +687,8 @@ class AdminCommands:
                 Player.MessageFrom(self.Sysname, "Usage: /spawn animalname number")
                 Player.MessageFrom(self.Sysname, "Animal List: /spawn list")
                 Player.MessageFrom(self.Sysname, "Spawn All Animals: /spawn all number")
-                Player.MessageFrom(self.Sysname, "Resources: tree1-tree56, loot1-loot2, animalnamecorpse, orenameore")
+                Player.MessageFrom(self.Sysname,
+                                   "Resources: tree1-tree26, bush1-2, loot1-loot2, animalnamecorpse, orenameore")
                 return
             res = Plugin.GetIni("Resources")
             num = 1
@@ -751,7 +748,7 @@ class AdminCommands:
                     name = z.username
                     id = z.userid
                     Player.MessageFrom(self.Sysname, "Authorized player: " + str(name) + " - " + str(id))
-        elif cmd.cmd == "apache":
+        """elif cmd.cmd == "apache":
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
                 return
@@ -765,8 +762,7 @@ class AdminCommands:
                 if "rocket_launcher" in name:
                     Player.Message("Da")
                     Player.Message(str(x.flags))
-
-        """elif cmd.cmd == "bulletrain":
+        elif cmd.cmd == "bulletrain":
             x = Player.X
             z = Player.Z
             y = Player.Y + 45
@@ -802,24 +798,26 @@ class AdminCommands:
             args.FinalText = ""
 
     def On_CombatEntityHurt(self, EntityHurtEvent):
-        if EntityHurtEvent.Attacker.ToPlayer() is None:
-            return
-        attacker = EntityHurtEvent.Attacker.ToPlayer()
-        if DataStore.ContainsKey("Instako", attacker.SteamID):
-            if EntityHurtEvent.Victim.ToBuildingPart() is None:
+        if EntityHurtEvent.Attacker is not None and EntityHurtEvent.Victim is not None:
+            if EntityHurtEvent.Attacker.ToPlayer() is None:
                 return
-            EntityHurtEvent.Victim.ToBuildingPart().Destroy()
+            attacker = EntityHurtEvent.Attacker.ToPlayer()
+            if DataStore.ContainsKey("Instako", attacker.SteamID):
+                if EntityHurtEvent.Victim.ToBuildingPart() is None:
+                    return
+                EntityHurtEvent.Victim.ToBuildingPart().Destroy()
 
     def On_PlayerHurt(self, HurtEvent):
-        if not self.Friends:
-            return
-        attacker = HurtEvent.Attacker
-        if not attacker.IsPlayer():
-            return
-        victim = HurtEvent.Victim
-        if self.FriendOF(attacker.SteamID, victim.SteamID):
-            for x in range(0, len(HurtEvent.DamageAmounts)):
-                HurtEvent.DamageAmounts[x] = 0
+        if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
+            if not self.Friends:
+                return
+            attacker = HurtEvent.Attacker
+            if not attacker.IsPlayer():
+                return
+            victim = HurtEvent.Victim
+            if self.FriendOF(attacker.SteamID, victim.SteamID):
+                for x in range(0, len(HurtEvent.DamageAmounts)):
+                    HurtEvent.DamageAmounts[x] = 0
 
     def On_PlayerConnected(self, Player):
         if self.Join:
