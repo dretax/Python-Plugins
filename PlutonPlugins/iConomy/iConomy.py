@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 import clr
 
@@ -322,7 +322,9 @@ class iConomy:
         Player.MessageFrom(self.__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + self.__MoneyMark__)
 
     def On_PlayerDied(self, PlayerDeathEvent):
-        if not PlayerDeathEvent.Attacker.IsPlayer():
+        if PlayerDeathEvent.Attacker is None or PlayerDeathEvent.Victim is None:
+            return
+        if not PlayerDeathEvent.Attacker.ToPlayer() is None:
             if self.IsAnimal.get(PlayerDeathEvent.Attacker.Name, None) is not None:
                 name = self.IsAnimal.get(PlayerDeathEvent.Attacker.Name, PlayerDeathEvent.Attacker.Name)
                 ini = self.iConomy()
@@ -369,7 +371,9 @@ class iConomy:
     def On_NPCKilled(self, NPCDeathEvent):
         NPC = NPCDeathEvent.Victim
         attacker = NPCDeathEvent.Attacker
-        if not attacker.IsPlayer():
+        if NPC is None or attacker is None:
+            return
+        if attacker.ToPlayer() is None:
             return
         ini = self.iConomy()
         name = NPC.Name
