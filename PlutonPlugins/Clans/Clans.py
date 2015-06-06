@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.3'
+__version__ = '1.2.4'
 
 import clr
 
@@ -399,6 +399,8 @@ class Clans:
 
     def On_PlayerHurt(self, HurtEvent):
         attacker = HurtEvent.Attacker
+        if attacker is None:
+            return
         if not attacker.IsPlayer():
             return
         vid = HurtEvent.Victim.SteamID
@@ -693,10 +695,7 @@ class Clans:
                     if text in name:
                         n = self.GetKeyByValue(list, name)
                         otherrank = self.GetClanRank(n)
-                        if otherrank == selfrank:
-                            Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
-                            return
-                        if otherrank > selfrank:
+                        if otherrank >= selfrank:
                             Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
                             return
                         if n == id:
@@ -720,10 +719,7 @@ class Clans:
                     Player.MessageFrom(sys, "This player doesn't even have a clan")
                     return
                 otherclan = self.GetClanOfPlayer(playerr.SteamID)
-                if rank == selfrank:
-                    Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
-                    return
-                if rank > selfrank:
+                if rank >= selfrank:
                     Player.MessageFrom(sys, "You can't kick people having higher or the same rank.")
                     return
                 if otherclan != clan:
