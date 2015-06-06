@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.4b'
+__version__ = '1.3.5'
 
 import clr
 
@@ -20,6 +20,7 @@ except ImportError:
     Class
 """
 IdsToWipe = []
+WhiteListed = []
 EntityList = {
 
 }
@@ -56,8 +57,9 @@ class Wiper:
                 if ini.GetSetting("Objects", id) is None:
                     ini.AddSetting("Objects", id, str(today))
         if self.bool(ini.GetSetting("Settings", "UseDayLimit")):
-            n = self.LaunchCheck()
-            Plugin.Log("Log", "Wiped: " + str(n))
+            #n = self.LaunchCheck()
+            #Plugin.Log("Log", "Wiped: " + str(n))
+            self.CollectIDs()
             Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
         ini.Save()
 
@@ -132,6 +134,12 @@ class Wiper:
             ini.Save()
         return Plugin.GetIni("Settings")
 
+    def WhiteList(self):
+        if not Plugin.IniExists("WhiteList"):
+            ini = Plugin.CreateIni("WhiteList")
+            ini.Save()
+        return Plugin.GetIni("WhiteList")
+
     def Replace(self, String):
         if String.startswith("0"):
             n = String.replace(String[0], '')
@@ -164,12 +172,29 @@ class Wiper:
         ini.SetSetting("Objects", id, str(today))
         ini.Save()
 
+    def CollectIDs(self):
+        pathtodir = path + self.Path
+        if not os.path.exists(pathtodir):
+            Plugin.Log("Error", "Path set in the INI doesn't exist.")
+            return
+        idlist = os.listdir(pathtodir)
+        ini = self.GetIni()
+        today = datetime.date.today()
+        for id in idlist:
+            if ini.GetSetting("Objects", id) is None:
+                ini.AddSetting("Objects", id, str(today))
+                ini.Save()
+
+
     def LaunchCheck(self):
         ini = self.GetIni()
+        wl = self.WhiteList()
         enum = ini.EnumSection("Objects")
         c = 0
         today = datetime.date.today()
         for id in enum:
+            if wl.GetSetting("WhiteList", id) is not None:
+                continue
             v = str(ini.GetSetting("Objects", id)).split('-')
             lastseen = datetime.datetime(int(v[0]), int(self.Replace(v[1])), int(self.Replace(v[02])))
             count = str(today - lastseen)
@@ -177,18 +202,22 @@ class Wiper:
                 continue
             count = count.split(',')
             # Yeah, this is sucky don't even ask.
-            count = str(count[0]).replace(' days', '')
-            count = count.replace(' day', '')
-            count = count.replace('days', '')
-            count = count.replace('day', '')
+            count = str(count[0])
+            if ' days' in count:
+                count = count.replace(' days', '')
+            if ' day' in count:
+                count = count.replace(' day', '')
+            if 'days' in count:
+                count = count.replace('days', '')
+            if 'day' in count:
+                count = count.replace('day', '')
             if int(count) > self.Cooldown:
                 IdsToWipe.append(long(id))
-        for ent in World.Entities:
-            if long(ent.OwnerID) in IdsToWipe:
-                ent.Destroy()
-                UserObj[long(ent.OwnerID)] = UserObj.get(long(ent.OwnerID), 0) + 1
-                c += 1
+        mc = 0
         for x in IdsToWipe:
+            c = self.WipeByID(x)
+            mc += c
+            UserObj[x] = c
             pathtodir = path + self.Path + str(x)
             if os.path.exists(pathtodir):
                 idlist = os.listdir(pathtodir)
@@ -198,7 +227,7 @@ class Wiper:
             ini.DeleteSetting("Objects", str(x))
             if x in UserObj.keys():
                 Plugin.Log("WipedIds", str(x) + " Objects: " + str(UserObj[x]))
-        Plugin.Log("WipedIds", "Total Objects: " + str(c))
+        Plugin.Log("WipedIds", "Total Objects: " + str(mc))
         UserObj.clear()
         ini.Save()
         del IdsToWipe[:]
@@ -294,3 +323,18 @@ class Wiper:
                 Player.MessageFrom("Wiper", "Forcing Decay...")
                 self.ForceDecay()
                 Player.MessageFrom("Wiper", "Force Decay Finished.")
+        elif cmd == "wipewl":
+            if Player.Admin or self.isMod(id):
+                if len(args) == 0 or len(args) > 1:
+                    Player.MessageFrom("Wiper", "Usage: /wipewl playerid")
+                    return
+                if not args[0].isdigit():
+                    Player.MessageFrom("Wiper", "The id is only made of numbers")
+                    return
+                ini = self.WhiteList()
+                if ini.GetSetting("WhiteList", args[0]) is not None:
+                    Player.MessageFrom("Wiper", "Already exists!")
+                    return
+                ini.AddSetting("WhiteList", args[0], "1")
+                ini.Save()
+                Player.MessageFrom("Wiper", "Added!")
