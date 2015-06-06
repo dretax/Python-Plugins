@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.6'
+__version__ = '2.2.7'
 
 import clr
 
@@ -61,17 +61,21 @@ class DeathMSG:
     AnimalDeath = None
     Beartrap = None
     Bow = None
+    BeancanGrenade = None
     Bite = None
     Bullet = None
     Blunt = None
     Bleeding = None
     Cold = None
+    ColdExposure = None
     Drowned = None
     Fall = None
+    FloorSpikes = None
     Generic = None
     Heat = None
     Hunger = None
     Radiation = None
+    RadiationExposure = None
     Thirst = None
     Suicide = None
     Stab = None
@@ -142,6 +146,7 @@ class DeathMSG:
             loc.AddSetting("Messages", "Animal", "COLOR#aaff55 victim was COLOR#55aaff killed by a COLOR#ff55aa killer")
             loc.AddSetting("Messages", "AnimalDeath", "killer killed animal using weapon")
             loc.AddSetting("Messages", "Beartrap", "victim ran into bear trap")
+            loc.AddSetting("Messages", "BeancanGrenade", "victim ate the wrong can")
             loc.AddSetting("Messages", "Bite", "victim was Bitten to Death")
             loc.AddSetting("Messages", "Bow",
                            "killer shot victim in bodypart, from dist m, with: weapon & caused: dmg Damage")
@@ -151,12 +156,15 @@ class DeathMSG:
                            "killer hit victim in bodypart using weapon from dist m. Damage: dmg")
             loc.AddSetting("Messages", "Bleeding", "victim bled out.")
             loc.AddSetting("Messages", "Cold", "victim Caught Cold, and died.")
+            loc.AddSetting("Messages", "ColdExposure", "victim died from cold exposure")
             loc.AddSetting("Messages", "Drowned", "victim Drowned")
             loc.AddSetting("Messages", "Fall", "victim died because he fell off from something")
+            loc.AddSetting("Messages", "FloorSpikes", "victim forgot that the floor isn't made of flowers")
             loc.AddSetting("Messages", "Generic", "victim suicided....")
             loc.AddSetting("Messages", "Heat", "victim died from heat")
             loc.AddSetting("Messages", "Hunger", "victim died from starvation")
             loc.AddSetting("Messages", "Radiation", "victim died from radiation")
+            loc.AddSetting("Messages", "RadiationExposure", "victim died from radiation exposure")
             loc.AddSetting("Messages", "Thirst", "victim died from dehydration")
             loc.AddSetting("Messages", "Stab", "killer hit victim in bodypart using weapon. Damage: dmg")
             loc.AddSetting("Messages", "Poison", "victim got poisoned.")
@@ -229,15 +237,17 @@ class DeathMSG:
     Misc = {
         'autospawn/animals/bear': 'Bear',
         'autospawn/animals/wolf': 'Wolf',
-        'campfire_deployed(Clone)': 'Fire',
-        'beartrap(Clone)': 'BearTrap',
-        'timed.explosive.deployed(Clone)': 'C4',
+        'items/campfire_deployed': 'Fire',
+        'items/beartrap': 'BearTrap',
         'items/barricades/barricade.wood': 'Wood Barricade',
-        'rocket_basic(Clone)': 'Rocket',
         'items/barricades/barricade.metal': 'Metal Barricade',
         'items/barricades/barricade.woodwire': 'Wired Wood Barricade',
-        'grenade.f1.deployed(Clone)': 'F1 Grenade'
-
+        'items/grenade.f1.deployed': 'F1 Grenade',
+        'items/rocket_basic': 'Rocket',
+        'items/rocket_hv': 'Rocket',
+        'items/floor_spikes': 'Floor Spikes',
+        'items/items/grenade.beancan.deployed': 'Beancan Grenade',
+        'items/timed.explosive.deployed': 'C4',
     }
 
     IsAnimal = {
@@ -250,6 +260,10 @@ class DeathMSG:
     }
 
     def On_NPCKilled(self, NPCDeathEvent):
+        if NPCDeathEvent.Attacker is None:
+            return
+        if NPCDeathEvent.Attacker.ToPlayer() is None:
+            return
         #Skully
         if self.AnimalKills:
             Attacker = NPCDeathEvent.Attacker
@@ -313,6 +327,14 @@ class DeathMSG:
                 Server.BroadcastFrom(self.SysName, msg)
             elif atnn == "Wired Wood Barricade":
                 msg = self.WiredWoodBarricade
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Beancan Grenade":
+                msg = self.BeancanGrenade
+                msg = msg.replace("victim", victimname)
+                Server.BroadcastFrom(self.SysName, msg)
+            elif atnn == "Floor Spikes":
+                msg = self.FloorSpikes
                 msg = msg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, msg)
             if self.AnimalKills and attacker.IsNPC():
