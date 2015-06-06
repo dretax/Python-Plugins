@@ -20,7 +20,6 @@ except ImportError:
     Class
 """
 IdsToWipe = []
-WhiteListed = []
 EntityList = {
 
 }
