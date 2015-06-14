@@ -412,7 +412,7 @@ class HungerGames:
                         ini = self.HungerGames()
                         count = len(ini.EnumSection("ChestLocations"))
                         for x in chests:
-                            if "stash" in x.Name.lower() or "box" in x.Name.lower():
+                            if "stash" in x.Name.lower() or "box" in x.name.lower():
                                 if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
                                     c += 1
                                     ini.AddSetting("ChestLocations", str(count + 1), str(x.transform.position.x) + "," +
