@@ -505,6 +505,7 @@ class HungerGames:
                             else:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
                                                      + green + str(leng) + red + " Players are still in-game.")
+                            self.returnInventory(Player)
                         else:
                             Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. ")
                             Player.MessageFrom(sysname, teal + "Use /hg inventory to get your old inventory back.")
