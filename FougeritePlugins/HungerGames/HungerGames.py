@@ -412,10 +412,10 @@ class HungerGames:
                         ini = self.HungerGames()
                         count = len(ini.EnumSection("ChestLocations"))
                         for x in chests:
-                            if "stash" in x.Name.lower() or "box" in x.name.lower():
+                            if "stash" in x.name.lower() or "box" in x.name.lower():
                                 if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
                                     c += 1
-                                    ini.AddSetting("ChestLocations", str(count + 1), str(x.transform.position.x) + "," +
+                                    ini.AddSetting("ChestLocations", str(c), str(x.transform.position.x) + "," +
                                                    str(x.transform.position.y) + "," + str(x.transform.position.z))
                                     ini.Save()
                         Player.MessageFrom(sysname, "Added " + str(c) + " entities.")
@@ -434,7 +434,7 @@ class HungerGames:
                     if Player.Admin or self.isMod(Player.SteamID):
                         if DataStore.ContainsKey("HDoorMode", id):
                             DataStore.Remove("HDoorMode", id)
-                            Player.MessageFrom(sysname, "You quit Door Adding mode.")
+                            Player.MessageFrom(sysname, "You quit Entity Adding mode.")
                         else:
                             DataStore.Add("HDoorMode", id, 1)
                             Player.MessageFrom(sysname, "You are in Entity Adding mode.")
@@ -638,6 +638,8 @@ class HungerGames:
                 inv.ClearAll()
                 ini2 = self.DefaultItems()
                 times = random.randint(self.MTimes, self.times)
+                if "stash" in chest.Name.lower():
+                    times = random.randint(1, 3)
                 for i in xrange(0, times):
                     if "large" in chest.Name.lower():
                         slot = random.randint(1, 35)
