@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -405,6 +405,20 @@ class HungerGames:
                         Player.MessageFrom(sysname, "All chests cleaned!")
                     else:
                         Player.MessageFrom(sysname, "Can't clean right now.")
+                elif arg == "addchests":
+                    if self.Middle is not None:
+                        chests = UnityEngine.Object.FindObjectsOfType(self.dp)
+                        c = 0
+                        ini = self.HungerGames()
+                        count = len(ini.EnumSection("ChestLocations"))
+                        for x in chests:
+                            if "stash" in x.Name.lower() or "box" in x.Name.lower():
+                                if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
+                                    c += 1
+                                    ini.AddSetting("ChestLocations", str(count + 1), str(x.transform.position.x) + "," +
+                                                   str(x.transform.position.y) + "," + str(x.transform.position.z))
+                                    ini.Save()
+                        Player.MessageFrom(sysname, "Added " + str(c) + " entities.")
                 elif arg == "middle":
                     if Player.Admin or self.isMod(Player.SteamID):
                         ini = self.HungerGames()
@@ -536,7 +550,7 @@ class HungerGames:
                         c = 0
                         for entity in World.Entities:
                             if "spike" in entity.Name.lower() or "box" in entity.Name.lower():
-                                if Util.GetVectorsDistance(self.Middle, entity.Location) < CDist:
+                                if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
                                     entity.SetDecayEnabled(False)
                                     c += 1
                         Player.Message("Decay is disabled on " + str(c) + " objects.")
@@ -562,6 +576,8 @@ class HungerGames:
                 walls.append(Entity(wall))
                 return
         Server.BroadcastFrom(sysname, red + " Warning. Failed to find a wall at spawn point.")
+        Server.BroadcastFrom(sysname, red + " Location: " + str(location))
+        Plugin.Log("MissingWall", str(location))
 
     def FindChest(self, location):
         for chest in self.chests:
@@ -570,6 +586,8 @@ class HungerGames:
                 loot.append(Entity(chest))
                 return
         Server.BroadcastFrom(sysname, red + " Warning. Failed to find a chest at spawn point.")
+        Server.BroadcastFrom(sysname, red + " Location: " + str(location))
+        Plugin.Log("MissingChest", str(location))
 
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
@@ -621,10 +639,12 @@ class HungerGames:
                 ini2 = self.DefaultItems()
                 times = random.randint(self.MTimes, self.times)
                 for i in xrange(0, times):
-                    if "large" not in chest.Name.lower():
-                        slot = random.randint(1, 11)
-                    else:
+                    if "large" in chest.Name.lower():
                         slot = random.randint(1, 35)
+                    elif "stash" in chest.Name.lower():
+                        slot = random.randint(1, 3)
+                    else:
+                        slot = random.randint(1, 11)
                     itemr = random.randint(1, self.item)
                     countr = 1
                     gitem = ini2.GetSetting("RandomItems", str(itemr))
@@ -658,6 +678,7 @@ class HungerGames:
             Plugin.CreateTimer("StartingIn", secs * 1000).Start()
             Server.BroadcastFrom(sysname, green + "HungerGames is starting in " + blue + str(secs) +
                                  green + " seconds!")
+            Server.BroadcastFrom(sysname, red + "TEAMWORK IS NOT ALLOWED.")
 
     def ForceCallback(self, timer):
         timer.Kill()
@@ -807,11 +828,11 @@ class HungerGames:
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
-            gun = HurtEvent.WeaponName
-            if gun == "Shotgun":
-                return
             if HurtEvent.Attacker in self.Players:
                 HurtEvent.DamageAmount = float(0)
+                return
+            gun = HurtEvent.WeaponName
+            if gun == "Shotgun":
                 return
             if DataStore.ContainsKey("HDoorMode", id):
                 if HurtEvent.Entity.Name == "WoodWall":
