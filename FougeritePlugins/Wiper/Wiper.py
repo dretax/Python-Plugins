@@ -209,7 +209,7 @@ class Wiper:
         c = 0
         id2 = long(id)
         for ent in World.Entities:
-            if long(ent.OwnerID) == long(id2):
+            if long(ent.OwnerID) == id2:
                 ent.Destroy()
                 c += 1
         return c
