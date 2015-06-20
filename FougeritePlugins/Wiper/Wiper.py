@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.5'
+__version__ = '1.3.6'
 
 import clr
 
@@ -19,12 +19,10 @@ except ImportError:
 """
     Class
 """
+
 IdsToWipe = []
+
 EntityList = {
-
-}
-
-UserObj = {
 
 }
 
@@ -35,6 +33,8 @@ class Wiper:
     Path = None
     Cooldown = None
     Broadcast = None
+    Deployable = None
+    Structure = None
 
     def On_PluginInit(self):
         ini = self.GetIni()
@@ -45,35 +45,19 @@ class Wiper:
         self.Broadcast = self.bool(ini.GetSetting("Settings", "Broadcast"))
         self.DecayTimer = int(num) * 60000
         self.WipeTimer = int(num2) * 60000
-        today = datetime.date.today()
         if self.bool(ini.GetSetting("Settings", "UseDecay")):
             self.Assign()
             Plugin.CreateTimer("Decay", self.DecayTimer).Start()
         if not "REMOVETHISCAPSLOCKEDWORD" in self.Path:
-            for id in os.listdir(path + self.Path):
-                if int(id) == 0:
-                    continue
-                if ini.GetSetting("Objects", id) is None:
-                    ini.AddSetting("Objects", id, str(today))
-        if self.bool(ini.GetSetting("Settings", "UseDayLimit")):
-            #n = self.LaunchCheck()
-            #Plugin.Log("Log", "Wiped: " + str(n))
-            self.CollectIDs()
-            Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
-        ini.Save()
+            if self.bool(ini.GetSetting("Settings", "UseDayLimit")):
+                self.CollectIDs()
+                Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
 
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
             return True
         return False
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
 
     def bool(self, s):
         if s.lower() == 'true':
@@ -146,13 +130,7 @@ class Wiper:
         return String
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.SteamID
         today = datetime.date.today()
         ini = self.GetIni()
         if ini.GetSetting("Objects", id) is None:
@@ -163,9 +141,7 @@ class Wiper:
             ini.Save()
 
     def On_PlayerDisconnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            return
+        id = Player.SteamID
         today = datetime.date.today()
         ini = self.GetIni()
         ini.SetSetting("Objects", id, str(today))
@@ -180,43 +156,31 @@ class Wiper:
         ini = self.GetIni()
         today = datetime.date.today()
         for id in idlist:
-            if ini.GetSetting("Objects", id) is None:
+            if not ini.ContainsSetting("Objects", id):
+                if long(id) == 0:
+                    continue
                 ini.AddSetting("Objects", id, str(today))
-                ini.Save()
+        ini.Save()
 
 
     def LaunchCheck(self):
         ini = self.GetIni()
         wl = self.WhiteList()
         enum = ini.EnumSection("Objects")
-        c = 0
         today = datetime.date.today()
         for id in enum:
-            if wl.GetSetting("WhiteList", id) is not None:
+            if wl.ContainsSetting("WhiteList", id):
                 continue
             v = str(ini.GetSetting("Objects", id)).split('-')
-            lastseen = datetime.datetime(int(v[0]), int(self.Replace(v[1])), int(self.Replace(v[02])))
-            count = str(today - lastseen)
-            if "day" not in count:
+            lastseen = datetime.date(int(v[0]), int(self.Replace(v[1])), int(self.Replace(v[02])))
+            count = str(today - lastseen).split(' ')
+            if "00:00" in count[0]:
                 continue
-            count = count.split(',')
-            # Yeah, this is sucky don't even ask.
-            count = str(count[0])
-            if ' days' in count:
-                count = count.replace(' days', '')
-            if ' day' in count:
-                count = count.replace(' day', '')
-            if 'days' in count:
-                count = count.replace('days', '')
-            if 'day' in count:
-                count = count.replace('day', '')
-            if int(count) > self.Cooldown:
+            count2 = int(count[0])
+            if count2 > self.Cooldown:
                 IdsToWipe.append(long(id))
         mc = 0
         for x in IdsToWipe:
-            c = self.WipeByID(x)
-            mc += c
-            UserObj[x] = c
             pathtodir = path + self.Path + str(x)
             if os.path.exists(pathtodir):
                 idlist = os.listdir(pathtodir)
@@ -224,13 +188,14 @@ class Wiper:
                     os.remove(path + self.Path + str(x) + "\\" + file)
                 os.rmdir(path + self.Path + str(x))
             ini.DeleteSetting("Objects", str(x))
-            if x in UserObj.keys():
-                Plugin.Log("WipedIds", str(x) + " Objects: " + str(UserObj[x]))
-        Plugin.Log("WipedIds", "Total Objects: " + str(mc))
-        UserObj.clear()
         ini.Save()
+        for ent in World.Entities:
+            if long(ent.OwnerID) in IdsToWipe:
+                ent.Destroy()
+                mc += 1
+        Plugin.Log("WipedIds", "Total Objects: " + str(mc))
         del IdsToWipe[:]
-        return c
+        return mc
 
     def ForceDecay(self):
         for Entity in World.Entities:
@@ -242,8 +207,9 @@ class Wiper:
 
     def WipeByID(self, id):
         c = 0
+        id2 = long(id)
         for ent in World.Entities:
-            if long(ent.OwnerID) == long(id):
+            if long(ent.OwnerID) == long(id2):
                 ent.Destroy()
                 c += 1
         return c
