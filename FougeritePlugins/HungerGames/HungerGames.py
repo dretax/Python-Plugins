@@ -68,6 +68,7 @@ Rewards = {
 class HungerGames:
     # Values
     IsActive = False
+    IsStarting = False
     HasStarted = False
     dp = None
     st = None
@@ -121,6 +122,11 @@ class HungerGames:
         if ini.GetSetting("Middle", "1") is not None:
             n = self.Replace(ini.GetSetting("Middle", "1"))
             self.Middle = Util.CreateVector(float(n[0]), float(n[1]), float(n[2]))
+            for entity in World.Entities:
+                if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
+                    or "stash" in entity.Name.lower():
+                    if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
+                        entity.SetDecayEnabled(False)
         if ini.GetSetting("AdminSpot", "1") is not None:
             l = self.Replace(ini.GetSetting("AdminSpot", "1"))
             self.AdminSpot = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
@@ -550,7 +556,8 @@ class HungerGames:
                             return
                         c = 0
                         for entity in World.Entities:
-                            if "spike" in entity.Name.lower() or "box" in entity.Name.lower():
+                            if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
+                                    or "stash" in entity.Name.lower():
                                 if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
                                     entity.SetDecayEnabled(False)
                                     c += 1
@@ -597,8 +604,6 @@ class HungerGames:
             Server.BroadcastFrom(sysname, red + "A player has joined while hungergames loaded. (Free Slot)")
             Server.BroadcastFrom(sysname, red + "Current Players: " + str(len(self.Players)))
             return
-        if Plugin.GetTimer("Force") is not None:
-            Plugin.KillTimer("Force")
         leng = len(self.Players)
         if leng < maxp and not ForceStart:
             Server.BroadcastFrom(sysname, red + "----------------------------"
@@ -609,6 +614,10 @@ class HungerGames:
             #  Server.BroadcastFrom(sysname, green + "Pack your items at home just in-case!")
             #  Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
         else:
+            if Plugin.GetTimer("Force") is not None:
+                Plugin.KillTimer("Force")
+            if self.IsStarting:
+                return
             Server.BroadcastFrom(sysname, red + "----------------------------"
                                                 "HUNGERGAMES--------------------------------")
             if ForceStart:
@@ -682,6 +691,7 @@ class HungerGames:
             Server.BroadcastFrom(sysname, green + "HungerGames is starting in " + blue + str(secs) +
                                  green + " seconds!")
             Server.BroadcastFrom(sysname, red + "TEAMWORK IS NOT ALLOWED.")
+            self.IsStarting = True
 
     def ForceCallback(self, timer):
         timer.Kill()
@@ -712,6 +722,7 @@ class HungerGames:
     def Reset(self):
         self.HasStarted = False
         self.IsActive = False
+        self.IsStarting = False
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
         if Plugin.GetTimer("StartingIn") is not None:
