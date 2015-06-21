@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -122,11 +122,10 @@ class HungerGames:
         if ini.GetSetting("Middle", "1") is not None:
             n = self.Replace(ini.GetSetting("Middle", "1"))
             self.Middle = Util.CreateVector(float(n[0]), float(n[1]), float(n[2]))
-            for entity in World.Entities:
-                if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
-                    or "stash" in entity.Name.lower():
-                    if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
-                        entity.SetDecayEnabled(False)
+            try:
+                self.DecayMaxHP()
+            except:
+                pass
         if ini.GetSetting("AdminSpot", "1") is not None:
             l = self.Replace(ini.GetSetting("AdminSpot", "1"))
             self.AdminSpot = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
@@ -188,6 +187,20 @@ class HungerGames:
             ini = Plugin.CreateIni("Store")
             ini.Save()
         return Plugin.GetIni("Store")
+
+    def DecayMaxHP(self):
+        c = 0
+        for entity in World.Entities:
+            if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
+                or "stash" in entity.Name.lower():
+                if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
+                    entity.SetDecayEnabled(False)
+                    try:
+                        entity.Health = entity.MaxHealth
+                    except:
+                        pass
+                    c += 1
+        return c
 
     def Freezer(self, Player, num, msg=True):
         if not Freeze:
@@ -416,7 +429,6 @@ class HungerGames:
                         chests = UnityEngine.Object.FindObjectsOfType(self.dp)
                         c = 0
                         ini = self.HungerGames()
-                        count = len(ini.EnumSection("ChestLocations"))
                         for x in chests:
                             if "stash" in x.name.lower() or "box" in x.name.lower():
                                 if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
@@ -554,13 +566,10 @@ class HungerGames:
                         if self.Middle is None:
                             Player.MessageFrom(sysname, "Middle of HungerGames is not set!")
                             return
-                        c = 0
-                        for entity in World.Entities:
-                            if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
-                                    or "stash" in entity.Name.lower():
-                                if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
-                                    entity.SetDecayEnabled(False)
-                                    c += 1
+                        try:
+                            c = self.DecayMaxHP()
+                        except:
+                            return
                         Player.Message("Decay is disabled on " + str(c) + " objects.")
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False):
@@ -623,6 +632,10 @@ class HungerGames:
             if ForceStart:
                 Server.BroadcastFrom(sysname, green + "HungerGames force started!")
             Server.BroadcastFrom(sysname, green + "Loading.........")
+            try:
+                self.DecayMaxHP()
+            except:
+                pass
             ini = self.HungerGames()
             self.FirstLocation = ini.GetSetting("SpawnLocations", "1")
             l = self.Replace(self.FirstLocation)
@@ -843,6 +856,7 @@ class HungerGames:
             if id is None:
                 return
             if HurtEvent.Attacker in self.Players:
+                HurtEvent.Entity.Health = HurtEvent.Entity.MaxHealth
                 HurtEvent.DamageAmount = float(0)
                 return
             gun = HurtEvent.WeaponName
