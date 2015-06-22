@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -20,12 +20,6 @@ class AdminTools:
         DataStore.Flush("OwnerMode")
         DataStore.Flush("DecayOff")
         Util.ConsoleLog("AdminTools by " + __author__ + " Version: " + __version__ + " loaded.", False)
-
-    def Players(self):
-        if not Plugin.IniExists("Players"):
-            ini = Plugin.CreateIni("Players")
-            ini.Save()
-        return Plugin.GetIni("Players")
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -56,15 +50,8 @@ class AdminTools:
 
     def On_PlayerConnected(self, Player):
         id = Player.SteamID
-        ini = self.Players()
         name = Player.Name
         ip = str(Player.IP)
-        if ini.GetSetting("Track", id) is not None:
-            ini.SetSetting("Track", id, name)
-            ini.Save()
-        else:
-            ini.AddSetting("Track", id, name)
-            ini.Save()
         Plugin.Log("LastJoin", str(name) + "|" + id + "|" + ip)
 
     def On_PlayerDisconnected(self, Player):
@@ -73,11 +60,32 @@ class AdminTools:
         location = str(Player.Location)
         Plugin.Log("LastQuit", str(name) + "|" + id + "|" + location)
 
+    def On_ItemRemoved(self, InventoryModEvent):
+        if InventoryModEvent.Player is not None:
+            en = InventoryModEvent.Inventory.name
+            if "woodbox" in en.lower() or "stash" in en.lower():
+                n = InventoryModEvent.Player.Name
+                d = InventoryModEvent.Player.SteamID
+                loc = str(InventoryModEvent.Player.Location)
+                el = str(InventoryModEvent.Inventory.transform.position)
+                inn = InventoryModEvent.InventoryItem.datablock.name
+                q = str(InventoryModEvent.InventoryItem.uses)
+                Plugin.Log("InventoryRemove", "New: " + n + "|" + d + "|" + en + "| C: " + el + "| P: " + loc)
+                Plugin.Log("InventoryRemove", inn + " " + q)
+
     def On_PlayerHurt(self, HurtEvent):
+        if HurtEvent.Attacker is None or HurtEvent.Victim is None:
+            return
         if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.Sleeper:
-            ini = self.Players()
-            n = ini.GetSetting("Track", HurtEvent.Attacker.SteamID)
-            n2 = ini.GetSetting("Track", HurtEvent.Victim.OwnerID)
+            if not Server.HasRustPP:
+                return
+            dict = Server.GetRustPPAPI().Cache
+            n = dict[long(HurtEvent.Attacker.SteamID)]
+            n2 = dict[long(HurtEvent.Victim.SteamID)]
+            if n is None:
+                n = "Unknown"
+            if n2 is None:
+                n2 = "Unknown"
             Plugin.Log("SleeperLog", "Attacker: " + n + " | " + HurtEvent.Attacker.SteamID + " | " +
                        str(HurtEvent.Attacker.Location) + " Vic: " + HurtEvent.Victim.OwnerID + " | " + n2)
 
@@ -136,16 +144,16 @@ class AdminTools:
             if id is None:
                 return
             #  Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
-            OwnerID = self.GetIt(HurtEvent.Entity)
-            if OwnerID is None:
-                return
+            OwnerID = HurtEvent.Entity.OwnerID
             if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
                 gun = HurtEvent.WeaponName
                 if gun == "Shotgun":
                     return
                 HurtEvent.DamageAmount = 0
-                OwnerID = HurtEvent.Entity.OwnerID
-                name = self.Players().GetSetting("Track", OwnerID)
+                if not Server.HasRustPP:
+                    return
+                dict = Server.GetRustPPAPI().Cache
+                name = dict[long(OwnerID)]
                 if name is not None:
                     HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
                 else:
