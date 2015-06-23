@@ -26,7 +26,7 @@ class ResourceSpawner:
                 numb = str(args[1])
                 if numb.isnumeric():
                     num = int(numb)
-                resource = args[0]
+                resource = args[0].lower()
             else:
                 resource = str.join(' ', args).lower()
             loc = Util.Infront(Player, 10)
