@@ -15,14 +15,9 @@ from UnityEngine import Vector3
 
 class ResourceSpawner:
 
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
-            return True
-        return False
-
     def On_Command(self, Player, cmd, args):
         if cmd == "spawn":
-            if not Player.Admin and not self.isMod(Player.SteamID):
+            if not Player.Admin and not Player.Moderator:
                 Player.Message("You are not allowed to use this command!")
                 return
 
