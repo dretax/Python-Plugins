@@ -102,7 +102,7 @@ class ResourceSpawner:
             elif resource == "medicalbox":
                 World.Spawn("MedicalLootBox", loc, num)
                 Player.Notice("\u2327", "Medical Box has been spawned!", 3)
-            elif resource == "lootbox".lower():
+            elif resource == "lootbox":
                 World.Spawn("BoxLoot", loc, num)
                 Player.Notice("\u2327", "Loot Box has been spawned!", 3)
             elif resource == "weaponbox":
