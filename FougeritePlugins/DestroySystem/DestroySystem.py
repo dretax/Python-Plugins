@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6'
+__version__ = '1.7'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -10,15 +10,58 @@ import System
     Class
 """
 
+EntityList = {
+
+}
+
 class DestroySystem:
     """
         Methods
     """
 
+    giveback = None
+
     def On_PluginInit(self):
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
-        self.DestroySys()
+        ini = self.DestroySys()
+        self.giveback = int(ini.GetSetting("options", "giveback"))
         DataStore.Flush("DestroySystem")
+        DataStore.Flush("DestroySystem2")
+        EntityList['WoodFoundation'] = "Wood Foundation"
+        EntityList['WoodDoorFrame'] = "Wood Doorway"
+        EntityList['WoodDoor'] = "Wood Door"
+        EntityList['WoodPillar'] = "Wood Pillar"
+        EntityList['WoodWall'] = "Wood Wall"
+        EntityList['WoodCeiling'] = "Wood Ceiling"
+        EntityList['WoodWindowFrame'] = "Wood Window"
+        EntityList['WoodStairs'] = "Wood Stairs"
+        EntityList['WoodRamp'] = "Wood Ramp"
+        EntityList['WoodSpikeWall'] = "Wood Spike Wall"
+        EntityList['LargeWoodSpikeWall'] = "Large Wood Spike Wall"
+        EntityList['WoodBox'] = "Wood Storage Box"
+        EntityList['WoodBoxLarge'] = "Large Wood Storage"
+        EntityList['WoodGate'] = "Wood Gate"
+        EntityList['WoodGateway'] = "Wood Gateway"
+        EntityList['WoodenDoor'] = "Wood Door"
+        EntityList['Wood_Shelter'] = "Wood Shelter"
+        EntityList['MetalWall'] = "Metal Wall"
+        EntityList['MetalCeiling'] = "Metal Ceiling"
+        EntityList['MetalDoorFrame'] = "Metal Doorway"
+        EntityList['MetalPillar'] = "Metal Pillar"
+        EntityList['MetalFoundation'] = "Metal Foundation"
+        EntityList['MetalStairs'] = "Metal Stairs"
+        EntityList['MetalRamp'] = "Metal Ramp"
+        EntityList['MetalWindowFrame'] = "Metal Window"
+        EntityList['MetalDoor'] = "Metal Door"
+        EntityList['MetalBarsWindow'] = "Metal Window Bars"
+        EntityList['SmallStash'] = "Small Stash"
+        EntityList['Campfire'] = "Camp fire"
+        EntityList['Furnace'] = "Furnace"
+        EntityList['Workbench'] = "Workbench"
+        EntityList['Barricade_Fence_Deployable'] = "Wood Barricade"
+        EntityList['RepairBench'] = "Repair Bench"
+        EntityList['SleepingBagA'] = "Sleeping Bag"
+        EntityList['SingleBed'] = "Bed"
 
     """
         CheckV method based on Spock's method.
@@ -118,7 +161,7 @@ class DestroySystem:
         ini = self.Foundation()
         if cmd == "destroy" or cmd == "crush" or cmd == "c":
             if not DataStore.ContainsKey("DestroySystem", Player.SteamID):
-                DataStore.Add("DestroySystem", Player.SteamID, "True")
+                DataStore.Add("DestroySystem", Player.SteamID, True)
                 Player.Message("---DestroySystem---")
                 Player.Message("You are in Destroy mode")
                 Player.Message("If you finished, don't forget to quit from It!")
@@ -128,14 +171,14 @@ class DestroySystem:
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy mode!")
         elif cmd == "destroyall":
-            if not DataStore.ContainsKey("DestroySystem", Player.SteamID):
-                DataStore.Add("DestroySystem", Player.SteamID, 1)
+            if not DataStore.ContainsKey("DestroySystem2", Player.SteamID):
+                DataStore.Add("DestroySystem2", Player.SteamID, True)
                 Player.Message("---DestroySystem---")
                 Player.Message("You are in Destroy ALL mode")
                 Player.Message("If you finished, don't forget to quit from It!")
-                Player.Message("Shotgun cannot be used in destroy mode!")
+                Player.Message("Shotgun cannot be used in Destroy ALL mode!")
             else:
-                DataStore.Remove("DestroySystem", Player.SteamID)
+                DataStore.Remove("DestroySystem2", Player.SteamID)
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy ALL mode!")
         elif cmd == "sharefoundation":
@@ -177,22 +220,20 @@ class DestroySystem:
             gun = HurtEvent.WeaponName
             if gun == "Shotgun":
                 return
-            get = DataStore.Get("DestroySystem", id)
             OwnerID = self.GetIt(HurtEvent.Entity)
             if OwnerID is None:
                 return
-            if (long(id) == long(OwnerID) or self.IsFriend(OwnerID, id)) and bool(get):
-                ini = self.DestroySys()
-                giveback = int(ini.GetSetting("options", "giveback"))
-                if get == "True":
+            if (long(id) == long(OwnerID) or self.IsFriend(OwnerID, id)):
+                EntityName = HurtEvent.Entity.Name
+                if DataStore.ContainsKey("DestroySystem", id):
                     if self.IsEligible(HurtEvent):
-                        EntityName = HurtEvent.Entity.Name
                         HurtEvent.Entity.Destroy()
-                        if giveback == 1:
-                            HurtEvent.Attacker.Inventory.AddItem(EntityName)
-                elif get == 1:
+                        if self.giveback == 1:
+                            HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
+                elif DataStore.ContainsKey("DestroySystem2", id):
                     structs = HurtEvent.Entity.GetLinkedStructs()
                     for ent in structs:
-                        if giveback == 1:
-                            HurtEvent.Attacker.Inventory.AddItem(HurtEvent.Entity.Name)
+                        if self.giveback == 1:
+                            HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
                         ent.Destroy()
+                    HurtEvent.Entity.Destroy()
