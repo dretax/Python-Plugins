@@ -1,8 +1,8 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
+
 import clr
 import math
-
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import System
@@ -18,17 +18,15 @@ class FPSBoost:
         Methods
     """
 
+    name = None
+    scooldown = None
+
     def On_PluginInit(self):
         Util.ConsoleLog("FPSBOOSTER by " + __author__ + " Version: " + __version__ + " loaded.", False)
         DataStore.Flush("FPSBoost")
-        self.FPSINI()
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
+        ini = self.FPSINI()
+        self.name = ini.GetSetting("Settings", "name")
+        self.cooldown = int(ini.GetSetting("Settings", "cd"))
 
     def FPSINI(self):
         if not Plugin.IniExists("FPSBoost"):
@@ -39,8 +37,6 @@ class FPSBoost:
         return Plugin.GetIni("FPSBoost")
 
     def SendGraph(self, Player):
-        ini = self.FPSINI()
-        name = str(ini.GetSetting("Settings", "name"))
         Player.SendCommand("grass.on true")
         Player.SendCommand("grass.forceredraw true")
         Player.SendCommand("grass.displacement false")
@@ -57,12 +53,10 @@ class FPSBoost:
         Player.SendCommand("gfx.tonemap true")
         Player.SendCommand("gfx.ssaa true")
         Player.SendCommand("gfx.bloom true")
-        Player.MessageFrom(name, "You Switched to Graphics Mode!")
+        Player.MessageFrom(self.name, "You Switched to Graphics Mode!")
 
 
     def SendFPS(self, Player):
-        ini = self.FPSINI()
-        name = str(ini.GetSetting("Settings", "name"))
         Player.SendCommand("grass.on false")
         Player.SendCommand("grass.forceredraw False")
         Player.SendCommand("grass.displacement True")
@@ -79,7 +73,7 @@ class FPSBoost:
         Player.SendCommand("gfx.ssaa False")
         Player.SendCommand("gfx.bloom False")
         Player.SendCommand("gfx.tonemap False")
-        Player.MessageFrom(name, "You Switched to FPS Mode!")
+        Player.MessageFrom(self.name, "You Switched to FPS Mode!")
 
     def On_Command(self, Player, cmd, args):
         if cmd == "fps":
@@ -87,23 +81,20 @@ class FPSBoost:
             if time is None:
                 DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                 time = 7
-            ini = self.FPSINI()
-            cooldown = int(ini.GetSetting("Settings", "cd"))
-            name = str(ini.GetSetting("Settings", "name"))
-            if cooldown > 0:
+            if self.cooldown > 0:
                 calc = System.Environment.TickCount - time
                 if calc < 0 or math.isnan(calc):
                     DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                     time = 7
 
-                if calc >= cooldown or time == 7:
+                if calc >= self.cooldown or time == 7:
                     DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                     self.SendFPS(Player)
                 else:
                     Player.Notice("You have to wait before typing it again!")
                     next = (calc / 1000) / 60
-                    last = (cooldown / 1000) / 60
-                    Player.MessageFrom(name, "Time Remaining: " + str(round(next, 2)) + "/" + str(round(last, 2)))
+                    last = (self.cooldown / 1000) / 60
+                    Player.MessageFrom(self.name, "Time Remaining: " + str(round(next, 2)) + "/" + str(round(last, 2)))
             else:
                 self.SendFPS(Player)
         elif cmd == "graph":
@@ -111,33 +102,23 @@ class FPSBoost:
             if time is None:
                 DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                 time = 7
-            ini = self.FPSINI()
-            cooldown = int(ini.GetSetting("Settings", "cd"))
-            name = str(ini.GetSetting("Settings", "name"))
-            if cooldown > 0:
+            if self.cooldown > 0:
                 calc = System.Environment.TickCount - time
                 if calc < 0 or math.isnan(calc):
                     DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                     time = 7
-                if calc >= cooldown or time == 7:
+                if calc >= self.cooldown or time == 7:
                     DataStore.Add("FPSBoost", Player.SteamID, System.Environment.TickCount)
                     self.SendGraph(Player)
                 else:
                     Player.Notice("You have to wait before typing it again!")
                     next = (calc / 1000) / 60
-                    last = (cooldown / 1000) / 60
-                    Player.MessageFrom(name, "Time Remaining: " + str(round(next, 2)) + "/" + str(round(last, 2)))
+                    last = (self.cooldown / 1000) / 60
+                    Player.MessageFrom(self.name, "Time Remaining: " + str(round(next, 2)) + "/" + str(round(last, 2)))
             else:
                 self.SendGraph(Player)
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
         ini = self.FPSINI()
         name = ini.GetSetting("Settings", "name")
         Player.MessageFrom(name, "Type /fps to increase /graph to decrease your fps.")
