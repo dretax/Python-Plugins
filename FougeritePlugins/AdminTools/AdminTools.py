@@ -21,12 +21,6 @@ class AdminTools:
         DataStore.Flush("DecayOff")
         Util.ConsoleLog("AdminTools by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
-            return True
-        return False
-
-    #  There is an error while converting ownerid to string in C#. Hax it.
     def GetIt(self, Entity):
         try:
             if Entity.IsDeployableObject():
@@ -91,7 +85,7 @@ class AdminTools:
 
     def On_Command(self, Player, cmd, args):
         if cmd == "owner":
-            if Player.Admin or self.isMod(Player.SteamID):
+            if Player.Admin or Player.Moderator:
                 id = Player.SteamID
                 if not DataStore.ContainsKey("OwnerMode", id):
                     Player.Message("---Owner---")
@@ -104,7 +98,7 @@ class AdminTools:
                     Player.Message("---Owner---")
                     Player.Message("You quit Owner mode!")
         elif cmd == "decayoff":
-            if Player.Admin or self.isMod(Player.SteamID):
+            if Player.Admin or Player.Moderator:
                 id = Player.SteamID
                 if not DataStore.ContainsKey("DecayOff", id):
                     Player.Message("---Decay---")
@@ -117,7 +111,7 @@ class AdminTools:
                     Player.Message("---Decay---")
                     Player.Message("You quit Decay mode!")
         elif cmd == "decayoffdeploy":
-            if Player.Admin or self.isMod(Player.SteamID):
+            if Player.Admin or Player.Moderator:
                 loc = Player.Location
                 c = 0
                 for entity in World.Entities:
