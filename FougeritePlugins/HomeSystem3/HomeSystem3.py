@@ -62,11 +62,9 @@ class HomeSystem3:
         DataStore.Flush("HomeSys3Loc")
         Util.ConsoleLog("HomeSystem3 by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
-    def addJob(self, Player, xtime, callbacknumber, location):
+    def addJob(self, Player, xtime):
         List = Plugin.CreateDict()
         List["Player"] = Player
-        List["Call"] = callbacknumber
-        List["house"] = location
         Plugin.CreateParallelTimer("JobTimer", xtime * 1000, List).Start()
 
     def JobTimerCallback(self, timer):
@@ -74,25 +72,23 @@ class HomeSystem3:
         List = timer.Args
         Player = List["Player"]
         id = Player.SteamID
-        callback = List["Call"]
-        if callback == 4:
-            v = DataStore.Get("HomeSys3JCD", id)
-            if v is None:
-                return
-            v = self.Replace(v)
-            ini = self.DefaultLocations()
-            y = float(Player.Y)
-            v = float(v[1])
-            if v - y > 2.4:
-                r = random.randrange(1, self.randomloc)
-                randomloc = ini.GetSetting("DefaultLoc", str(r))
-                tp = self.Replace(randomloc)
-                home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
-                Player.TeleportTo(home)
-                Server.BroadcastFrom(self.sys, Player.Name + red + " tried to fall through a house.")
-                Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " +
-                            Player.IP + " - " + str(Player.Location))
-                DataStore.Remove("HomeSys3JCD", id)
+        v = DataStore.Get("HomeSys3JCD", id)
+        if v is None:
+             return
+        v = self.Replace(v)
+        ini = self.DefaultLocations()
+        y = float(Player.Y)
+        v = float(v[1])
+        if v - y > 2.4:
+            r = random.randrange(1, self.randomloc)
+            randomloc = ini.GetSetting("DefaultLoc", str(r))
+            tp = self.Replace(randomloc)
+            home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
+            Player.TeleportTo(home)
+            Server.BroadcastFrom(self.sys, Player.Name + red + " tried to fall through a house.")
+            Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " +
+                        Player.IP + " - " + str(Player.Location))
+        DataStore.Remove("HomeSys3JCD", id)
 
     def PlayersIni(self):
         if not Plugin.IniExists("Players"):
@@ -402,8 +398,14 @@ class HomeSystem3:
             elif System.Environment.TickCount > jtime + (self.cooldown * 1000):
                 if self.sendhome == 1:
                     self.SendPlayerToHome(id)
+        if self.dizzycheck == 1:
+            DataStore.Add("HomeSys3CheckS", id, 1)
         DataStore.Remove("HomeSys3JCD", id)
 
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        if DataStore.ContainsKey("HomeSys3CheckS", Player.SteamID):
+            DataStore.Remove("HomeSys3CheckS", Player.SteamID)
+            self.addJob(Player, 1)
 
     def On_PlayerDisconnected(self, Player):
         id = Player.SteamID
