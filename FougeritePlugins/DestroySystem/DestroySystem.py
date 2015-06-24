@@ -58,7 +58,7 @@ class DestroySystem:
         EntityList['Campfire'] = "Camp fire"
         EntityList['Furnace'] = "Furnace"
         EntityList['Workbench'] = "Workbench"
-        EntityList['Barricade_Fence_Deployable'] = "Wood Barricade"
+        EntityList['Wood Barricade'] = "Wood Barricade"
         EntityList['RepairBench'] = "Repair Bench"
         EntityList['SleepingBagA'] = "Sleeping Bag"
         EntityList['SingleBed'] = "Bed"
