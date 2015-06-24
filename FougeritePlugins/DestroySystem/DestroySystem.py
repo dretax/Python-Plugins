@@ -213,7 +213,6 @@ class DestroySystem:
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-            #On Entity hurt the attacker is an NPC and a Player for somereason. We will try to grab his ID
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
@@ -223,7 +222,7 @@ class DestroySystem:
             OwnerID = self.GetIt(HurtEvent.Entity)
             if OwnerID is None:
                 return
-            if (long(id) == long(OwnerID) or self.IsFriend(OwnerID, id)):
+            if long(id) == long(OwnerID) or self.IsFriend(OwnerID, id):
                 EntityName = HurtEvent.Entity.Name
                 if DataStore.ContainsKey("DestroySystem", id):
                     if self.IsEligible(HurtEvent):
