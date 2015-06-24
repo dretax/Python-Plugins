@@ -126,16 +126,6 @@ class AdminTools:
                             entity.SetDecayEnabled(False)
                             c += 1
                 Player.Message("Decay is disabled on " + str(c) + " objects.")
-        elif cmd == "closedeployed":
-            if Player.Admin or self.isMod(Player.SteamID):
-                loc = Player.Location
-                for x in World.Entities:
-                    name = str(x.Name)
-                    if not "barricade" in name.lower():
-                        continue
-                    dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
-                    if dist < 3.0:
-                        Player.Message("Found: " + name + " OwnerID: " + x.OwnerID)
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
