@@ -132,7 +132,6 @@ class AdminTools:
             id = self.TrytoGrabID(HurtEvent.Attacker)
             if id is None:
                 return
-            #  Dirty fucking hack against current bug. (Entity OWNERID request isn't working good yet, so hax it)
             OwnerID = HurtEvent.Entity.OwnerID
             if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
                 gun = HurtEvent.WeaponName
