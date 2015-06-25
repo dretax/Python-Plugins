@@ -266,6 +266,7 @@ class Clans:
         for n, v in List.iteritems():
             if v == Value:
                 return n
+        return None
 
     def IsPending(self, id):
         if DataStore.ContainsKey("Clans", id):
@@ -397,13 +398,13 @@ class Clans:
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
                 Player.MessageFrom("[" + clan + "]", motd)
 
-    def On_PlayerHurt(self, HurtEvent):
-        attacker = HurtEvent.Attacker
+    def On_PlayerHurt(self, PlayerHurtEvent):
+        attacker = PlayerHurtEvent.Attacker
         if attacker is None:
             return
         if not attacker.IsPlayer():
             return
-        vid = HurtEvent.Victim.SteamID
+        vid = PlayerHurtEvent.Victim.SteamID
         aid = attacker.SteamID
         if self.HasClan(vid) and self.HasClan(aid):
             ca = self.GetClanOfPlayer(aid)
@@ -413,8 +414,8 @@ class Clans:
                 ff = int(claninfo.GetSetting("ClanInfo" + ca, "FriendlyFire"))
                 if ff == 1:
                     return
-                for x in range(0, len(HurtEvent.DamageAmounts)):
-                    HurtEvent.DamageAmounts[x] = 0
+                for x in range(0, len(PlayerHurtEvent.DamageAmounts)):
+                    PlayerHurtEvent.DamageAmounts[x] = 0
 
     def On_Chat(self, ChatEvent):
         if self.HasClan(ChatEvent.User.SteamID):
