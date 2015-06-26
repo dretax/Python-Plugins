@@ -235,8 +235,6 @@ class DeathMSG:
 
     #Objects and IsAnimals were stolen from Skully
     Misc = {
-        'autospawn/animals/bear': 'Bear',
-        'autospawn/animals/wolf': 'Wolf',
         'items/campfire_deployed': 'Fire',
         'items/beartrap': 'BearTrap',
         'items/barricades/barricade.wood': 'Wood Barricade',
