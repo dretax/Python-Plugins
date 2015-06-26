@@ -53,4 +53,5 @@ class AutoDoorCloser:
         timer.Kill()
         List = timer.Args
         BasicDoor = List["BasicDoor"]
-        self.bd.ToggleStateServer(BasicDoor, self.params)
+        if str(BasicDoor.state) == "Opened: 1":
+            self.bd.ToggleStateServer(BasicDoor, self.params)
