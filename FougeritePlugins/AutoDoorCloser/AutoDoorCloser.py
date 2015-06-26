@@ -12,7 +12,7 @@ import re
 import UnityEngine
 from UnityEngine import *
 import System
-from System import Reflection
+from System import *
 
 """
     Class
@@ -22,96 +22,35 @@ DStable = "DoorCloser"
 class AutoDoorCloser:
 
     bd = None
-    flags = System.Reflection.BindingFlags.InvokeMethod | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
     params = System.Linq.Enumerable.ToArray[System.Object]([None, System.Convert.ToUInt64(Plugin.GetTimestamp()), None])
 
     def On_PluginInit(self):
         self.bd = Util.TryFindReturnType("BasicDoor")
-        if self.bd is None:
-            Plugin.Log("Error", "Couldn't find return type.")
-
-    def Stringify(self, List):
-        s = re.sub("[[\]\'\ ]", '', str(List))
-        return str(s)
-
-    def Parse(self, String):
-        return String.split(',')
-
-    def ReplaceToDot(self, String):
-        str = re.sub('[(\)]', '', String)
-        return str.split(':')
-
-    """
-        Timer Functions
-    """
-
-    def addJob(self, xtime, location):
-        epoch = Plugin.GetTimestamp()
-        exectime = int(epoch) + int(xtime)
-        DataStore.Add(DStable, str(location).replace(',', ':'), exectime)
-        self.startTimer()
-
-    def killJob(self, loc):
-        DataStore.Remove(DStable, loc)
-
-    def startTimer(self):
-        gfjfhg = 2000
-        try:
-            if not Plugin.GetTimer("AutoCloser"):
-                Plugin.CreateTimer("AutoCloser", gfjfhg).Start()
-        except:
-            pass
-
-    def stopTimer(self):
-        timer = Plugin.GetTimer("AutoCloser")
-        if timer is None:
-            return
-        timer.Stop()
-        Plugin.Timers.Remove("AutoCloser")
-
-    def getPlayer(self, d):
-        try:
-            id = str(d)
-            pl = Server.FindPlayer(id)
-            return pl
-        except:
-            return None
-
-    def clearTimers(self):
         DataStore.Flush(DStable)
-        self.stopTimer()
 
-    def Find(self, x, y, z):
-        objects = UnityEngine.Object.FindObjectsOfType(self.bd)
-        loc = Util.CreateVector(x, y, z)
-        for door in objects:
-            Distance = Util.GetVectorsDistance(loc, door.transform.position)
-            if Distance < 1.5:
-                return door
-        return None
+    def On_Command(self, Player, cmd, args):
+        if cmd == "doorcloser":
+            string = str.join(' ', args)
+            if not string.isnumeric():
+                Player.Message("Usage: /doorcloser number")
+                return
+            string = int(string)
+            if 5 <= string <= 30:
+                DataStore.Add(DStable, Player.UID, string)
+            else:
+                Player.Message("Number must be between 5-30")
 
     def On_DoorUse(self, Player, DoorUseEvent):
-        #if DoorUseEvent.Open:
-        loc = Util.CreateVector(float(DoorUseEvent.Entity.X), float(DoorUseEvent.Entity.Y), float(DoorUseEvent.Entity.Z))
-        self.addJob(2, loc)
+        if str(DoorUseEvent.BasicDoor.state) != "Closed: 3":
+            return
+        if DataStore.ContainsKey(DStable, Player.UID):
+            n = DataStore.Get(DStable, Player.UID)
+            List = Plugin.CreateDict()
+            List["BasicDoor"] = DoorUseEvent.BasicDoor
+            Plugin.CreateParallelTimer("AutoCloser", n * 1000, List).Start()
 
-    def AutoCloserCallback(self):
-        epoch = int(Plugin.GetTimestamp())
-        if DataStore.Count(DStable) >= 1:
-            pending = DataStore.Keys(DStable)
-            for location in pending:
-                if DataStore.Get(DStable, location) is None:
-                    DataStore.Remove(DStable, location)
-                    continue
-                time = DataStore.Get(DStable, location)
-                if epoch >= int(time):
-                    self.killJob(location)
-                    xto = self.ReplaceToDot(location)
-                    door = self.Find(float(xto[0]), float(xto[1]), float(xto[2]))
-                    if door is None:
-                        continue
-                    if self.bd is not None:
-                        # Praise baluerino
-                        self.bd.InvokeMember("ToggleStateServer", self.flags, None, door, self.params)
-        else:
-            self.clearTimers()
+    def AutoCloserCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        BasicDoor = List["BasicDoor"]
+        self.bd.ToggleStateServer(BasicDoor, self.params)
