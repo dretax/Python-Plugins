@@ -23,6 +23,42 @@ class HomeSystem:
     def On_PluginInit(self):
         DataStore.Flush("home_cooldown")
         DataStore.Flush("HomeHit")
+        Commands.Register("home")\
+            .setCallback("home")\
+            .setDescription("Home help options")\
+            .setUsage("/home")
+        Commands.Register("sethome")\
+            .setCallback("sethome")\
+            .setDescription("Set your home with name provided.")\
+            .setUsage("/sethome homename")
+        Commands.Register("setdefaulthome")\
+            .setCallback("setdefaulthome")\
+            .setDescription("Sets your default home")\
+            .setUsage("/setdefaulthome name")
+        Commands.Register("delhome")\
+            .setCallback("delhome")\
+            .setDescription("Deletes a home you created")\
+            .setUsage("/delhome homename")
+        Commands.Register("homes")\
+            .setCallback("homes")\
+            .setDescription("Lists all your homes")\
+            .setUsage("/homes")
+        Commands.Register("addfriendh")\
+            .setCallback("addfriendh")\
+            .setDescription("Adds a friend who can set home on your foundation")\
+            .setUsage("/addfriendh playername")
+        Commands.Register("delfriendh")\
+            .setCallback("delfriendh")\
+            .setDescription("Delete a friend from your home")\
+            .setUsage("/delfriendh playername")
+        Commands.Register("listwlh")\
+            .setCallback("listwlh")\
+            .setDescription("Shows who is whitelisted")\
+            .setUsage("/listwlh")
+        Commands.Register("resettime")\
+            .setCallback("resettime")\
+            .setDescription("Resets a players home cooldown")\
+            .setUsage("/resettime playername")
 
     """
         Timer
