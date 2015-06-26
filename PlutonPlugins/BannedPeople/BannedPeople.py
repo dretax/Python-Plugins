@@ -170,7 +170,7 @@ class BannedPeople:
             Player.MessageFrom(self.sysname, "Found " + str(count) + " player with similar name. Use more correct name!")
             return None
 
-    def banip(self, Player, args):
+    def banipCallback(self, Player, args):
         if Player.Admin:
             if len(args) > 0:
                 playerr = self.CheckV(Player, args, 3)
@@ -210,7 +210,7 @@ class BannedPeople:
             else:
                 Player.MessageFrom(self.sysname, "Specify a Name!")
 
-    def unbanip(self, Player, args):
+    def unbanipCallback(self, Player, args):
         if Player.Admin:
             if len(args) > 0:
                 name = self.argsToText(args)
@@ -236,7 +236,7 @@ class BannedPeople:
             else:
                 Player.MessageFrom(self.sysname, "Specify a Name!")
 
-    def banhidename(self, Player, args):
+    def banhidenameCallback(self, Player, args):
         if Player.Admin:
             if len(args) == 0:
                 Player.MessageFrom(self.sysname, "BanIp HideName")
