@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.2'
+__version__ = '1.4.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -244,11 +244,6 @@ class HungerGames:
         str = re.sub('[(\)]', '', String)
         return str.split(',')
 
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
-            return True
-        return False
-
     def TrytoGrabID(self, Player):
         try:
             id = Player.SteamID
@@ -319,7 +314,7 @@ class HungerGames:
             else:
                 arg = args[0]
                 if arg == "announce":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if self.IsActive:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
@@ -342,7 +337,7 @@ class HungerGames:
                     else:
                         Player.Message("You aren't admin!")
                 elif arg == "cleanloot":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if self.Middle is None:
                             Player.MessageFrom(sysname, "Middle of HungerGames is not set!")
                             return
@@ -358,13 +353,13 @@ class HungerGames:
                                         c += 1
                             Player.MessageFrom(sysname, "Cleaned " + str(c) + " lootsacks!")
                 elif arg == "forcestart":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if Plugin.GetTimer("StartingIn") is not None or self.HasStarted:
                             Player.MessageFrom(sysname, red + "Game is already running!")
                             return
                         self.StartGame(True)
                 elif arg == "disable":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if self.HasStarted:
                             if len(self.Players) == 1:
                                 Server.BroadcastFrom\
@@ -400,7 +395,7 @@ class HungerGames:
                     Player.MessageFrom(sysname, "You are against " + str(maxp) + " players. Your aim is to survive.")
                     Player.MessageFrom(sysname, "If you survive you will get rewards!")
                 elif arg == "addspawn":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         ini = self.HungerGames()
                         count = len(ini.EnumSection("SpawnLocations"))
                         if maxp == count:
@@ -438,7 +433,7 @@ class HungerGames:
                                     ini.Save()
                         Player.MessageFrom(sysname, "Added " + str(c) + " entities.")
                 elif arg == "middle":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         ini = self.HungerGames()
                         if ini.GetSetting("Middle", "1") is not None:
                             Player.MessageFrom(sysname, "Middle Re-Set!")
@@ -449,7 +444,7 @@ class HungerGames:
                         self.Middle = Player.Location
                         Player.MessageFrom(sysname, "Set!")
                 elif arg == "entity":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if DataStore.ContainsKey("HDoorMode", id):
                             DataStore.Remove("HDoorMode", id)
                             Player.MessageFrom(sysname, "You quit Entity Adding mode.")
@@ -535,9 +530,12 @@ class HungerGames:
                             Server.BroadcastFrom(sysname, red + "Stopping timer...")
                             Plugin.KillTimer("Force")
                 elif arg == "inventory":
+                    if Player in self.Players:
+                        Player.MessageFrom(sysname, red + "You are in HungerGames, you can't use this!")
+                        return
                     self.returnInventory(Player)
                 elif arg == "adminspot":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         ini = self.HungerGames()
                         if ini.GetSetting("AdminSpot", "1") is not None:
                             Player.MessageFrom(sysname, "AdminSpot Re-Set!")
@@ -548,7 +546,7 @@ class HungerGames:
                         self.AdminSpot = Player.Location
                         Player.MessageFrom(sysname, "Set!")
                 elif arg == "spot":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if self.AdminSpot is not None:
                             Player.TeleportTo(self.AdminSpot)
                             Player.MessageFrom(sysname, "Teleported!")
@@ -562,7 +560,7 @@ class HungerGames:
                     for x in self.Players:
                         Player.MessageFrom(sysname, "- " + x.Name)
                 elif arg == "decay":
-                    if Player.Admin or self.isMod(Player.SteamID):
+                    if Player.Admin or Player.Moderator:
                         if self.Middle is None:
                             Player.MessageFrom(sysname, "Middle of HungerGames is not set!")
                             return
@@ -570,7 +568,41 @@ class HungerGames:
                             c = self.DecayMaxHP()
                         except:
                             return
-                        Player.Message("Decay is disabled on " + str(c) + " objects.")
+                        Player.MessageFrom(sysname,"Decay is disabled on " + str(c) + " objects.")
+                """elif arg == "checkwalls":
+                    if Player.Admin or Player.Moderator:
+                        if self.HasStarted or self.IsStarting:
+                            Player.MessageFrom(sysname, "You can't do this now.")
+                            return
+                        self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
+                        ini = self.HungerGames()
+                        enum3 = ini.EnumSection("WallLocations")
+                        Player.MessageFrom(sysname, "Checking walls, hold on.")
+                        for wall in enum3:
+                            l = ini.GetSetting("WallLocations", wall).split(',')
+                            loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                            self.FindWalls(loc, False)
+                        for wall in walls:
+                            loc = wall.Location
+                            spawnRot = wall.Object.transform.rotation
+                            WallsCache[loc] = spawnRot
+                            try:
+                                wall.Destroy()
+                            except:
+                                pass
+                        i = 0
+                        for loc in WallsCache.keys():
+                            spawnRot = WallsCache.get(loc)
+                            try:
+                                sm = World.CreateSM(Player, loc.x, loc.y, loc.z, spawnRot)
+                                ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
+                                sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
+                                walls[i] = ent
+                            except:
+                                pass
+                            i += 1
+                        del walls[:]
+                        Player.MessageFrom(sysname, "Walls replaced.")"""
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False):
         if Player in self.Players:
@@ -586,15 +618,16 @@ class HungerGames:
                 Player.TeleportTo(loc)
                 DataStore.Remove("HLastLoc", Player.SteamID)
 
-    def FindWalls(self, location):
+    def FindWalls(self, location, msg=True):
         for wall in self.structures:
             Distance = Util.GetVectorsDistance(location, wall.transform.position)
             if Distance < 1.5:
                 walls.append(Entity(wall))
                 return
-        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a wall at spawn point.")
-        Server.BroadcastFrom(sysname, red + " Location: " + str(location))
-        Plugin.Log("MissingWall", str(location))
+        if msg:
+            Server.BroadcastFrom(sysname, red + " Warning. Failed to find a wall at spawn point.")
+            Server.BroadcastFrom(sysname, red + " Location: " + str(location))
+            Plugin.Log("MissingWall", str(location))
 
     def FindChest(self, location):
         for chest in self.chests:
@@ -714,6 +747,7 @@ class HungerGames:
 
     def StartingInCallback(self, timer):
         timer.Kill()
+        Server.BroadcastFrom(sysname, blue + "----------------------------HUNGERGAMES--------------------------------")
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
         for wall in walls:
@@ -798,9 +832,12 @@ class HungerGames:
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
             d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players)
             d2 = HurtEvent.Attacker in self.Players
+            d3 = HurtEvent.Victim in self.Players and HurtEvent.Attacker in self.Players and not self.HasStarted
             if d:
                 HurtEvent.DamageAmount = float(0)
-            if d2 and HurtEvent.Sleeper:
+            elif d2 and HurtEvent.Sleeper:
+                HurtEvent.DamageAmount = float(0)
+            elif d3:
                 HurtEvent.DamageAmount = float(0)
 
     def On_PlayerKilled(self, DeathEvent):
