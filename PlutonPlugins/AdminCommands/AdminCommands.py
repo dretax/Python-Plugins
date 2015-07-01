@@ -292,7 +292,7 @@ class AdminCommands:
         V5.0
     """
 
-    def CheckV(self, Player, args, Mode=1):
+    def CheckV(self, args, Player, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.Join(" ", args), Mode)
@@ -366,7 +366,7 @@ class AdminCommands:
     ##def On_Command(self, cmd):
     ##    Player = cmd.User
     ##    args = cmd.quotedArgs
-    def dutyCallback(self, Player, unused):
+    def duty(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -381,7 +381,7 @@ class AdminCommands:
             if self.LogDuty:
                 Plugin.Log("DutyLog", Player.Name + " on duty.")
 
-    def tptoCallback(self, Player, args):
+    def tpto(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -392,7 +392,7 @@ class AdminCommands:
         if not self.IsonDuty(Player):
             Player.MessageFrom(self.Sysname, "You aren't on duty!")
             return
-        pl = self.CheckV(Player, args, 3)
+        pl = self.CheckV(args, Player, 3)
         if pl is not None:
             if "offlineplayer" in str(pl).lower():
                 loc = Vector3(pl.X, pl.Y, pl.Z)
@@ -400,7 +400,7 @@ class AdminCommands:
             else:
                 self.Teleport(Player, pl.Location)
 
-    def tphereCallback(self, Player, args):
+    def tphere(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -411,11 +411,11 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /tphere name")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             self.Teleport(pl, Player.Location)
 
-    def godCallback(self, Player, unused):
+    def god(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -432,7 +432,7 @@ class AdminCommands:
             Player.basePlayer.InitializeHealth(infinity, infinity)
             Player.MessageFrom(self.Sysname, "God mode on.")
 
-    def adCallback(self, Player, unused):
+    def ad(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -446,7 +446,7 @@ class AdminCommands:
             DataStore.Add("adoor", Player.SteamID, 1)
             Player.MessageFrom(self.Sysname, "Open up, Sesame!")
 
-    def muteCallback(self, Player, args):
+    def mute(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -457,7 +457,7 @@ class AdminCommands:
         if len(args) <= 1:
             Player.MessageFrom(self.Sysname, "Usage: /mute playername minutes")
             return
-        pl = self.CheckV(Player, args[0])
+        pl = self.CheckV(args, Player[0])
         if pl is not None:
             if not args[1].isdigit():
                 Player.MessageFrom(self.Sysname, "Usage: /mute playername minutes")
@@ -470,7 +470,7 @@ class AdminCommands:
                 return
             Player.MessageFrom(self.Sysname, "Mute time must be between 1-60 mins")
 
-    def unmuteCallback(self, Player, args):
+    def unmute(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -481,13 +481,13 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /unmute playername")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             DataStore.Remove("MuteListT", pl.SteamID)
             DataStore.Remove("MuteList", pl.SteamID)
             Player.MessageFrom(self.Sysname, pl.Name + " was unmuted!")
 
-    def instakoCallback(self, Player, unused):
+    def instako(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -501,7 +501,7 @@ class AdminCommands:
             DataStore.Add("Instako", Player.SteamID, True)
             Player.MessageFrom(self.Sysname, "InstaKO On")
 
-    def kickCallback(self, Player, args):
+    def kick(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -512,12 +512,12 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /kick playername")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             Player.MessageFrom(self.Sysname, "Kicked " + pl.Name + "!")
             pl.Kick("Kicked by admin")
 
-    def sayCallback(self, Player, args):
+    def say(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -531,7 +531,7 @@ class AdminCommands:
         text = str.join(' ', args)
         Server.BroadcastFrom("Server", text)
 
-    def clearCallback(self, Player, unused):
+    def clear(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -542,7 +542,7 @@ class AdminCommands:
             x._item.Remove(1)
         Player.MessageFrom(self.Sysname, "Cleared!")
 
-    def repairallCallback(self, Player, unused):
+    def repairall(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -553,7 +553,7 @@ class AdminCommands:
             x._item.RepairCondition(x._item.maxCondition)
         Player.MessageFrom(self.Sysname, "Repaired All!")
 
-    def giveCallback(self, Player, args):
+    def give(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -564,7 +564,7 @@ class AdminCommands:
         if len(args) <= 1:
             Player.MessageFrom(self.Sysname, "Usage: /give playername item amount")
             return
-        pl = self.CheckV(Player, args[0])
+        pl = self.CheckV(args, Player[0])
         if pl is not None:
             num = 1
             if len(args) == 2:
@@ -581,7 +581,7 @@ class AdminCommands:
             item = args[1]
             pl.Inventory.Add(item, num)
 
-    def iCallback(self, Player, args):
+    def i(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -605,7 +605,7 @@ class AdminCommands:
         item = args[0]
         Player.Inventory.Add(item, num)
 
-    def addownerCallback(self, Player, args):
+    def addowner(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Owner:
             Player.MessageFrom(self.Sysname, "You aren't an owner!")
@@ -613,7 +613,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addowner name")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             pl.MakeOwner(Player.Name + " made " + pl.Name + " an owner")
             Player.MessageFrom(self.Sysname, pl.Name + " got owner rights!")
@@ -621,7 +621,7 @@ class AdminCommands:
             return
         Player.MessageFrom(self.Sysname, "Couldn't find player.")
 
-    def addmoderatorCallback(self, Player, args):
+    def addmoderator(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Owner:
             Player.MessageFrom(self.Sysname, "You aren't an owner!")
@@ -629,7 +629,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addmoderator name")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             pl.MakeModerator(Player.Name + " made " + pl.Name + " a moderator")
             Player.MessageFrom(self.Sysname, pl.Name + " got moderator rights!")
@@ -637,7 +637,7 @@ class AdminCommands:
             return
         Player.MessageFrom(self.Sysname, "Couldn't find player.")
 
-    def removerightsCallback(self, Player, args):
+    def removerights(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Owner:
             Player.MessageFrom(self.Sysname, "You aren't an owner!")
@@ -645,7 +645,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /removerights name")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             pl.MakeNone()
             Player.MessageFrom(self.Sysname, "You removed " + pl.Name + "'s rights.")
@@ -653,7 +653,7 @@ class AdminCommands:
             return
         Player.MessageFrom(self.Sysname, "Couldn't find player.")
 
-    def getownerCallback(self, Player, args):
+    def getowner(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if self.ohash is None:
             return
@@ -668,7 +668,7 @@ class AdminCommands:
             return
         Player.MessageFrom(self.Sysname, "That didn't work buddy.")
 
-    def getmoderatorCallback(self, Player, args):
+    def getmoderator(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if self.mhash is None:
             return
@@ -683,7 +683,7 @@ class AdminCommands:
             return
         Player.MessageFrom(self.Sysname, "That didn't work buddy.")
 
-    def settimeCallback(self, Player, args):
+    def settime(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
@@ -697,14 +697,14 @@ class AdminCommands:
         World.Time = int(args[0])
         Player.MessageFrom(self.Sysname, "Time changed to " + text + ". Wait a few seconds....")
 
-    def playersCallback(self, Player, unused):
+    def players(self, Player, unused):
         s = ''
         for pl in Server.ActivePlayers:
             s = s + pl.Name + ', '
         Player.MessageFrom(self.Sysname, "Online Players:")
         Player.MessageFrom(self.Sysname, s)
 
-    def airdroprCallback(self, Player, unused):
+    def airdropr(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -716,7 +716,7 @@ class AdminCommands:
         World.AirDrop()
         Player.MessageFrom(self.Sysname, "Called.")
 
-    def airdropCallback(self, Player, unused):
+    def airdrop(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -728,7 +728,7 @@ class AdminCommands:
         World.AirDropAtPlayer(Player)
         Player.MessageFrom(self.Sysname, "Called to you.")
 
-    def freezetimeCallback(self, Player, unused):
+    def freezetime(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -738,7 +738,7 @@ class AdminCommands:
         World.FreezeTime()
         Player.MessageFrom(self.Sysname, "Time froze!.")
 
-    def unfreezetimeCallback(self, Player, unused):
+    def unfreezetime(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -748,7 +748,7 @@ class AdminCommands:
         World.UnFreezeTime()
         Player.MessageFrom(self.Sysname, "Time is running out now :)...")
 
-    def killCallback(self, Player, args):
+    def kill(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
@@ -759,12 +759,12 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /kill playername")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is not None:
             pl.Kill()
             Player.MessageFrom(self.Sysname, pl.Name + " killed!")
 
-    def vectortpCallback(self, Player, unused):
+    def vectortp(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -778,7 +778,7 @@ class AdminCommands:
         self.Teleport(Player, vector)
         Player.MessageFrom(self.Sysname, "Teleported!")
 
-    def teleporttoCallback(self, Player, args):
+    def teleportto(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
@@ -795,7 +795,7 @@ class AdminCommands:
         self.Teleport(Player, loc)
         Player.MessageFrom(self.Sysname, "Teleported!")
 
-    def addfriendCallback(self, Player, args):
+    def addfriend(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not self.Friends:
             Player.MessageFrom(self.Sysname, "Feature disabled.")
@@ -803,7 +803,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addfriend name")
             return
-        pl = self.CheckV(Player, args)
+        pl = self.CheckV(args, Player)
         if pl is None:
             return
         if self.FriendOF(Player.SteamID, pl.SteamID):
@@ -814,7 +814,7 @@ class AdminCommands:
         ini.Save()
         Player.MessageFrom(self.Sysname, "Added " + pl.Name + "!")
 
-    def delfriendCallback(self, Player, args):
+    def delfriend(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not self.Friends:
             Player.MessageFrom(self.Sysname, "Feature disabled.")
@@ -838,7 +838,7 @@ class AdminCommands:
                 return
         Player.MessageFrom(self.Sysname, text + " is not on your list!")
 
-    def friendsCallback(self, Player, unused):
+    def friends(self, Player, unused):
         if not self.Friends:
             Player.MessageFrom(self.Sysname, "Feature disabled.")
             return
@@ -854,7 +854,7 @@ class AdminCommands:
             if nameof:
                 Player.MessageFrom(self.Sysname, "- " + str(nameof))
 
-    def spawnCallback(self, Player, args):
+    def spawn(self, args, Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
@@ -903,7 +903,7 @@ class AdminCommands:
         else:
             Player.MessageFrom(self.Sysname, "Couldn't find command.")
 
-    def boardusersCallback(self, Player, unused):
+    def boardusers(self, Player, unused):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -928,7 +928,7 @@ class AdminCommands:
                 name = z.username
                 id = z.userid
                 Player.MessageFrom(self.Sysname, "Authorized player: " + str(name) + " - " + str(id))
-    """def apacheCallback(self, Player, args):
+    """def apache(self, args, Player):
             if not Player.Admin:
                 Player.MessageFrom(self.Sysname, "You aren't an admin!")
                 return
@@ -942,7 +942,7 @@ class AdminCommands:
                 if "rocket_launcher" in name:
                     Player.Message("Da")
                     Player.Message(str(x.flags))
-    def bulletrainCallback(self, Player, args):
+    def bulletrain(self, args, Player):
             x = Player.X
             z = Player.Z
             y = Player.Y + 45
