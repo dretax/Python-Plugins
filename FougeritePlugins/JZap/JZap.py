@@ -1,11 +1,10 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-import System
 
 JZapDB = 'JZap'
 """
@@ -36,6 +35,7 @@ class JZap:
 
     def On_PluginInit(self):
         DataStore.Flush(JZapDB)
+        Plugin.CommandList.Add(JZapDB.lower())
 
     def On_Command(self, Player, cmd, args):
         if cmd.lower() == JZapDB.lower():
