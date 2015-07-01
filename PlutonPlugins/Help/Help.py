@@ -47,7 +47,7 @@ class Help:
             get = ini.GetSetting("PlayerCommands", com)
             Player.MessageFrom(sys, com + " - " + get)
 
-    def helpCallback(self, Player, args):
+    def help(self, args, Player):
         if len(args) == 0:
             ini = self.HelpCfg()
             sys = ini.GetSetting("Settings", "SysName")
