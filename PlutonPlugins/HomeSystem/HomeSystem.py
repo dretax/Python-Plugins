@@ -271,7 +271,7 @@ class HomeSystem:
             else:
                 attacker.Message("Hit a foundation.")
 
-    def homeCallback(self, Player, args):
+    def home(self, args, Player):
         if len(args) == 0 or len(args) > 1:
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -326,7 +326,7 @@ class HomeSystem:
                     done2 = round((cooldown / 1000) / 60, 2)
                     Player.MessageFrom(homesystemname, "Time: " + str(done) + "/" + str(done2))
 
-    def sethomeCallback(self, Player, args):
+    def sethome(self, args, Player):
         if args == 0 or args > 1:
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -369,7 +369,7 @@ class HomeSystem:
                 DataStore.Add("HomeHit", id, home)
                 Player.MessageFrom(homesystemname, "Hit a foundation/ceiling to save your home!")
 
-    def setdefaulthomeCallback(self, Player, args):
+    def setdefaulthome(self, args, Player):
         if len(args) > 0:
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -388,7 +388,7 @@ class HomeSystem:
             homesystemname = config.GetSetting("Settings", "homesystemname")
             Player.MessageFrom(homesystemname, "Usage: /setdefaulthome name")
 
-    def delhomeCallback(self, Player, args):
+    def delhome(self, args, Player):
         if len(args) == 1:
             config = self.HomeConfig()
             homesystemname = config.GetSetting("Settings", "homesystemname")
@@ -416,7 +416,7 @@ class HomeSystem:
             homesystemname = config.GetSetting("Settings", "homesystemname")
             Player.MessageFrom(homesystemname, "Usage: /delhome name")
 
-    def homesCallback(self, Player, unused):
+    def homes(self, args, Player):
         config = self.HomeConfig()
         homesystemname = config.GetSetting("Settings", "homesystemname")
         ini = self.Homes()
@@ -430,7 +430,7 @@ class HomeSystem:
         else:
             Player.MessageFrom(homesystemname, "You don't have homes!")
 
-    def addfriendhCallback(self, Player, args):
+    def addfriendh(self, args, Player):
         config = self.HomeConfig()
         homesystemname = config.GetSetting("Settings", "homesystemname")
         if len(args) == 0:
@@ -447,7 +447,7 @@ class HomeSystem:
             else:
                 Player.MessageFrom(homesystemname, "Player doesn't exist, or you tried to add yourself!")
 
-    def delfriendhCallback(self, Player, args):
+    def delfriendh(self, args, Player):
         config = self.HomeConfig()
         homesystemname = config.GetSetting("Settings", "homesystemname")
         if len(args) == 0:
@@ -473,7 +473,7 @@ class HomeSystem:
                     Player.MessageFrom(homesystemname, "Player doesn't exist!")
                     return
 
-    def listwlhCallback(self, Player, unused):
+    def listwlh(self, args, Player):
         config = self.HomeConfig()
         homesystemname = config.GetSetting("Settings", "homesystemname")
         ini = self.Wl()
@@ -483,7 +483,7 @@ class HomeSystem:
             nameof = ini.GetSetting(id, playerid)
             Player.MessageFrom(homesystemname, "Whitelisted: " + nameof)
 
-    def resettimeCallback(self, Player, unused):
+    def resettime(self, args, Player):
         if Player.Admin:
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             Player.Message("Time Reset!")
