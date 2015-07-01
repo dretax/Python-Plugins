@@ -109,7 +109,7 @@ class BannedPeople:
         V5.0
     """
 
-    def CheckV(self, Player, args Mode=1):
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
             p = self.GetPlayerName(str.Join(" ", args), Mode)
