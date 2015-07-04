@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
@@ -71,15 +71,22 @@ class AdminTools:
         if HurtEvent.Attacker is None or HurtEvent.Victim is None:
             return
         if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.Sleeper:
+            HurtEvent.Attacker.Message(str(self.IsAnimal(HurtEvent.Attacker)) + " | " + str(HurtEvent.Sleeper))
             if not Server.HasRustPP:
                 return
             dict = Server.GetRustPPAPI().Cache
-            n = dict[long(HurtEvent.Attacker.SteamID)]
-            n2 = dict[long(HurtEvent.Victim.SteamID)]
-            if n is None:
+            if long(HurtEvent.Attacker.SteamID) in dict.Keys:
+                n = dict[long(HurtEvent.Attacker.SteamID)]
+            else:
                 n = "Unknown"
-            if n2 is None:
+            if long(HurtEvent.Victim.SteamID) in dict.Keys:
+                n2 = dict[long(HurtEvent.Victim.SteamID)]
+            else:
                 n2 = "Unknown"
+            if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
+                HurtEvent.DamageAmount = 0
+                HurtEvent.Attacker.Notice("Owner: " + n2)
+                return
             Plugin.Log("SleeperLog", "Attacker: " + n + " | " + HurtEvent.Attacker.SteamID + " | " +
                        str(HurtEvent.Attacker.Location) + " Vic: " + HurtEvent.Victim.OwnerID + " | " + n2)
 
