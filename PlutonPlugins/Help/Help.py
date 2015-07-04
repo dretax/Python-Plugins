@@ -14,6 +14,10 @@ class Help:
 
     def On_PluginInit(self):
         self.HelpCfg()
+        Commands.Register("help")\
+            .setCallback("help")\
+            .setDescription("Gives you help commands")\
+            .setUsage("/help")
 
     def HelpCfg(self):
         if not Plugin.IniExists("Help"):
@@ -43,20 +47,17 @@ class Help:
             get = ini.GetSetting("PlayerCommands", com)
             Player.MessageFrom(sys, com + " - " + get)
 
-    def On_Command(self, cmd):
-        Player = cmd.User
-        args = cmd.args
-        if cmd.cmd == "help":
-            if len(args) == 0:
-                ini = self.HelpCfg()
-                sys = ini.GetSetting("Settings", "SysName")
-                Player.MessageFrom(sys, "Lists you the commands of Admins or Players")
-                Player.MessageFrom(sys, "Usage: /help player or /help admin")
-            else:
-                if args[0] == "admin":
-                    if not Player.Admin:
-                        self.SendPlayerCommands(Player)
-                        return
-                    self.SendAdminCommands(Player)
-                else:
+    def help(self, args, Player):
+        if len(args) == 0:
+            ini = self.HelpCfg()
+            sys = ini.GetSetting("Settings", "SysName")
+            Player.MessageFrom(sys, "Lists you the commands of Admins or Players")
+            Player.MessageFrom(sys, "Usage: /help player or /help admin")
+        else:
+            if args[0] == "admin":
+                if not Player.Admin:
                     self.SendPlayerCommands(Player)
+                    return
+                self.SendAdminCommands(Player)
+            else:
+                self.SendPlayerCommands(Player)
