@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.1'
+__version__ = '1.3.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -259,17 +259,13 @@ class iConomy:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) +
+                               "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def IsAnimal(self, Entity):
         s = str(Entity)
         if "NPC" in s:
-            return True
-        return False
-
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
             return True
         return False
 
@@ -300,7 +296,8 @@ class iConomy:
                     self.TakeMoney(Player.SteamID, pricesum, Player)
                     Player.MessageFrom(self.__Sys__, "You have bought " + str(qty) + " " + nitem + "(s).")
                 else:
-                    Player.MessageFrom(self.__Sys__, "You do not have enough money to buy " + str(qty) + " " + nitem + "(s).")
+                    Player.MessageFrom(self.__Sys__, "You do not have enough money to buy " + str(qty) + " "
+                                       + nitem + "(s).")
             else:
                 Player.MessageFrom(self.__Sys__, "You can't buy " + Item + ".")
                 Player.MessageFrom(self.__Sys__, "Contact an admin to see if it will be added later!")
@@ -318,9 +315,11 @@ class iConomy:
                 if Player.Inventory.HasItem(nitem, qty):
                     Player.Inventory.RemoveItem(nitem, qty)
                     self.GiveMoney(Player.SteamID, salesum)
-                    Player.MessageFrom(self.__Sys__, "You have sold " + str(qty) + " " + nitem + "(s). for " + str(salesum) + self.__MoneyMark__)
+                    Player.MessageFrom(self.__Sys__, "You have sold " + str(qty) + " " + nitem + "(s). for " +
+                                       str(salesum) + self.__MoneyMark__)
                 else:
-                    Player.MessageFrom(self.__Sys__, "You either don't have the item or the quantity wanted to sell. Try again.")
+                    Player.MessageFrom(self.__Sys__,
+                                       "You either don't have the item or the quantity wanted to sell. Try again.")
             else:
                 Player.MessageFrom(self.__Sys__, "You can't sell " + Item + ".")
                 Player.MessageFrom(self.__Sys__, "Contact an admin to see if it will be added later!")
@@ -338,11 +337,12 @@ class iConomy:
                 m = self.GetMoney(Player.SteamID)
                 Player.MessageFrom(self.__Sys__, "You have " + str(m) + self.__MoneyMark__)
                 return
-            if len(args) > 0 and Player.Admin or self.isMod(Player.SteamID):
+            if len(args) > 0 and (Player.Admin or Player.Moderator):
                 playerr = self.CheckV(Player, args)
                 if playerr is None:
                     return
-                Player.MessageFrom(self.__Sys__, playerr.Name + " has " + str(self.GetMoney(playerr.SteamID)) + self.__MoneyMark__)
+                Player.MessageFrom(self.__Sys__, playerr.Name + " has " + str(self.GetMoney(playerr.SteamID))
+                                   + self.__MoneyMark__)
         elif cmd == "pay":
             if len(args) == 0:
                 Player.MessageFrom(self.__Sys__, 'Usage: /pay "PlayerName" "amount"')
@@ -432,13 +432,7 @@ class iConomy:
 
 
     def On_PlayerConnected(self, Player):
-        sid = self.TrytoGrabID(Player)
-        if sid is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        sid = Player.SteamID
         if not DataStore.ContainsKey("iConomy", sid):
             DataStore.Add("iConomy", sid, self.__DefaultMoney__)
         Player.MessageFrom(self.__Sys__, "You have " + str(DataStore.Get("iConomy", sid)) + self.__MoneyMark__)
@@ -460,7 +454,7 @@ class iConomy:
             if float(s[1]) == 0.0:
                 victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
                 return
-            victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
+            DeathEvent.Victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
 
     def On_NPCKilled(self, DeathEvent):
         if DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
