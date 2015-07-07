@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.3'
+__version__ = '1.4.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -287,7 +287,7 @@ class HungerGames:
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
-        if self.IsActive or self.HasStarted:
+        """if self.IsActive or self.HasStarted:
             if Player in self.Players and cmd in RestrictedCommands:
                 Server.BroadcastFrom(sysname, red + Player.Name + " executed /" + cmd + " !")
                 Server.BroadcastFrom(sysname, red + "It's not allowed! We are removing you from the event.")
@@ -301,7 +301,7 @@ class HungerGames:
                     Server.BroadcastFrom(sysname, green + "Currently " + str(len(self.Players))
                                          + " of " + str(maxp) + " players are waiting.")
                 self.returnInventory(Player)
-                return
+                return"""
         if cmd == "hg":
             if len(args) == 0:
                 Player.MessageFrom(sysname, green + "HungerGames By " + __author__ + blue + "V" + __version__)
@@ -473,6 +473,7 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
                         self.Players.append(Player)
+                        Server.CommandCancelList.Add(Player, RestrictedCommands)
                         leng = len(self.Players)
                         ini = self.HungerGames()
                         if PlayerSlots.get(leng) is not None:
@@ -511,6 +512,7 @@ class HungerGames:
                         leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
+                            Server.CommandCancelList.Remove(Player)
                             leng = len(self.Players)
                             if self.HasStarted:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
@@ -703,12 +705,16 @@ class HungerGames:
                         slot = random.randint(1, 3)
                     else:
                         slot = random.randint(1, 11)
-                    itemr = random.randint(1, self.item)
+                    itemr = 1
+                    if self.item > 1:
+                        itemr = random.randint(1, self.item)
                     countr = 1
                     gitem = ini2.GetSetting("RandomItems", str(itemr))
                     if "ammo" in gitem.lower() or "shell" in gitem.lower():
                         countr = random.randint(1, self.count)
                     elif "medkit" in gitem.lower():
+                        countr = random.randint(1, self.count2)
+                    elif "bandage" in gitem.lower():
                         countr = random.randint(1, self.count2)
                     elif "grenade" in gitem.lower():
                         countr = random.randint(1, self.count3)
@@ -859,6 +865,7 @@ class HungerGames:
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
             self.RemovePlayerDirectly(Player, True)
+            Server.CommandCancelList.Remove(Player)
             leng = len(self.Players)
             if leng > 1:
                 if self.HasStarted:
