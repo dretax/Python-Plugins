@@ -51,6 +51,8 @@ LootStackClean = True
 CDist = 400
 #  For safety reasons should we freeze the player when he joins for 2 secs?
 Freeze = True
+# Metal Walls for spawnpoints = 1 ; Wood Walls = 2 (For destroy)
+WallsSpawn = 1
 
 WallsCache = {
 
@@ -59,8 +61,6 @@ WallsCache = {
 PlayerSlots = {
 
 }
-
-RestrictedCommands = []
 
 Rewards = {
 
@@ -95,6 +95,7 @@ class HungerGames:
     MaxRewards = None
     Middle = None
     AdminSpot = None
+    RestrictedCommands = None
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
@@ -104,8 +105,9 @@ class HungerGames:
         ini = self.HungerGames()
         ini2 = self.DefaultItems()
         enum = ini.EnumSection("RestrictedCommands")
+        self.RestrictedCommands = Plugin.CreateList()
         for x in enum:
-            RestrictedCommands.append(ini.GetSetting("RestrictedCommands", x))
+            self.RestrictedCommands.Add(ini.GetSetting("RestrictedCommands", x))
         self.count = int(ini2.GetSetting("Random", "Count"))
         self.count2 = int(ini2.GetSetting("Random", "Count2"))
         self.count3 = int(ini2.GetSetting("Random", "Count3"))
@@ -473,7 +475,7 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
                         self.Players.append(Player)
-                        Server.CommandCancelList.Add(Player, RestrictedCommands)
+                        Server.CommandCancelList.Add(Player, self.RestrictedCommands)
                         leng = len(self.Players)
                         ini = self.HungerGames()
                         if PlayerSlots.get(leng) is not None:
@@ -807,14 +809,18 @@ class HungerGames:
                 num = random.randint(1, len(Rewards.keys()) - 1)
                 item = sorted(Rewards)[num]
                 c = Rewards.get(item)
-                c = random.randint(1, c)
+                if c != 1:
+                    c = random.randint(1, c)
                 Player.Inventory.AddItem(item, c)
         i = 0
         for loc in WallsCache.keys():
             spawnRot = WallsCache.get(loc)
             try:
                 sm = World.CreateSM(self.RandomAdmin, loc.x, loc.y, loc.z, spawnRot)
-                ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
+                if WallsSpawn == 2:
+                    ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
+                else:
+                    ent = Entity(World.Spawn(';struct_metal_wall', loc.x, loc.y, loc.z, spawnRot))
                 sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
                 walls[i] = ent
             except Exception as e:
@@ -894,6 +900,11 @@ class HungerGames:
             DataStore.Remove("HLastLoc", Player.SteamID)
             self.Freezer(Player, 2, False)
 
+    def On_EntityDeployed(self, Player, Entity):
+        if Player in self.Players:
+            Player.MessageFrom(sysname, "You can't spawn stuff in HG!")
+            Entity.Destroy()
+
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
             id = self.TrytoGrabID(HurtEvent.Attacker)
@@ -907,7 +918,7 @@ class HungerGames:
             if gun == "Shotgun":
                 return
             if DataStore.ContainsKey("HDoorMode", id):
-                if HurtEvent.Entity.Name == "WoodWall":
+                if "wall" in HurtEvent.Entity.Name.lower():
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("WallLocations"))
                     enum = ini.EnumSection("WallLocations")

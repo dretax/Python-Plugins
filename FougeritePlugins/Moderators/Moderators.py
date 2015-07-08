@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -94,9 +94,13 @@ class Moderators:
                     playerr = self.CheckV(Player, args)
                     if playerr is None:
                         return
-                    name = str(playerr.Name)
-                    id = str(playerr.SteamID)
+                    name = playerr.Name
+                    id = playerr.SteamID
                     ini = self.ModeratorsIni()
+                    for x in ini.EnumSection("Moderators"):
+                        if ini.GetSetting("Moderators", x) == id:
+                            Player.Message(name + " is already a moderator.")
+                            return
                     ini.AddSetting("Moderators", name, id)
                     ini.Save()
                     DataStore.Add("Moderators", id, name)
