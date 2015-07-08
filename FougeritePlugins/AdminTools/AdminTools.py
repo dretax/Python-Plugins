@@ -71,7 +71,6 @@ class AdminTools:
         if HurtEvent.Attacker is None or HurtEvent.Victim is None:
             return
         if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.Sleeper:
-            HurtEvent.Attacker.Message(str(self.IsAnimal(HurtEvent.Attacker)) + " | " + str(HurtEvent.Sleeper))
             if not Server.HasRustPP:
                 return
             dict = Server.GetRustPPAPI().Cache
