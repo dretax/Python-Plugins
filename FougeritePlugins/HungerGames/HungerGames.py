@@ -51,8 +51,10 @@ LootStackClean = True
 CDist = 400
 #  For safety reasons should we freeze the player when he joins for 2 secs?
 Freeze = True
-# Metal Walls for spawnpoints = 1 ; Wood Walls = 2 (For destroy)
+# Metal Walls for spawn points = 1 ; Wood Walls = 2 (For destroy/respawning)
 WallsSpawn = 1
+# Allow building in HG? If this is true, then the deployed entities will be destroyed at the end of the game.
+Building = False
 
 WallsCache = {
 
@@ -65,6 +67,9 @@ PlayerSlots = {
 Rewards = {
 
 }
+
+PlacedEntities = []
+
 class HungerGames:
     # Values
     IsActive = False
@@ -774,6 +779,12 @@ class HungerGames:
         Player = List["Player"]
         self.Freezer(Player, 2)
 
+    def CleanMess(self):
+        for x in PlacedEntities:
+            if x.Health > 0:
+                x.Destroy()
+            PlacedEntities.remove(x)
+
     def Reset(self):
         self.HasStarted = False
         self.IsActive = False
@@ -795,6 +806,7 @@ class HungerGames:
         del self.Players[:]
         del walls[:]
         del loot[:]
+        self.CleanMess()
 
     def EndGame(self, Player):
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
@@ -902,8 +914,11 @@ class HungerGames:
 
     def On_EntityDeployed(self, Player, Entity):
         if Player in self.Players:
-            Player.MessageFrom(sysname, "You can't spawn stuff in HG!")
-            Entity.Destroy()
+            if not Building:
+                Player.MessageFrom(sysname, "You can't spawn stuff in HG!")
+                Entity.Destroy()
+                return
+            PlacedEntities.append(Entity)
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
