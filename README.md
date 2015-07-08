@@ -1,7 +1,8 @@
 Python-Plugins
 ==============
 
+<img src="https://img.shields.io/badge/language-Python-yellow.svg">
+
 Python Plugins for Fougerite or for Pluton.
 
-Conversion most of my plugins from Jint 0.9 to Python.
 
