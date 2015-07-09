@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.8'
+__version__ = '1.8.9'
 
 import clr
 
@@ -263,21 +263,13 @@ class AdminCommands:
     """
 
     def GetPlayerName(self, name, Mode=1):
-        Name = name.lower()
-        if Mode == 1:
+        if Mode == 1 or Mode == 3:
             for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
-        elif Mode == 2:
+        if Mode == 2 or Mode == 3:
             for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
-                    return pl
-        else:
-            for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
-                    return pl
-            for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
         return None
 
@@ -289,68 +281,50 @@ class AdminCommands:
             1 = Search Online Players
             2 = Search Offline Players
             3 = Both
-        V5.0
+        V6.0
     """
 
-    def CheckV(self, args, Player, Mode=1):
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(str.Join(" ", args), Mode)
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
                     for namePart in args:
                         if namePart.lower() in pl.Name.lower():
                             p = pl
                             count += 1
-            elif Mode == 2:
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    for namePart in args:
-                        if namePart.lower() in offlineplayer.Name.lower():
-                            p = offlineplayer
-                            count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    for namePart in args:
-                        if namePart.lower() in pl.Name.lower():
-                            p = pl
-                            count += 1
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
                     for namePart in args:
                         if namePart.lower() in offlineplayer.Name.lower():
                             p = offlineplayer
                             count += 1
         else:
-            p = self.GetPlayerName(str(args), Mode)
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-            elif Mode == 2:
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
-                        p = offlineplayer
-                        count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
-                        p = pl
-                        count += 1
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
+                    if ag in offlineplayer.Name.lower():
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom("AdminCommands", "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom("FindingThing", "Couldn't Find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom("AdminCommands", "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("FindingThing", "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
 
     # Duty idea taken from Jakkee from Fougerite
@@ -363,10 +337,7 @@ class AdminCommands:
             return True
         return False
 
-    ##def On_Command(self, cmd):
-    ##    Player = cmd.User
-    ##    args = cmd.quotedArgs
-    def duty(self, unused, Player):
+    def duty(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -392,7 +363,7 @@ class AdminCommands:
         if not self.IsonDuty(Player):
             Player.MessageFrom(self.Sysname, "You aren't on duty!")
             return
-        pl = self.CheckV(args, Player, 3)
+        pl = self.CheckV(Player, args, 3)
         if pl is not None:
             if "offlineplayer" in str(pl).lower():
                 loc = Vector3(pl.X, pl.Y, pl.Z)
@@ -411,11 +382,11 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /tphere name")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             self.Teleport(pl, Player.Location)
 
-    def god(self, Player, unused):
+    def god(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -432,7 +403,7 @@ class AdminCommands:
             Player.basePlayer.InitializeHealth(infinity, infinity)
             Player.MessageFrom(self.Sysname, "God mode on.")
 
-    def ad(self, Player, unused):
+    def ad(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -457,7 +428,7 @@ class AdminCommands:
         if len(args) <= 1:
             Player.MessageFrom(self.Sysname, "Usage: /mute playername minutes")
             return
-        pl = self.CheckV(args, Player[0])
+        pl = self.CheckV(Player, args)
         if pl is not None:
             if not args[1].isdigit():
                 Player.MessageFrom(self.Sysname, "Usage: /mute playername minutes")
@@ -481,13 +452,13 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /unmute playername")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             DataStore.Remove("MuteListT", pl.SteamID)
             DataStore.Remove("MuteList", pl.SteamID)
             Player.MessageFrom(self.Sysname, pl.Name + " was unmuted!")
 
-    def instako(self, Player, unused):
+    def instako(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -512,7 +483,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /kick playername")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             Player.MessageFrom(self.Sysname, "Kicked " + pl.Name + "!")
             pl.Kick("Kicked by admin")
@@ -531,7 +502,7 @@ class AdminCommands:
         text = str.join(' ', args)
         Server.BroadcastFrom("Server", text)
 
-    def clear(self, Player, unused):
+    def clear(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -542,7 +513,7 @@ class AdminCommands:
             x._item.Remove(1)
         Player.MessageFrom(self.Sysname, "Cleared!")
 
-    def repairall(self, Player, unused):
+    def repairall(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -564,7 +535,7 @@ class AdminCommands:
         if len(args) <= 1:
             Player.MessageFrom(self.Sysname, "Usage: /give playername item amount")
             return
-        pl = self.CheckV(args, Player[0])
+        pl = self.CheckV(Player, args)
         if pl is not None:
             num = 1
             if len(args) == 2:
@@ -613,7 +584,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addowner name")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             pl.MakeOwner(Player.Name + " made " + pl.Name + " an owner")
             Player.MessageFrom(self.Sysname, pl.Name + " got owner rights!")
@@ -629,7 +600,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addmoderator name")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             pl.MakeModerator(Player.Name + " made " + pl.Name + " a moderator")
             Player.MessageFrom(self.Sysname, pl.Name + " got moderator rights!")
@@ -645,7 +616,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /removerights name")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             pl.MakeNone()
             Player.MessageFrom(self.Sysname, "You removed " + pl.Name + "'s rights.")
@@ -697,14 +668,14 @@ class AdminCommands:
         World.Time = int(args[0])
         Player.MessageFrom(self.Sysname, "Time changed to " + text + ". Wait a few seconds....")
 
-    def players(self, Player, unused):
+    def players(self, args, Player):
         s = ''
         for pl in Server.ActivePlayers:
             s = s + pl.Name + ', '
         Player.MessageFrom(self.Sysname, "Online Players:")
         Player.MessageFrom(self.Sysname, s)
 
-    def airdropr(self, Player, unused):
+    def airdropr(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -716,7 +687,7 @@ class AdminCommands:
         World.AirDrop()
         Player.MessageFrom(self.Sysname, "Called.")
 
-    def airdrop(self, Player, unused):
+    def airdrop(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -728,7 +699,7 @@ class AdminCommands:
         World.AirDropAtPlayer(Player)
         Player.MessageFrom(self.Sysname, "Called to you.")
 
-    def freezetime(self, Player, unused):
+    def freezetime(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -738,7 +709,7 @@ class AdminCommands:
         World.FreezeTime()
         Player.MessageFrom(self.Sysname, "Time froze!.")
 
-    def unfreezetime(self, Player, unused):
+    def unfreezetime(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -748,7 +719,7 @@ class AdminCommands:
         World.UnFreezeTime()
         Player.MessageFrom(self.Sysname, "Time is running out now :)...")
 
-    def kill(self, args, Player):
+    def kill(self, args,Player):
         args = Util.GetQuotedArgs(args)
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
@@ -759,12 +730,12 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /kill playername")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             pl.Kill()
             Player.MessageFrom(self.Sysname, pl.Name + " killed!")
 
-    def vectortp(self, Player, unused):
+    def vectortp(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -803,7 +774,7 @@ class AdminCommands:
         if len(args) == 0:
             Player.MessageFrom(self.Sysname, "Usage: /addfriend name")
             return
-        pl = self.CheckV(args, Player)
+        pl = self.CheckV(Player, args)
         if pl is None:
             return
         if self.FriendOF(Player.SteamID, pl.SteamID):
@@ -838,7 +809,7 @@ class AdminCommands:
                 return
         Player.MessageFrom(self.Sysname, text + " is not on your list!")
 
-    def friends(self, Player, unused):
+    def friends(self, args, Player):
         if not self.Friends:
             Player.MessageFrom(self.Sysname, "Feature disabled.")
             return
@@ -903,7 +874,7 @@ class AdminCommands:
         else:
             Player.MessageFrom(self.Sysname, "Couldn't find command.")
 
-    def boardusers(self, Player, unused):
+    def boardusers(self, args, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
