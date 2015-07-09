@@ -868,6 +868,7 @@ class HungerGames:
         if DeathEvent.Victim is not None:
             if DeathEvent.Victim in self.Players and self.HasStarted:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
+                Server.CommandCancelList.Remove(DeathEvent.Victim)
                 leng = len(self.Players)
                 if len(self.Players) > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
@@ -877,6 +878,7 @@ class HungerGames:
                     self.EndGame(self.Players[0])
             elif DeathEvent.Victim in self.Players and self.IsActive:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
+                Server.CommandCancelList.Remove(DeathEvent.Victim)
                 Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                 Server.BroadcastFrom(sysname, red + "The match didn't even start yet!")
 
