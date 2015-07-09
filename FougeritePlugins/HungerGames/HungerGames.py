@@ -480,6 +480,8 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
                         self.Players.append(Player)
+                        if Server.CommandCancelList.ContainsKey():
+                            Server.CommandCancelList.Remove(Player)
                         Server.CommandCancelList.Add(Player, self.RestrictedCommands)
                         leng = len(self.Players)
                         ini = self.HungerGames()
@@ -519,7 +521,8 @@ class HungerGames:
                         leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
-                            Server.CommandCancelList.Remove(Player)
+                            if Server.CommandCancelList.ContainsKey():
+                                Server.CommandCancelList.Remove(Player)
                             leng = len(self.Players)
                             if self.HasStarted:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
@@ -868,7 +871,8 @@ class HungerGames:
         if DeathEvent.Victim is not None:
             if DeathEvent.Victim in self.Players and self.HasStarted:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
-                Server.CommandCancelList.Remove(DeathEvent.Victim)
+                if Server.CommandCancelList.ContainsKey():
+                    Server.CommandCancelList.Remove(DeathEvent.Victim)
                 leng = len(self.Players)
                 if len(self.Players) > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
@@ -878,14 +882,16 @@ class HungerGames:
                     self.EndGame(self.Players[0])
             elif DeathEvent.Victim in self.Players and self.IsActive:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
-                Server.CommandCancelList.Remove(DeathEvent.Victim)
+                if Server.CommandCancelList.ContainsKey():
+                    Server.CommandCancelList.Remove(DeathEvent.Victim)
                 Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                 Server.BroadcastFrom(sysname, red + "The match didn't even start yet!")
 
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
             self.RemovePlayerDirectly(Player, True)
-            Server.CommandCancelList.Remove(Player)
+            if Server.CommandCancelList.ContainsKey():
+                Server.CommandCancelList.Remove(Player)
             leng = len(self.Players)
             if leng > 1:
                 if self.HasStarted:
