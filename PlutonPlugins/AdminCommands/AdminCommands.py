@@ -415,7 +415,7 @@ class AdminCommands:
         if pl is not None:
             self.Teleport(pl, Player.Location)
 
-    def god(self, Player, unused):
+    def god(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -432,7 +432,7 @@ class AdminCommands:
             Player.basePlayer.InitializeHealth(infinity, infinity)
             Player.MessageFrom(self.Sysname, "God mode on.")
 
-    def ad(self, Player, unused):
+    def ad(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -487,7 +487,7 @@ class AdminCommands:
             DataStore.Remove("MuteList", pl.SteamID)
             Player.MessageFrom(self.Sysname, pl.Name + " was unmuted!")
 
-    def instako(self, Player, unused):
+    def instako(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -531,7 +531,7 @@ class AdminCommands:
         text = str.join(' ', args)
         Server.BroadcastFrom("Server", text)
 
-    def clear(self, Player, unused):
+    def clear(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -542,7 +542,7 @@ class AdminCommands:
             x._item.Remove(1)
         Player.MessageFrom(self.Sysname, "Cleared!")
 
-    def repairall(self, Player, unused):
+    def repairall(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
@@ -697,14 +697,14 @@ class AdminCommands:
         World.Time = int(args[0])
         Player.MessageFrom(self.Sysname, "Time changed to " + text + ". Wait a few seconds....")
 
-    def players(self, Player, unused):
+    def players(self, unused, Player):
         s = ''
         for pl in Server.ActivePlayers:
             s = s + pl.Name + ', '
         Player.MessageFrom(self.Sysname, "Online Players:")
         Player.MessageFrom(self.Sysname, s)
 
-    def airdropr(self, Player, unused):
+    def airdropr(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -716,7 +716,7 @@ class AdminCommands:
         World.AirDrop()
         Player.MessageFrom(self.Sysname, "Called.")
 
-    def airdrop(self, Player, unused):
+    def airdrop(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -728,7 +728,7 @@ class AdminCommands:
         World.AirDropAtPlayer(Player)
         Player.MessageFrom(self.Sysname, "Called to you.")
 
-    def freezetime(self, Player, unused):
+    def freezetime(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -738,7 +738,7 @@ class AdminCommands:
         World.FreezeTime()
         Player.MessageFrom(self.Sysname, "Time froze!.")
 
-    def unfreezetime(self, Player, unused):
+    def unfreezetime(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -764,7 +764,7 @@ class AdminCommands:
             pl.Kill()
             Player.MessageFrom(self.Sysname, pl.Name + " killed!")
 
-    def vectortp(self, Player, unused):
+    def vectortp(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't a moderator!")
             return
@@ -838,7 +838,7 @@ class AdminCommands:
                 return
         Player.MessageFrom(self.Sysname, text + " is not on your list!")
 
-    def friends(self, Player, unused):
+    def friends(self, unused, Player):
         if not self.Friends:
             Player.MessageFrom(self.Sysname, "Feature disabled.")
             return
@@ -903,7 +903,7 @@ class AdminCommands:
         else:
             Player.MessageFrom(self.Sysname, "Couldn't find command.")
 
-    def boardusers(self, Player, unused):
+    def boardusers(self, unused, Player):
         if not Player.Admin:
             Player.MessageFrom(self.Sysname, "You aren't an admin!")
             return
