@@ -246,6 +246,8 @@ class DeathMSG:
         'items/floor_spikes': 'Floor Spikes',
         'items/items/grenade.beancan.deployed': 'Beancan Grenade',
         'items/timed.explosive.deployed': 'C4',
+        'autospawn/animals/bear': 'Bear',
+        'autospawn/animals/wolf': 'Wolf'
     }
 
     IsAnimal = {
