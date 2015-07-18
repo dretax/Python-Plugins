@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.4'
+__version__ = '1.4.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -445,6 +445,8 @@ class HungerGames:
                         if ini.GetSetting("Middle", "1") is not None:
                             Player.MessageFrom(sysname, "Middle Re-Set!")
                             ini.SetSetting("Middle", "1", str(Player.Location))
+                            ini.Save()
+                            self.Middle = Player.Location
                             return
                         ini.AddSetting("Middle", "1", str(Player.Location))
                         ini.Save()
@@ -550,8 +552,10 @@ class HungerGames:
                     if Player.Admin or Player.Moderator:
                         ini = self.HungerGames()
                         if ini.GetSetting("AdminSpot", "1") is not None:
-                            Player.MessageFrom(sysname, "AdminSpot Re-Set!")
                             ini.SetSetting("AdminSpot", "1", str(Player.Location))
+                            ini.Save()
+                            self.AdminSpot = Player.Location
+                            Player.MessageFrom(sysname, "AdminSpot Re-Set!")
                             return
                         ini.AddSetting("AdminSpot", "1", str(Player.Location))
                         ini.Save()
@@ -857,9 +861,12 @@ class HungerGames:
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
-            d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players)
-            d2 = HurtEvent.Attacker in self.Players
-            d3 = HurtEvent.Victim in self.Players and HurtEvent.Attacker in self.Players and not self.HasStarted
+            weapon = HurtEvent.WeaponName
+            d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players) and weapon \
+                                                                                                  != "Fall Damage"
+            d2 = HurtEvent.Attacker in self.Players and weapon != "Fall Damage"
+            d3 = HurtEvent.Victim in self.Players and HurtEvent.Attacker in self.Players and not self.HasStarted \
+                 and weapon != "Fall Damage"
             if d:
                 HurtEvent.DamageAmount = float(0)
             elif d2 and HurtEvent.Sleeper:
