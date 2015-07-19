@@ -62,9 +62,9 @@ RadDmg = True
 # The player count when the radiation damage should activate
 CRad = 7
 # How many minutes after should the radiation activate?
-RadM = 0.3
+RadM = 0.2
 # How many minutes after should the radius of the radiation "safe-zone" keep decreasing?
-RadDC = 1.5
+RadDC = 0.5
 # How many meters should we remove from the radius after every execution?
 RadME = 40
 # Minimum distance where the radiation can't go further?
