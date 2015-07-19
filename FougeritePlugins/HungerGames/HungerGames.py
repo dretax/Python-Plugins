@@ -68,7 +68,7 @@ RadDC = 0.5
 # How many meters should we remove from the radius after every execution?
 RadME = 40
 # Minimum distance where the radiation can't go further?
-RadMDist = 120
+RadMDist = 50
 # How much radiation should the players receive?
 RadR = 40
 # Time when we should execute radiation on players after the activation (Seconds)
