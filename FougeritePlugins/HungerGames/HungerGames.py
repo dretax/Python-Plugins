@@ -35,19 +35,19 @@ green = "[color #009900]"
 purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
 sysname = "HungerGames"
-#  Minimum players to start the 5 minutes counter.
+#  Minimum players to start the MinimumTime counter.
 minp = 7
 #  Timer for the force start at minimum players.
 #  If we reach 7 players we start the timer. Once It elapsed we start the game.
 #  This is in minutes
 MinimumTime = 3
-#  MaxPlayers! This line is editable
+#  MaxPlayers!
 maxp = 14
 #  Secs before match start
 secs = 30
 #  Cleanup loots Stacks after game in close range?
 LootStackClean = True
-#  Distance for loots if we look from the first spawn point?
+#  Distance for loots if we look from the first spawn point? (Size of the Arena in meters)
 CDist = 400
 #  For safety reasons should we freeze the player when he joins for 2 secs?
 Freeze = True
@@ -55,6 +55,24 @@ Freeze = True
 WallsSpawn = 1
 # Allow building in HG? If this is true, then the deployed entities will be destroyed at the end of the game.
 Building = False
+# Announce Rewards?
+AnnounceRewards = True
+# Enable Radiation Damage? Uses CDist and Middle position.
+RadDmg = True
+# The player count when the radiation damage should activate
+CRad = 7
+# How many minutes after should the radiation activate?
+RadM = 0.3
+# How many minutes after should the radius of the radiation "safe-zone" keep decreasing?
+RadDC = 1.5
+# How many meters should we remove from the radius after every execution?
+RadME = 40
+# Minimum distance where the radiation can't go further?
+RadMDist = 120
+# How much radiation should the players receive?
+RadR = 40
+# Time when we should execute radiation on players after the activation (Seconds)
+RadS = 2
 
 WallsCache = {
 
@@ -101,6 +119,7 @@ class HungerGames:
     Middle = None
     AdminSpot = None
     RestrictedCommands = None
+    CurrentRadRange = CDist
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
@@ -431,6 +450,10 @@ class HungerGames:
                         chests = UnityEngine.Object.FindObjectsOfType(self.dp)
                         c = 0
                         ini = self.HungerGames()
+                        enum = ini.EnumSection("ChestLocations")
+                        for x in enum:
+                            ini.DeleteSetting("ChestLocations", x)
+                        ini.Save()
                         for x in chests:
                             if "stash" in x.name.lower() or "box" in x.name.lower():
                                 if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
@@ -508,8 +531,8 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
                         if leng == minp and Plugin.GetTimer("Force") is None:
-                            Server.BroadcastFrom(sysname, purple + "Detected " + str(minp) + " players.")
-                            Server.BroadcastFrom(sysname, purple + "Forcing game start in " + str(MinimumTime) +
+                            Server.BroadcastFrom(sysname, pink + "Detected " + str(minp) + " players.")
+                            Server.BroadcastFrom(sysname, pink + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
                             Plugin.CreateTimer("Force", MinimumTime * 60000).Start()
                         self.StartGame()
@@ -629,6 +652,7 @@ class HungerGames:
                 PlayerSlots[x] = None
         if not Disconnected:
             if DataStore.ContainsKey("HLastLoc", Player.SteamID) and not Dead:
+                Player.AddAntiRad(Player.RadLevel)
                 l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 Player.TeleportTo(loc)
@@ -786,6 +810,35 @@ class HungerGames:
         Player = List["Player"]
         self.Freezer(Player, 2)
 
+    def RadiationActivateCallback(self, timer):
+        timer.Kill()
+        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+        Server.BroadcastFrom(sysname, red + "Radiation activated!")
+        Server.BroadcastFrom(sysname, red + "You will receive " + str(RadR) + " rad every " + str(RadS) + " secs")
+        Server.BroadcastFrom(sysname, red + "if you are out of range! Current range: " + str(self.CurrentRadRange) + "m!")
+        Plugin.CreateTimer("Radiation", RadS * 1000).Start()
+        Plugin.CreateTimer("RadiationRange", RadDC * 60000).Start()
+
+    def RadiationRangeCallback(self, timer):
+        timer.Kill()
+        if self.CurrentRadRange - RadME <= RadMDist:
+            self.CurrentRadRange = RadMDist
+            Server.BroadcastFrom(sysname, green + "Radiation range stopped at: " + str(RadMDist) + "m!")
+            return
+        self.CurrentRadRange -= RadME
+        Server.BroadcastFrom(sysname, red + "Radiation range decreased to: " + str(self.CurrentRadRange) + "m!")
+        Plugin.CreateTimer("RadiationRange", RadDC * 60000).Start()
+
+    def RadiationCallback(self, timer):
+        if not self.HasStarted:
+            timer.Kill()
+            return
+        timer.Kill()
+        for x in self.Players:
+            if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
+                x.AddRads(RadR)
+        Plugin.CreateTimer("Radiation", RadS * 1000).Start()
+
     def CleanMess(self):
         for x in PlacedEntities:
             if x.Health > 0:
@@ -796,10 +849,17 @@ class HungerGames:
         self.HasStarted = False
         self.IsActive = False
         self.IsStarting = False
+        self.CurrentRadRange = CDist
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
         if Plugin.GetTimer("StartingIn") is not None:
             Plugin.KillTimer("StartingIn")
+        if Plugin.GetTimer("Radiation") is not None:
+            Plugin.KillTimer("Radiation")
+        if Plugin.GetTimer("RadiationRange") is not None:
+            Plugin.KillTimer("RadiationRange")
+        if Plugin.GetTimer("RadiationActivate") is not None:
+            Plugin.KillTimer("RadiationActivate")
         for chest in loot:
             inv = chest.Inventory
             if inv is None:
@@ -822,6 +882,7 @@ class HungerGames:
         self.RemovePlayerDirectly(Player)
         Player.Inventory.ClearAll()
         self.returnInventory(Player)
+        arr = []
         if self.ItemRewards:
             max = random.randint(self.MinRewards, self.MaxRewards)
             for x in xrange(0, max):
@@ -831,6 +892,11 @@ class HungerGames:
                 if c != 1:
                     c = random.randint(1, c)
                 Player.Inventory.AddItem(item, c)
+                if AnnounceRewards:
+                    arr.append(item)
+        if AnnounceRewards:
+            d = ",".join(str(x) for x in arr)
+            Server.BroadcastFrom(sysname, pink + "Rewards he received: " + d)
         i = 0
         for loc in WallsCache.keys():
             spawnRot = WallsCache.get(loc)
@@ -884,6 +950,8 @@ class HungerGames:
                 if len(self.Players) > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
                                          + green + str(leng) + red + " Players are still alive.")
+                    if RadDmg and len(self.Players) == CRad:
+                        Plugin.CreateTimer("RadiationActivate", 60000 * RadM).Start()
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                     self.EndGame(self.Players[0])
@@ -926,6 +994,7 @@ class HungerGames:
             self.returnInventory(Player)
             DataStore.Remove("HLastLoc", Player.SteamID)
             self.Freezer(Player, 2, False)
+            Player.AddAntiRad(Player.RadLevel)
 
     def On_EntityDeployed(self, Player, Entity):
         if Player in self.Players:
