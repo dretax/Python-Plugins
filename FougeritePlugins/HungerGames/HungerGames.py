@@ -834,20 +834,19 @@ class HungerGames:
         Plugin.CreateTimer("RadiationRange", RadDC * 60000).Start()
 
     def RadiationCallback(self, timer):
-        if not self.HasStarted:
-            timer.Kill()
-            return
         timer.Kill()
+        if not self.HasStarted:
+            return
         for x in self.Players:
             if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
+                x.AddRads(RadR)
                 try:
                     m = x.PlayerClient.controllable.GetComponent(self.Metabolism)
                     m.Vomit()
                 except:
                     pass
-                x.AddRads(RadR)
-                continue
-            x.AddAntiRad(RadAnti)
+            else:
+                x.AddAntiRad(RadAnti)
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
@@ -958,10 +957,10 @@ class HungerGames:
                 if Server.CommandCancelList.ContainsKey(DeathEvent.Victim):
                     Server.CommandCancelList.Remove(DeathEvent.Victim)
                 leng = len(self.Players)
-                if len(self.Players) > 1:
+                if leng > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
                                          + green + str(leng) + red + " Players are still alive.")
-                    if RadDmg and len(self.Players) == CRad:
+                    if RadDmg and leng == CRad:
                         Plugin.CreateTimer("RadiationActivate", 60000 * RadM).Start()
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
