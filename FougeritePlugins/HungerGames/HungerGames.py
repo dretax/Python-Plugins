@@ -64,15 +64,17 @@ CRad = 7
 # How many minutes after should the radiation activate?
 RadM = 0.2
 # How many minutes after should the radius of the radiation "safe-zone" keep decreasing?
-RadDC = 0.5
+RadDC = 0.7
 # How many meters should we remove from the radius after every execution?
 RadME = 40
 # Minimum distance where the radiation can't go further?
-RadMDist = 50
+RadMDist = 55
 # How much radiation should the players receive?
 RadR = 40
 # Time when we should execute radiation on players after the activation (Seconds)
-RadS = 2
+RadS = 3
+# Anti Radiation number if player is not out of the RadRange
+RadAnti = 30
 
 WallsCache = {
 
@@ -119,11 +121,13 @@ class HungerGames:
     Middle = None
     AdminSpot = None
     RestrictedCommands = None
-    CurrentRadRange = CDist
+    CurrentRadRange = CDist / 2
+    Metabolism = None
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
         self.st = Util.TryFindReturnType("StructureComponent")
+        self.Metabolism = Util.TryFindReturnType("Metabolism")
         self.LootableObject = Util.TryFindReturnType("LootableObject")
         DataStore.Flush("HDoorMode")
         ini = self.HungerGames()
@@ -836,7 +840,14 @@ class HungerGames:
         timer.Kill()
         for x in self.Players:
             if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
+                try:
+                    m = x.PlayerClient.controllable.GetComponent(self.Metabolism)
+                    m.Vomit()
+                except:
+                    pass
                 x.AddRads(RadR)
+                continue
+            x.AddAntiRad(RadAnti)
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
@@ -849,7 +860,7 @@ class HungerGames:
         self.HasStarted = False
         self.IsActive = False
         self.IsStarting = False
-        self.CurrentRadRange = CDist
+        self.CurrentRadRange = CDist / 2
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
         if Plugin.GetTimer("StartingIn") is not None:
