@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2'
+__version__ = '1.2b'
 
 import clr
 
@@ -141,8 +141,8 @@ class AdminTools:
                 if not Server.HasRustPP:
                     return
                 dict = Server.GetRustPPAPI().Cache
-                name = dict[long(OwnerID)]
-                if name is not None:
+                if dict.ContainsKey(long(OwnerID)):
+                    name = dict[long(OwnerID)]
                     HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
                 else:
                     HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
