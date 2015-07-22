@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.4'
+__version__ = '1.4b'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -67,9 +67,10 @@ class JZap:
             if not Server.HasRustPP:
                 return
             dict = Server.GetRustPPAPI().Cache
-            name = dict[long(he.Entity.OwnerID)]
-            if name is None:
+            if dict.ContainsKey(long(he.Entity.OwnerID)):
                 name = "UnKnown"
+            else:
+                name = dict[long(he.Entity.OwnerID)]
             if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
                 DataStore.Add(JZapDB, 'Target', he.Entity.OwnerID)
                 he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + str(name) +
