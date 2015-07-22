@@ -550,8 +550,6 @@ class HungerGames:
                         leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
-                            if Server.CommandCancelList.ContainsKey(Player):
-                                Server.CommandCancelList.Remove(Player)
                             leng = len(self.Players)
                             if self.HasStarted:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
@@ -651,6 +649,8 @@ class HungerGames:
         if Player in self.Players:
             self.Players.remove(Player)
         DataStore.Remove("HGIG", Player.SteamID)
+        if Server.CommandCancelList.ContainsKey(Player):
+            Server.CommandCancelList.Remove(Player)
         for x in PlayerSlots.keys():
             if PlayerSlots[x] == Player:
                 PlayerSlots[x] = None
