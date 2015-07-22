@@ -82,8 +82,8 @@ class AdminCommands:
             .setCallback("tpto")\
             .setDescription("Allow admin to add and remove permissions")\
             .setUsage("/permission add username permission")
-        Commands.Register("tsphere")\
-            .setCallback("tsphere")\
+        Commands.Register("tphere")\
+            .setCallback("tphere")\
             .setDescription("Allow admin to add and remove permissions")\
             .setUsage("/permission add username permission")
         Commands.Register("duty")\
