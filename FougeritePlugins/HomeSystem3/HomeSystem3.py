@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5'
+__version__ = '3.5.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -107,7 +107,7 @@ class HomeSystem3:
             ini.AddSetting("Settings", "Cooldown", "300000")
             ini.AddSetting("Settings", "SendPlayertoHomeorRandom", "0")
             ini.AddSetting("Settings", "Randoms", "8156")
-            ini.AddSetting("Settings", "DizzyCheck", "1")
+            ini.AddSetting("Settings", "DizzyCheck", "0")
             ini.Save()
         return Plugin.GetIni("Config")
 
@@ -168,7 +168,8 @@ class HomeSystem3:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(self.sys, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(self.sys, "Found [color#FF0000]" + str(count) +
+                               "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def DefaultLocations(self):
@@ -214,12 +215,10 @@ class HomeSystem3:
         elif cmd == "setdefaulthome":
             loc = Player.Location
             if not self.HasHome(id):
-                type = Util.TryFindReturnType("DeployableObject")
-                objects = UnityEngine.Object.FindObjectsOfType(type)
-                for x in objects:
-                    name = str(x.name).lower()
+                for x in World.Entities:
+                    name = x.Name.lower()
                     if "sleeping" in name:
-                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
                         if dist < 2:
                             ownerid = long(x.ownerID)
                             if long(id) == ownerid:
@@ -228,7 +227,7 @@ class HomeSystem3:
                                 Player.MessageFrom(self.sys, "Home Set.")
                                 return
                     elif "single" in name:
-                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
                         if dist < 3.5:
                             ownerid = long(x.ownerID)
                             if long(id) == ownerid:
@@ -423,10 +422,8 @@ class HomeSystem3:
             if Entity.Name == "SleepingBagA" or Entity.Name == "SingleBed":
                 id = Player.SteamID
                 loc = Entity.Location
-                type = Util.TryFindReturnType("StructureComponent")
-                objects = UnityEngine.Object.FindObjectsOfType(type)
-                for x in objects:
-                    if "Foundation" in x.name or "Ceiling" in x.name:
+                for x in World.Entities:
+                    if "foundation" in x.Name.lower() or "ceiling" in x.Name.lower():
                         dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
                         if dist > self.max:
                             continue
