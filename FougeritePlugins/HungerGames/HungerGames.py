@@ -616,7 +616,7 @@ class HungerGames:
                         return
                     Player.MessageFrom(sysname, green + "Currently alive: " + str(len(self.Players)))
                     for x in self.Players:
-                        Player.MessageFrom(sysname, "- " + x.Name + " Rad: " + str(Player.RadLevel))
+                        Player.MessageFrom(sysname, "- " + x.Name + " Rad: " + str(x.RadLevel))
                 elif arg == "decay":
                     if Player.Admin or Player.Moderator:
                         if self.Middle is None:
