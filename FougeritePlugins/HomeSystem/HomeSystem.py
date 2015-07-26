@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.8'
+__version__ = '2.5.9'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -296,7 +296,7 @@ class HomeSystem:
                 Pending.remove(Player)
                 Player.MessageFrom(self.homesystemname, "You have been teleported home.")
                 DataStore.Add("homey", id, loc.y)
-                self.addJob(Player, 2, 4, None)
+                # self.addJob(Player, 2, 4, None)
             else:
                 Player.SafeTeleportTo(loc)
                 Player.MessageFrom(self.homesystemname, "You have been teleported home.")
@@ -323,7 +323,7 @@ class HomeSystem:
                 tp = self.Replace(randomloc)
                 home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                 Player.TeleportTo(home)
-                Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house. Kicked.")
+                Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house.")
                 Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " + Player.IP + " - " + str(Player.Location))
                 DataStore.Remove("homey", id)
                 #  self.addJob(Player, 2, 6, None)
@@ -464,7 +464,6 @@ class HomeSystem:
             if len(args) != 1:
                 Player.MessageFrom(self.homesystemname, "Usage: /sethome name")
                 return
-            ini = self.Homes()
             maxh = self.DonatorRankCheck(id)
             if self.GetHomeNumber(id) == int(maxh):
                 Player.MessageFrom(self.homesystemname, "You reached the max number of homes!")
@@ -687,13 +686,7 @@ class HomeSystem:
                     HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.SteamID
         jtime = DataStore.Get("home_joincooldown", id)
         if self.sendhome == 1:
             if jtime is None:

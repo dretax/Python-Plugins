@@ -173,9 +173,9 @@ class TpFriend:
         DataStore.Add("tpfriendautoban", id, "using")
         # Normal Teleport Callback
         if callback == 1:
-            PlayerFrom.TeleportTo(PlayerTo.Location)
+            PlayerFrom.TeleportTo(PlayerTo.Location, False)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend")
-            #self.addJob(2, PlayerFrom, PlayerTo, 3, id, tid)
+            self.addJob(2, PlayerFrom, PlayerTo, 3, id, tid)
         # AutoKill
         elif callback == 2:
             if PlayerFrom not in Pending or PlayerTo not in Pending:
