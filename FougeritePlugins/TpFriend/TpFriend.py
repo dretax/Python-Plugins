@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.3'
+__version__ = '3.7.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -175,7 +175,7 @@ class TpFriend:
         if callback == 1:
             PlayerFrom.TeleportTo(PlayerTo.Location)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend")
-            self.addJob(2, PlayerFrom, PlayerTo, 3, id, tid)
+            #self.addJob(2, PlayerFrom, PlayerTo, 3, id, tid)
         # AutoKill
         elif callback == 2:
             if PlayerFrom not in Pending or PlayerTo not in Pending:
@@ -197,7 +197,7 @@ class TpFriend:
             PlayerFrom.TeleportTo(PlayerTo.Location)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend again.")
             DataStore.Add("tpfriendy", id, str(PlayerTo.Y))
-            self.addJob(2, PlayerFrom, PlayerTo, 5, id, tid)
+            #self.addJob(2, PlayerFrom, PlayerTo, 5, id, tid)
         elif callback == 4:
             DataStore.Add("tpfriendautoban", id, "none")
         elif callback == 5:
@@ -222,9 +222,6 @@ class TpFriend:
                 pass"""
 
     def On_PlayerDisconnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            return
         self.KillJob(Player)
         DataStore.Add("tpfriendautoban", id, "none")
 
@@ -234,8 +231,6 @@ class TpFriend:
             if Player.Admin or self.isMod(id):
                 self.clearTimers()
                 Player.MessageFrom(self.sys, "Cleared!")
-        elif cmd == "madafaka":
-            Player.Message(str(HungerGames.HungerGames().Players))
         elif cmd == "tpa":
             if len(args) == 0:
                 Player.MessageFrom(self.sys, "Teleport Usage:")
