@@ -88,6 +88,12 @@ Rewards = {
 
 }
 
+EntityList = {
+    "WoodBoxLarge": ";deploy_wood_storage_large",
+    "WoodBox": ";deploy_wood_box",
+    "SmallStash": ";deploy_small_stash"
+}
+
 PlacedEntities = []
 
 class HungerGames:
@@ -441,8 +447,9 @@ class HungerGames:
                         enum2 = ini.EnumSection("ChestLocations")
                         for chest in enum2:
                             l = ini.GetSetting("ChestLocations", chest).split(',')
+                            name = chest.split('-')
                             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                            self.FindChest(loc)
+                            self.FindChest(loc, name, l[3])
                         for x in loot:
                             x.Inventory.ClearAll()
                         del loot[:]
@@ -461,9 +468,16 @@ class HungerGames:
                         for x in chests:
                             if "stash" in x.name.lower() or "box" in x.name.lower():
                                 if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
+                                    name = x.name.replace('(Clone)', '')
                                     c += 1
-                                    ini.AddSetting("ChestLocations", str(c), str(x.transform.position.x) + "," +
-                                                   str(x.transform.position.y) + "," + str(x.transform.position.z))
+                                    ini.AddSetting("ChestLocations", name + "-" + str(c),
+                                                   str(x.transform.position.x) + "," +
+                                                   str(x.transform.position.y) + "," +
+                                                   str(x.transform.position.z) + "," +
+                                                   str(x.transform.rotation.x) + "," +
+                                                   str(x.transform.rotation.y) + "," +
+                                                   str(x.transform.rotation.z) + "," +
+                                                   str(x.transform.rotation.w))
                                     ini.Save()
                         Player.MessageFrom(sysname, "Added " + str(c) + " entities.")
                 elif arg == "middle":
@@ -599,7 +613,7 @@ class HungerGames:
                         return
                     Player.MessageFrom(sysname, green + "Currently alive: " + str(len(self.Players)))
                     for x in self.Players:
-                        Player.MessageFrom(sysname, "- " + x.Name)
+                        Player.MessageFrom(sysname, "- " + x.Name + " Rad: " + str(Player.RadLevel))
                 elif arg == "decay":
                     if Player.Admin or Player.Moderator:
                         if self.Middle is None:
@@ -673,15 +687,20 @@ class HungerGames:
             Server.BroadcastFrom(sysname, red + " Location: " + str(location))
             Plugin.Log("MissingWall", str(location))
 
-    def FindChest(self, location):
+    def FindChest(self, location, name, spawnRot):
         for chest in self.chests:
             Distance = Util.GetVectorsDistance(location, chest.transform.position)
             if Distance < 1:
                 loot.append(Entity(chest))
                 return
-        Server.BroadcastFrom(sysname, red + " Warning. Failed to find a chest at spawn point.")
-        Server.BroadcastFrom(sysname, red + " Location: " + str(location))
-        Plugin.Log("MissingChest", str(location))
+        n = EntityList[name]
+        try:
+            ent = Entity(World.Spawn(n, location.x, location.y, location.z, spawnRot))
+            ent.ChangeOwner(self.RandomAdmin)
+            loot.append(ent)
+        except Exception as e:
+            Server.BroadcastFrom(sysname, "Failed to replace a Chest.")
+            Plugin.Log("Error", "Failed to replace a Chest." + str(e))
 
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
@@ -723,8 +742,10 @@ class HungerGames:
             self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
             for chest in enum2:
                 l = ini.GetSetting("ChestLocations", chest).split(',')
+                name = chest.split('-')
+                quat = Quaternion(float(l[3]), float(l[4]), float(l[5]) ,float(l[6]))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                self.FindChest(loc)
+                self.FindChest(loc, name[0], quat)
             Server.BroadcastFrom(sysname, green + "Loaded 50%")
             for wall in enum3:
                 l = ini.GetSetting("WallLocations", wall).split(',')
@@ -905,9 +926,10 @@ class HungerGames:
                 if AnnounceRewards:
                     arr.append(item)
         if AnnounceRewards:
-            d = ",".join(str(x) for x in arr)
+            d = str.join(', ', arr)
             Server.BroadcastFrom(sysname, pink + "Rewards he received: " + d)
         i = 0
+        er = False
         for loc in WallsCache.keys():
             spawnRot = WallsCache.get(loc)
             try:
@@ -919,10 +941,12 @@ class HungerGames:
                 sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
                 walls[i] = ent
             except Exception as e:
-                Server.BroadcastFrom(sysname, "Failed to place walls at the end of the game.")
-                Plugin.Log("Error", "Failed to place walls at the end of the game." + str(e))
-                Server.BroadcastFrom(sysname, red + "Replace the walls admins!")
-                break
+                if not er:
+                    Server.BroadcastFrom(sysname, "Failed to place walls at the end of the game.")
+                    Plugin.Log("Error", "Failed to place walls at the end of the game." + str(e))
+                    Server.BroadcastFrom(sysname, red + "Replace the walls admins!")
+                    er = True
+                continue
             i += 1
         if LootStackClean:
             self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
