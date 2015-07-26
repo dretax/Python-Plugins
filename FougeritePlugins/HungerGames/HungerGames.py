@@ -112,6 +112,7 @@ class HungerGames:
     count3 = None
     count4 = None
     count5 = None
+    count6 = None
     times = None
     MTimes = None
     item = None
@@ -129,6 +130,7 @@ class HungerGames:
     RestrictedCommands = None
     CurrentRadRange = CDist / 2
     Metabolism = None
+    RadRunning = False
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
@@ -147,6 +149,7 @@ class HungerGames:
         self.count3 = int(ini2.GetSetting("Random", "Count3"))
         self.count4 = int(ini2.GetSetting("Random", "Count4"))
         self.count5 = int(ini2.GetSetting("Random", "Count5"))
+        self.count6 = int(ini2.GetSetting("Random", "Count6"))
         self.times = int(ini2.GetSetting("Random", "Times"))
         self.MTimes = int(ini2.GetSetting("Random", "MTimes"))
         self.item = int(ini2.GetSetting("Random", "Items"))
@@ -783,6 +786,8 @@ class HungerGames:
                         countr = random.randint(1, self.count3)
                     elif "arrow" in gitem.lower():
                         countr = random.randint(1, self.count4)
+                    elif "flare" in gitem.lower():
+                        countr = random.randint(1, self.count6)
                     try:
                         inv.AddItemTo(gitem, slot, countr)
                     except:
@@ -881,6 +886,7 @@ class HungerGames:
         self.IsActive = False
         self.IsStarting = False
         self.CurrentRadRange = CDist / 2
+        self.RadRunning = False
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
         if Plugin.GetTimer("StartingIn") is not None:
@@ -984,7 +990,8 @@ class HungerGames:
                 if leng > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
                                          + green + str(leng) + red + " Players are still alive.")
-                    if RadDmg and leng == CRad:
+                    if RadDmg and leng <= CRad and not self.RadRunning:
+                        self.RadRunning = True
                         Plugin.CreateTimer("RadiationActivate", 60000 * RadM).Start()
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
