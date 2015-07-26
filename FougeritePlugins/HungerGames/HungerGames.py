@@ -543,7 +543,7 @@ class HungerGames:
                         DataStore.Add("HLastLoc", Player.SteamID, str(Player.Location))
                         l = self.Replace(ini.GetSetting("SpawnLocations", str(leng)))
                         loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                        Player.TeleportTo(loc)
+                        Player.TeleportTo(loc, False)
                         self.recordInventory(Player)
                         enum = ini2.EnumSection("DefaultItems")
                         for item in enum:
@@ -606,7 +606,7 @@ class HungerGames:
                 elif arg == "spot":
                     if Player.Admin or Player.Moderator:
                         if self.AdminSpot is not None:
-                            Player.TeleportTo(self.AdminSpot)
+                            Player.TeleportTo(self.AdminSpot, False)
                             Player.MessageFrom(sysname, "Teleported!")
                         else:
                             Player.MessageFrom(sysname, "Admin spot is not set!")
