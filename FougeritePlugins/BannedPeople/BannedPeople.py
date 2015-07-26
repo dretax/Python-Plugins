@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.4'
+__version__ = '1.6.5'
 
 import clr
 
@@ -91,11 +91,11 @@ class BannedPeople:
             ConsoleEvent.ReplyWith("You aren't an admin!")
             return
         if ConsoleEvent.Class == "fougerite":
-            name = str.join(' ', ConsoleEvent.Args)
             if "unban" in ConsoleEvent.Function:
                 if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
+                name = str.join(' ', ConsoleEvent.Args)
                 ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
                 if name.isnumeric() and name.startswith("7656119"):
                     b = Server.UnbanByID(name)
@@ -119,8 +119,13 @@ class BannedPeople:
                 if len(ConsoleEvent.Args) == 0:
                     ConsoleEvent.ReplyWith("Specify a name!")
                     return
+                name = str.join(' ', ConsoleEvent.Args)
                 ipmatch = bool(re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", name))
                 if name.isnumeric() and name.startswith("7656119"):
+                    if Server.GetRustPPAPI().IsAdmin(long(name)):
+                        ConsoleEvent.ReplyWith("This owner of the ID is an Admin/Moderator.")
+                        ConsoleEvent.ReplyWith("You need to remove him from the list first.")
+                        return
                     b = Server.BanPlayerID(name, "Console ban")
                     if b:
                         ConsoleEvent.ReplyWith("ID " + name + " banned!")
@@ -223,14 +228,14 @@ class BannedPeople:
             elif len(args) == 1:
                 if Player.Admin or Player.Moderator:
                     id = str(args[0]).strip(' ')
-                    if Server.GetRustPPAPI().IsAdmin(long(id)):
-                        Player.MessageFrom(self.sysname, "This owner of the ID is an Admin/Moderator.")
-                        Player.MessageFrom(self.sysname, "You need to remove him from the list first.")
-                        return
                     if "." in id:
                         Server.BanPlayerIP(id, "IP OfflineBanned By " + Player.Name + " | " + Player.SteamID)
                         Player.MessageFrom(self.sysname, "Player IP (" + id + ") was banned.")
                     else:
+                        if Server.GetRustPPAPI().IsAdmin(long(id)):
+                            Player.MessageFrom(self.sysname, "This owner of the ID is an Admin/Moderator.")
+                            Player.MessageFrom(self.sysname, "You need to remove him from the list first.")
+                            return
                         Server.BanPlayerID(id, "ID OfflineBanned By " + Player.Name + " | " + Player.SteamID)
                         Player.MessageFrom(self.sysname, "Player ID (" + id + ") was banned.")
         elif cmd == "drop":
@@ -238,7 +243,7 @@ class BannedPeople:
                 p = self.CheckV(Player, args)
                 if p is not None:
                     Player.Message(p.Name + " was dropped.")
-                    p.TeleportTo(float(p.X), float(p.Y) + float(30), float(p.Z))
+                    p.TeleportTo(float(p.X), float(p.Y) + float(30), float(p.Z), False)
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
