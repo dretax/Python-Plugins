@@ -209,6 +209,7 @@ class HungerGames:
             ini.AddSetting("Random", "Count3", "5")
             ini.AddSetting("Random", "Count4", "20")
             ini.AddSetting("Random", "Count5", "2")
+            ini.AddSetting("Random", "Count6", "5")
             ini.AddSetting("Random", "MTimes", "2")
             ini.AddSetting("Random", "Times", "5")
             ini.AddSetting("Random", "ItemRewards", "True")
