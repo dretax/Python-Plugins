@@ -424,10 +424,10 @@ class HomeSystem3:
                 loc = Entity.Location
                 for x in World.Entities:
                     if "foundation" in x.Name.lower() or "ceiling" in x.Name.lower():
-                        dist = round(Util.GetVectorsDistance(loc, x.gameObject.transform.position), 2)
+                        dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
                         if dist > self.max:
                             continue
-                        ownerid = long(x._master.ownerID)
+                        ownerid = long(x.OwnerID)
                         if ownerid == long(id):
                             continue
                         friends = self.IsFriend(str(ownerid), id)
