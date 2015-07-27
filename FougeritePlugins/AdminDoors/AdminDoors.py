@@ -133,6 +133,7 @@ class AdminDoors:
                 else:
                     Player.MessageFrom("AdminDoors", "/AD Allow  -  /AD UnAllow  -  /AD toggle  -  /AD Info")
                     Player.MessageFrom("AdminDoors", "/AdminDoors can also be used.")
+                return
             if args[0] == "allow":
                 if Player.Admin or self.allowed(Player):
                     if len(args) == 0:
