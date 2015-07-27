@@ -75,6 +75,8 @@ RadR = 40
 RadS = 3
 # Anti Radiation number if player is not out of the RadRange
 RadAnti = 30
+# Range where the radiation should Start
+RadStart = 200 # Map size is marked at 400, I recommend the half
 
 WallsCache = {
 
@@ -128,7 +130,7 @@ class HungerGames:
     Middle = None
     AdminSpot = None
     RestrictedCommands = None
-    CurrentRadRange = CDist / 2
+    CurrentRadRange = RadStart
     Metabolism = None
     RadRunning = False
 
@@ -885,7 +887,7 @@ class HungerGames:
         self.HasStarted = False
         self.IsActive = False
         self.IsStarting = False
-        self.CurrentRadRange = CDist / 2
+        self.CurrentRadRange = RadStart
         self.RadRunning = False
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
