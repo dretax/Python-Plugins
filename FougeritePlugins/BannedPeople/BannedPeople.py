@@ -242,9 +242,7 @@ class BannedPeople:
             if Player.Admin or Player.Moderator:
                 p = self.CheckV(Player, args)
                 if p is not None:
-                    loc = p.Location
-                    loc.y = loc.y + float(30)
-                    p.TeleportTo(loc, False)
+                    p.TeleportTo(float(p.X), float(p.Y) + float(30), float(p.Z), False)
                     Player.Message(p.Name + " was dropped.")
 
     def On_PlayerConnected(self, Player):
