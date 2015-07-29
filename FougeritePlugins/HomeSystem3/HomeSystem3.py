@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.1'
+__version__ = '3.5.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -220,7 +220,7 @@ class HomeSystem3:
                     if "sleeping" in name:
                         dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
                         if dist < 2:
-                            ownerid = long(x.ownerID)
+                            ownerid = long(x.OwnerID)
                             if long(id) == ownerid:
                                 beds.AddSetting("Homes", id, str(loc))
                                 beds.Save()
@@ -229,7 +229,7 @@ class HomeSystem3:
                     elif "single" in name:
                         dist = round(Util.GetVectorsDistance(loc, x.Location), 2)
                         if dist < 3.5:
-                            ownerid = long(x.ownerID)
+                            ownerid = long(x.OwnerID)
                             if long(id) == ownerid:
                                 beds.AddSetting("Homes", id, str(loc))
                                 beds.Save()
