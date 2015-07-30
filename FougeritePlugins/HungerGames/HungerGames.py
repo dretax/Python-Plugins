@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.5'
+__version__ = '1.4.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -15,8 +15,9 @@ path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
 try:
     import random
+    import heapq
 except ImportError:
-    raise ImportError("Failed to import random! Download the lib!")
+    raise ImportError("Failed to import libs! Download the lib!")
 
 """
     Class
@@ -97,6 +98,10 @@ EntityList = {
 }
 
 PlacedEntities = []
+
+PointedPeople = {
+
+}
 
 class HungerGames:
     # Values
@@ -230,6 +235,12 @@ class HungerGames:
             ini.Save()
         return Plugin.GetIni("Store")
 
+    def Wins(self):
+        if not Plugin.IniExists("Wins"):
+            ini = Plugin.CreateIni("Wins")
+            ini.Save()
+        return Plugin.GetIni("Wins")
+
     def DecayMaxHP(self):
         c = 0
         for entity in World.Entities:
@@ -352,6 +363,7 @@ class HungerGames:
                 Player.MessageFrom(sysname, green + "/hg info - HG info")
                 Player.MessageFrom(sysname, green + "/hg inventory - Gives your inventory back, if you didn't get it.")
                 Player.MessageFrom(sysname, green + "/hg alive - List the alive players!")
+                Player.MessageFrom(sysname, green + "/hg toplist - List the top5 players!")
                 return
             else:
                 arg = args[0]
@@ -528,6 +540,9 @@ class HungerGames:
                     if Player in self.Players:
                         Player.MessageFrom(sysname, "You are already in the game, nab.")
                     else:
+                        if DataStore.ContainsKey("HungerGames", id):
+                            Player.MessageFrom(sysname, green + "First you have to do /hg inventory !")
+                            return
                         self.Players.append(Player)
                         if Server.CommandCancelList.ContainsKey(Player):
                             Server.CommandCancelList.Remove(Player)
@@ -570,6 +585,8 @@ class HungerGames:
                         leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
+                            if Server.CommandCancelList.ContainsKey(Player):
+                                Server.CommandCancelList.Remove(Player)
                             leng = len(self.Players)
                             if self.HasStarted:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
@@ -629,7 +646,23 @@ class HungerGames:
                             c = self.DecayMaxHP()
                         except:
                             return
-                        Player.MessageFrom(sysname,"Decay is disabled on " + str(c) + " objects.")
+                        Player.MessageFrom(sysname, "Decay is disabled on " + str(c) + " objects.")
+                elif arg == "toplist":
+                    wini = self.Wins()
+                    enum = wini.EnumSection("Wins")
+                    if len(enum) < 5:
+                        Player.MessageFrom(sysname, red + "5 Winners are required for this atleast")
+                        return
+                    d = {}
+                    for x in enum:
+                        d[x] = wini.GetSetting("Wins", x)
+                    top = heapq.nlargest(5, d, key = lambda k: d[k])
+                    dic = Server.GetRustPPAPI().Cache
+                    Player.MessageFrom(sysname, pink + "===Top5===")
+                    for id in top:
+                        Player.MessageFrom(sysname, pink + " - " + str(dic[long(id)])  + " Points: "
+                                           + wini.GetSetting("Wins", id))
+
                 """elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
                         if self.HasStarted or self.IsStarting:
@@ -913,15 +946,34 @@ class HungerGames:
         del self.Players[:]
         del walls[:]
         del loot[:]
+        del PointedPeople[:]
         self.CleanMess()
 
     def EndGame(self, Player):
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
         Server.BroadcastFrom(sysname, green + Player.Name + " won the match! Congratulations!")
-        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
         self.RemovePlayerDirectly(Player)
         Player.Inventory.ClearAll()
         self.returnInventory(Player)
+        winsini = self.Wins()
+        for y in PointedPeople.keys():
+            x = PointedPeople[y]
+            if x == 3:
+                p = 1
+            elif x == 2:
+                p = 3
+            else:
+                p = 5
+            if winsini.GetSetting("Wins", x.SteamID) is not None:
+                c = int(winsini.GetSetting("Wins", x.SteamID)) + p
+                winsini.SetSetting("Wins", x.SteamID, str(c))
+            else:
+                winsini.AddSetting("Wins", x.SteamID, str(p))
+        winsini.Save()
+        Server.BroadcastFrom(sysname, pink + "---Stats---")
+        Server.BroadcastFrom(sysname, "1st: " + PointedPeople[1].Name)
+        Server.BroadcastFrom(sysname, "2nd: " + PointedPeople[2].Name)
+        Server.BroadcastFrom(sysname, "3rd: " + PointedPeople[3].Name)
         arr = []
         if self.ItemRewards:
             max = random.randint(self.MinRewards, self.MaxRewards)
@@ -936,6 +988,7 @@ class HungerGames:
                     arr.append(item)
         if AnnounceRewards:
             d = str.join(', ', arr)
+            Server.BroadcastFrom(sysname, pink + "---Rewards---")
             Server.BroadcastFrom(sysname, pink + "Rewards he received: " + d)
         i = 0
         er = False
@@ -966,7 +1019,8 @@ class HungerGames:
                         x._inventory.Clear()
                         Util.DestroyObject(x.gameObject)
         self.Reset()
-        Player.MessageFrom(sysname, red + "You received your rewards!")
+        Player.MessageFrom(sysname, green + "You received your rewards!")
+        Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
@@ -990,6 +1044,12 @@ class HungerGames:
                 if Server.CommandCancelList.ContainsKey(DeathEvent.Victim):
                     Server.CommandCancelList.Remove(DeathEvent.Victim)
                 leng = len(self.Players)
+                if leng < 3:
+                    if leng == 2:
+                        PointedPeople[3] = DeathEvent.Victim
+                    elif leng == 1:
+                        PointedPeople[2] = DeathEvent.Victim
+                        PointedPeople[1] = self.Players[0]
                 if leng > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
                                          + green + str(leng) + red + " Players are still alive.")
