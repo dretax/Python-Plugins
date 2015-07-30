@@ -945,7 +945,7 @@ class HungerGames:
         del self.Players[:]
         del walls[:]
         del loot[:]
-        del PointedPeople[:]
+        PointedPeople.clear()
         self.CleanMess()
 
     def EndGame(self, Player):
@@ -957,9 +957,9 @@ class HungerGames:
         winsini = self.Wins()
         for y in PointedPeople.keys():
             x = PointedPeople[y]
-            if x == 3:
+            if y == 3:
                 p = 1
-            elif x == 2:
+            elif y == 2:
                 p = 3
             else:
                 p = 5
