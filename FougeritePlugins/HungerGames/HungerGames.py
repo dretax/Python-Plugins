@@ -15,7 +15,6 @@ path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
 try:
     import random
-    import heapq
 except ImportError:
     raise ImportError("Failed to import libs! Download the lib!")
 
@@ -656,7 +655,7 @@ class HungerGames:
                     d = {}
                     for x in enum:
                         d[x] = wini.GetSetting("Wins", x)
-                    top = heapq.nlargest(5, d, key = lambda k: d[k])
+                    top = sorted(d, key=d.get, reverse=True)[:5]
                     dic = Server.GetRustPPAPI().Cache
                     Player.MessageFrom(sysname, pink + "===Top5===")
                     for id in top:
