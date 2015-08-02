@@ -697,22 +697,23 @@ class HungerGames:
                         del walls[:]
                         Player.MessageFrom(sysname, "Walls replaced.")"""
 
-    def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False):
-        if Player in self.Players:
+    def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
+        id = Player.SteamID
+        if Player in self.Players and Remove:
             self.Players.remove(Player)
-        DataStore.Remove("HGIG", Player.SteamID)
+        DataStore.Remove("HGIG", id)
         if Server.CommandCancelList.ContainsKey(Player):
             Server.CommandCancelList.Remove(Player)
         for x in PlayerSlots.keys():
             if PlayerSlots[x] == Player:
                 PlayerSlots[x] = None
         if not Disconnected:
-            if DataStore.ContainsKey("HLastLoc", Player.SteamID) and not Dead:
+            if DataStore.ContainsKey("HLastLoc", id) and not Dead:
                 Player.AddAntiRad(Player.RadLevel)
-                l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
+                l = self.Replace(DataStore.Get("HLastLoc", id))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 Player.TeleportTo(loc)
-                DataStore.Remove("HLastLoc", Player.SteamID)
+                DataStore.Remove("HLastLoc", id)
 
     def FindWalls(self, location, msg=True):
         for wall in self.structures:
@@ -938,7 +939,7 @@ class HungerGames:
                 continue
             inv.ClearAll()
         for pl in self.Players:
-            self.RemovePlayerDirectly(pl)
+            self.RemovePlayerDirectly(pl, False)
         #  Just in-case
         for x in PlayerSlots.keys():
             PlayerSlots[x] = None
