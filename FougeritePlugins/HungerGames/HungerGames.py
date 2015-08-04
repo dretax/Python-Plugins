@@ -654,7 +654,7 @@ class HungerGames:
                         return
                     d = {}
                     for x in enum:
-                        d[x] = wini.GetSetting("Wins", x)
+                        d[x] = int(wini.GetSetting("Wins", x))
                     top = sorted(d, key=d.get, reverse=True)[:5]
                     dic = Server.GetRustPPAPI().Cache
                     Player.MessageFrom(sysname, pink + "===Top5===")
