@@ -363,6 +363,7 @@ class HungerGames:
                 Player.MessageFrom(sysname, green + "/hg inventory - Gives your inventory back, if you didn't get it.")
                 Player.MessageFrom(sysname, green + "/hg alive - List the alive players!")
                 Player.MessageFrom(sysname, green + "/hg toplist - List the top5 players!")
+                Player.MessageFrom(sysname, green + "/hg stats - View your stats!")
                 return
             else:
                 arg = args[0]
@@ -661,7 +662,26 @@ class HungerGames:
                     for id in top:
                         Player.MessageFrom(sysname, pink + " - " + str(dic[long(id)])  + " Points: "
                                            + wini.GetSetting("Wins", id))
-
+                elif arg == "stats":
+                    wini = self.Wins()
+                    data = wini.GetSetting("Wins", id)
+                    if data is None:
+                        Player.MessageFrom(sysname, red + "No stats found")
+                        return
+                    enum = wini.EnumSection("Wins")
+                    Player.MessageFrom(sysname, green + "==Stats==")
+                    Player.MessageFrom(sysname, pink + "Name: " + Player.Name)
+                    Player.MessageFrom(sysname, pink + "Points: " + data)
+                    d = {}
+                    for x in enum:
+                        d[x] = int(wini.GetSetting("Wins", x))
+                    count = len(enum) + 1
+                    top = sorted(d, key=d.get, reverse=True)[:count]
+                    lid = long(id)
+                    for i, fid in enumerate(top):
+                        if lid == long(fid):
+                            Player.MessageFrom(sysname, pink + "Ranked: " + str(i) + "/" + str(count))
+                            break
                 """elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
                         if self.HasStarted or self.IsStarting:
