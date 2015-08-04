@@ -675,12 +675,12 @@ class HungerGames:
                     d = {}
                     for x in enum:
                         d[x] = int(wini.GetSetting("Wins", x))
-                    count = len(enum) + 1
+                    count = len(enum)
                     top = sorted(d, key=d.get, reverse=True)[:count]
                     lid = long(id)
                     for i, fid in enumerate(top):
                         if lid == long(fid):
-                            Player.MessageFrom(sysname, pink + "Ranked: " + str(i) + "/" + str(count))
+                            Player.MessageFrom(sysname, pink + "Ranked: " + str(i + 1) + "/" + str(count))
                             break
                 """elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
