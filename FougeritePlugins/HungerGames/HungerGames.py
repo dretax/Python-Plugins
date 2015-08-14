@@ -16,7 +16,7 @@ sys.path.append(path + "\\Save\\Lib\\")
 try:
     import random
 except ImportError:
-    raise ImportError("Failed to import libs! Download the lib!")
+    raise ImportError("Failed to import random! Download the lib!")
 
 """
     Class
@@ -36,23 +36,23 @@ purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
 sysname = "HungerGames"
 #  Minimum players to start the MinimumTime counter.
-minp = 7
+minp = 15
 #  Timer for the force start at minimum players.
 #  If we reach 7 players we start the timer. Once It elapsed we start the game.
 #  This is in minutes
-MinimumTime = 3
+MinimumTime = 2
 #  MaxPlayers!
-maxp = 14
+maxp = 40
 #  Secs before match start
 secs = 30
 #  Cleanup loots Stacks after game in close range?
 LootStackClean = True
 #  Distance for loots if we look from the first spawn point? (Size of the Arena in meters)
-CDist = 400
+CDist = 310
 #  For safety reasons should we freeze the player when he joins for 2 secs?
 Freeze = True
 # Metal Walls for spawn points = 1 ; Wood Walls = 2 (For destroy/respawning)
-WallsSpawn = 1
+WallsSpawn = 2
 # Allow building in HG? If this is true, then the deployed entities will be destroyed at the end of the game.
 Building = False
 # Announce Rewards?
@@ -60,27 +60,23 @@ AnnounceRewards = True
 # Enable Radiation Damage? Uses CDist and Middle position.
 RadDmg = True
 # The player count when the radiation damage should activate
-CRad = 7
+CRad = 8
 # How many minutes after should the radiation activate?
-RadM = 0.2
+RadM = 0.1
 # How many minutes after should the radius of the radiation "safe-zone" keep decreasing?
 RadDC = 0.7
 # How many meters should we remove from the radius after every execution?
 RadME = 40
 # Minimum distance where the radiation can't go further?
-RadMDist = 55
+RadMDist = 95
 # How much radiation should the players receive?
-RadR = 40
+RadR = 65
 # Time when we should execute radiation on players after the activation (Seconds)
 RadS = 3
 # Anti Radiation number if player is not out of the RadRange
-RadAnti = 30
+RadAnti = 75
 # Range where the radiation should Start
-RadStart = 200 # Map size is marked at 400, I recommend the half
-
-WallsCache = {
-
-}
+RadStart = 310 # Map size is marked at 400, I recommend the half
 
 PlayerSlots = {
 
@@ -93,7 +89,9 @@ Rewards = {
 EntityList = {
     "WoodBoxLarge": ";deploy_wood_storage_large",
     "WoodBox": ";deploy_wood_box",
-    "SmallStash": ";deploy_small_stash"
+    "SmallStash": ";deploy_small_stash",
+    "MetalWall": ";struct_metal_wall",
+    "WoodWall": ";struct_wood_wall"
 }
 
 PlacedEntities = []
@@ -101,6 +99,8 @@ PlacedEntities = []
 PointedPeople = {
 
 }
+
+Awaiting = []
 
 class HungerGames:
     # Values
@@ -126,7 +126,7 @@ class HungerGames:
     Players = []
     LootableObject = None
     LootableObjects = None
-    FirstLocation = None
+    #FirstLocation = None
     ItemRewards = None
     StoreRewards = None
     MinRewards = None
@@ -240,6 +240,12 @@ class HungerGames:
             ini.Save()
         return Plugin.GetIni("Wins")
 
+    def Kills(self):
+        if not Plugin.IniExists("Kills"):
+            ini = Plugin.CreateIni("Kills")
+            ini.Save()
+        return Plugin.GetIni("Kills")
+
     def DecayMaxHP(self):
         c = 0
         for entity in World.Entities:
@@ -320,6 +326,7 @@ class HungerGames:
                 Inventory.append(myitem)
 
         DataStore.Add("HungerGames", id, Inventory)
+        DataStore.Save()
         Player.Inventory.ClearAll()
 
     def returnInventory(self, Player):
@@ -356,7 +363,7 @@ class HungerGames:
                 return"""
         if cmd == "hg":
             if len(args) == 0:
-                Player.MessageFrom(sysname, green + "HungerGames By " + __author__ + blue + "V" + __version__)
+                Player.MessageFrom(sysname, teal + "HungerGames By " + __author__ + " " + blue + "V" + __version__)
                 Player.MessageFrom(sysname, green + "/hg join - Join HG")
                 Player.MessageFrom(sysname, green + "/hg leave - Leave HG")
                 Player.MessageFrom(sysname, green + "/hg info - HG info")
@@ -425,8 +432,14 @@ class HungerGames:
                                                      "HUNGERGAMES--------------------------------")
                                 self.EndGame(self.Players[0])
                             else:
-                                Player.MessageFrom(sysname,
-                                                   "You can't disable it, there are still more players alive than 1")
+                                Server.BroadcastFrom\
+                                    (sysname, red + "----------------------------HUNGERGAMES"
+                                                    "--------------------------------")
+                                Server.BroadcastFrom(sysname, "Hunger Games is now inactive.")
+                                Server.BroadcastFrom(sysname,
+                                                     red + "----------------------------"
+                                                     "HUNGERGAMES--------------------------------")
+                                self.Reset()
                         else:
                             if not self.IsActive:
                                 Player.MessageFrom(sysname, "Hunger Games is already in-active!")
@@ -659,9 +672,14 @@ class HungerGames:
                     top = sorted(d, key=d.get, reverse=True)[:5]
                     dic = Server.GetRustPPAPI().Cache
                     Player.MessageFrom(sysname, pink + "===Top5===")
-                    for id in top:
-                        Player.MessageFrom(sysname, pink + " - " + str(dic[long(id)])  + " Points: "
-                                           + wini.GetSetting("Wins", id))
+                    for nid in top:
+                        kills = self.Kills()
+                        count = kills.GetSetting("Kills", nid)
+                        if count is None:
+                            count = "0"
+                        Player.MessageFrom(sysname, pink + " - " + str(dic[long(nid)]) + " Points: "
+                                           + wini.GetSetting("Wins", nid)
+                                           + " Kills: " + count)
                 elif arg == "stats":
                     wini = self.Wins()
                     data = wini.GetSetting("Wins", id)
@@ -682,6 +700,61 @@ class HungerGames:
                         if lid == long(fid):
                             Player.MessageFrom(sysname, pink + "Ranked: " + str(i + 1) + "/" + str(count))
                             break
+                    kills = self.Kills()
+                    count = kills.GetSetting("Kills", id)
+                    if count is None:
+                        count = "0"
+                    Player.MessageFrom(sysname, pink + "Kills: " + count)
+                elif arg == "forcejoin":
+                    if not Player.Admin:
+                        return
+                    if not self.IsActive:
+                        Player.MessageFrom(sysname, "HungerGames is not active.")
+                        return
+                    if not self.HasStarted:
+                        Player.MessageFrom(sysname, "Only use this if HungerGames has started.")
+                        return
+                    ini2 = self.DefaultItems()
+                    enum = len(ini2.EnumSection("Rewards"))
+                    if Player.Inventory.FreeSlots < enum:
+                        Player.MessageFrom(sysname, purple + "You need to have atleast " + str(enum)
+                                           + " free slots in your inventory!")
+                        return
+                    if len(self.Players) == maxp:
+                        Player.MessageFrom(sysname, red + "HungerGames is full!")
+                        return
+                    if Player in self.Players:
+                        Player.MessageFrom(sysname, "You are already in the game, nab.")
+                    else:
+                        if DataStore.ContainsKey("HungerGames", id):
+                            Player.MessageFrom(sysname, green + "First you have to do /hg inventory !")
+                            return
+                        self.Players.append(Player)
+                        if Server.CommandCancelList.ContainsKey(Player):
+                            Server.CommandCancelList.Remove(Player)
+                        Server.CommandCancelList.Add(Player, self.RestrictedCommands)
+                        leng = len(self.Players)
+                        ini = self.HungerGames()
+                        if PlayerSlots.get(leng) is not None:
+                            for x in PlayerSlots.keys():
+                                if PlayerSlots[x] is None:
+                                    leng = x
+                                    PlayerSlots[x] = Player
+                                    break
+                        else:
+                            PlayerSlots[leng] = Player
+                        self.Freezer(Player, 1)
+                        DataStore.Add("HLastLoc", Player.SteamID, str(Player.Location))
+                        l = self.Replace(ini.GetSetting("SpawnLocations", str(leng)))
+                        loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+                        Player.TeleportTo(loc, False)
+                        self.recordInventory(Player)
+                        enum = ini2.EnumSection("DefaultItems")
+                        for item in enum:
+                            c = int(ini2.GetSetting("DefaultItems", item))
+                            Player.Inventory.AddItem(item, c)
+                        Player.MessageFrom(sysname, "You joined the game!")
+                        DataStore.Add("HGIG", id, "1")
                 """elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
                         if self.HasStarted or self.IsStarting:
@@ -721,6 +794,8 @@ class HungerGames:
         id = Player.SteamID
         if Player in self.Players and Remove:
             self.Players.remove(Player)
+        if Player.UID in Awaiting:
+            Awaiting.remove(Player.UID)
         DataStore.Remove("HGIG", id)
         if Server.CommandCancelList.ContainsKey(Player):
             Server.CommandCancelList.Remove(Player)
@@ -735,23 +810,34 @@ class HungerGames:
                 Player.TeleportTo(loc)
                 DataStore.Remove("HLastLoc", id)
 
-    def FindWalls(self, location, msg=True):
+    def FindWalls(self, location, name, spawnRot):
         for wall in self.structures:
             Distance = Util.GetVectorsDistance(location, wall.transform.position)
             if Distance < 1.5:
                 walls.append(Entity(wall))
                 return
-        if msg:
-            Server.BroadcastFrom(sysname, red + " Warning. Failed to find a wall at spawn point.")
-            Server.BroadcastFrom(sysname, red + " Location: " + str(location))
-            Plugin.Log("MissingWall", str(location))
+        try:
+            sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
+            if WallsSpawn == 2:
+                ent = Entity(World.Spawn(';struct_wood_wall', location.x, location.y, location.z, spawnRot))
+            else:
+                ent = Entity(World.Spawn(';struct_metal_wall', location.x, location.y, location.z, spawnRot))
+            sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
+            walls.append(ent)
+        except Exception as e:
+            Server.BroadcastFrom(sysname, "Failed to replace a Chest.")
+            Plugin.Log("Error", "Failed to replace a Chest." + str(e))
 
     def FindChest(self, location, name, spawnRot):
-        for chest in self.chests:
+        """for chest in self.chests:
             Distance = Util.GetVectorsDistance(location, chest.transform.position)
             if Distance < 1:
                 loot.append(Entity(chest))
-                return
+                return"""
+        chest = Util.FindChestAt(location)
+        if chest is not None:
+            loot.append(chest)
+            return
         n = EntityList[name]
         try:
             ent = Entity(World.Spawn(n, location.x, location.y, location.z, spawnRot))
@@ -792,24 +878,26 @@ class HungerGames:
             except:
                 pass
             ini = self.HungerGames()
-            self.FirstLocation = ini.GetSetting("SpawnLocations", "1")
-            l = self.Replace(self.FirstLocation)
-            self.FirstLocation = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+            #self.FirstLocation = ini.GetSetting("SpawnLocations", "1")
+            #l = self.Replace(self.FirstLocation)
+            #self.FirstLocation = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
             enum2 = ini.EnumSection("ChestLocations")
             enum3 = ini.EnumSection("WallLocations")
+            #self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
             self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
-            self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
             for chest in enum2:
                 l = ini.GetSetting("ChestLocations", chest).split(',')
                 name = chest.split('-')
-                quat = Quaternion(float(l[3]), float(l[4]), float(l[5]) ,float(l[6]))
+                quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                 self.FindChest(loc, name[0], quat)
             Server.BroadcastFrom(sysname, green + "Loaded 50%")
             for wall in enum3:
                 l = ini.GetSetting("WallLocations", wall).split(',')
+                name = wall.split('-')
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                self.FindWalls(loc)
+                quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
+                self.FindWalls(loc, name[0], quat)
             Server.BroadcastFrom(sysname, green + "Loaded 75%")
             for chest in loot:
                 inv = chest.Inventory
@@ -881,14 +969,8 @@ class HungerGames:
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
         for wall in walls:
-            loc = wall.Location
-            spawnRot = wall.Object.transform.rotation
-            WallsCache[loc] = spawnRot
-            try:
-                wall.Destroy()
-            except Exception as e:
-                Server.BroadcastFrom(sysname, "Failed to destroy a wall!")
-                Plugin.Log("Error", "Failed to destroy a wall! " + str(e))
+            wall.Destroy()
+        del walls[:]
 
     def FreezerCallback(self, timer):
         timer.Kill()
@@ -938,6 +1020,7 @@ class HungerGames:
             PlacedEntities.remove(x)
 
     def Reset(self):
+        self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
         self.HasStarted = False
         self.IsActive = False
         self.IsStarting = False
@@ -966,7 +1049,17 @@ class HungerGames:
         del self.Players[:]
         del walls[:]
         del loot[:]
+        del Awaiting[:]
         PointedPeople.clear()
+        ini = self.HungerGames()
+        enum3 = ini.EnumSection("WallLocations")
+        f = False
+        for wall in enum3:
+            l = ini.GetSetting("WallLocations", wall).split(',')
+            name = wall.split('-')
+            loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
+            quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
+            self.FindWalls(loc, name[0], quat)
         self.CleanMess()
 
     def EndGame(self, Player):
@@ -991,9 +1084,12 @@ class HungerGames:
                 winsini.AddSetting("Wins", x.SteamID, str(p))
         winsini.Save()
         Server.BroadcastFrom(sysname, pink + "---Stats---")
-        Server.BroadcastFrom(sysname, "1st: " + PointedPeople[1].Name)
-        Server.BroadcastFrom(sysname, "2nd: " + PointedPeople[2].Name)
-        Server.BroadcastFrom(sysname, "3rd: " + PointedPeople[3].Name)
+        try:
+            Server.BroadcastFrom(sysname, "1st: " + PointedPeople[1].Name)
+            Server.BroadcastFrom(sysname, "2nd: " + PointedPeople[2].Name)
+            Server.BroadcastFrom(sysname, "3rd: " + PointedPeople[3].Name)
+        except:
+            Server.BroadcastFrom(sysname, "Failed to display stats...")
         arr = []
         if self.ItemRewards:
             max = random.randint(self.MinRewards, self.MaxRewards)
@@ -1010,31 +1106,11 @@ class HungerGames:
             d = str.join(', ', arr)
             Server.BroadcastFrom(sysname, pink + "---Rewards---")
             Server.BroadcastFrom(sysname, pink + "Rewards he received: " + d)
-        i = 0
-        er = False
-        for loc in WallsCache.keys():
-            spawnRot = WallsCache.get(loc)
-            try:
-                sm = World.CreateSM(self.RandomAdmin, loc.x, loc.y, loc.z, spawnRot)
-                if WallsSpawn == 2:
-                    ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
-                else:
-                    ent = Entity(World.Spawn(';struct_metal_wall', loc.x, loc.y, loc.z, spawnRot))
-                sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
-                walls[i] = ent
-            except Exception as e:
-                if not er:
-                    Server.BroadcastFrom(sysname, "Failed to place walls at the end of the game.")
-                    Plugin.Log("Error", "Failed to place walls at the end of the game." + str(e))
-                    Server.BroadcastFrom(sysname, red + "Replace the walls admins!")
-                    er = True
-                continue
-            i += 1
         if LootStackClean:
             self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
             for x in self.LootableObjects:
                 if "lootsack" in x.name.lower():
-                    dist = Util.GetVectorsDistance(self.FirstLocation, x.transform.position)
+                    dist = Util.GetVectorsDistance(self.Middle, x.transform.position)
                     if dist <= CDist:
                         x._inventory.Clear()
                         Util.DestroyObject(x.gameObject)
@@ -1045,8 +1121,8 @@ class HungerGames:
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
             weapon = HurtEvent.WeaponName
-            d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players) and weapon \
-                                                                                                  != "Fall Damage"
+            d = (HurtEvent.Victim not in self.Players and HurtEvent.Attacker in self.Players) \
+                and weapon != "Fall Damage"
             d2 = HurtEvent.Attacker in self.Players and weapon != "Fall Damage"
             d3 = HurtEvent.Victim in self.Players and HurtEvent.Attacker in self.Players and not self.HasStarted \
                  and weapon != "Fall Damage"
@@ -1079,6 +1155,16 @@ class HungerGames:
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                     self.EndGame(self.Players[0])
+                if DeathEvent.Attacker is not None:
+                    if DeathEvent.AttackerIsPlayer:
+                        kills = self.Kills()
+                        count = kills.GetSetting("Kills", DeathEvent.Attacker.SteamID)
+                        if count is None:
+                            count = 0
+                        else:
+                            count = int(count)
+                        kills.AddSetting("Kills", DeathEvent.Attacker.SteamID, str(count + 1))
+                        kills.Save()
             elif DeathEvent.Victim in self.Players and self.IsActive:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
                 if Server.CommandCancelList.ContainsKey(DeathEvent.Victim):
@@ -1088,29 +1174,62 @@ class HungerGames:
 
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
-            self.RemovePlayerDirectly(Player, True)
-            if Server.CommandCancelList.ContainsKey(Player):
-                Server.CommandCancelList.Remove(Player)
-            leng = len(self.Players)
-            if leng > 1:
-                if self.HasStarted:
-                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
-                                         + green + str(leng) + red + " Players are still alive.")
-                    if len(self.Players) == 1:
-                        self.EndGame(self.Players[0])
-                elif self.IsActive:
-                    if leng < minp and Plugin.GetTimer("Force") is not None:
-                        Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
-                        Server.BroadcastFrom(sysname, red + "Stopping timer...")
-                        Plugin.KillTimer("Force")
-                    Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
-                                         + green + str(leng) + red + " Players are still in-game.")
+            if not self.HasStarted:
+                leng = len(self.Players)
+                if leng < minp and Plugin.GetTimer("Force") is not None:
+                    Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
+                    Server.BroadcastFrom(sysname, red + "Stopping timer...")
+                    Plugin.KillTimer("Force")
+                self.RemovePlayerDirectly(Player, True)
+                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
+                                    + green + str(leng) + red + " Players are still in-game.")
             else:
-                Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. ")
-                if self.HasStarted:
-                    self.EndGame(self.Players[0])
+                List = Plugin.CreateDict()
+                List["Player"] = Player
+                Awaiting.append(Player.UID)
+                Plugin.CreateParallelTimer("LeftChecker", 60000, List).Start()
+                Server.BroadcastFrom(sysname, green + Player.Name + red + " has 1 minute to reconnect!")
+
+    def LeftCheckerCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        Player = List["Player"]
+        if Player.UID not in Awaiting:
+            return
+        self.RemovePlayerDirectly(Player, True)
+        leng = len(self.Players)
+        Server.BroadcastFrom(sysname, green + Player.Name + red + " has failed to reconnect. "
+                                 + green + str(leng) + red + " Players are still alive.")
+        Awaiting.remove(Player.UID)
+        if Server.CommandCancelList.ContainsKey(Player):
+            Server.CommandCancelList.Remove(Player)
+        if leng < 3:
+            if leng == 2:
+                PointedPeople[3] = Player
+            elif leng == 1:
+                PointedPeople[2] = Player
+                PointedPeople[1] = self.Players[0]
+        if len(self.Players) == 1:
+            self.EndGame(self.Players[0])
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
+        if Player.UID in Awaiting:
+            Awaiting.remove(Player.UID)
+            f = None
+            for x in self.Players:
+                if x.UID == Player.UID:
+                    f = x
+                    break
+            if f is not None:
+                self.Players.remove(f)
+                self.Players.append(Player)
+                if Server.CommandCancelList.ContainsKey(f):
+                    Server.CommandCancelList.Remove(f)
+                if Server.CommandCancelList.ContainsKey(Player):
+                    Server.CommandCancelList.Remove(Player)
+                Server.CommandCancelList.Add(Player, self.RestrictedCommands)
+            Player.MessageFrom(sysname, green + "You reconnected in time!")
+            return
         if DataStore.ContainsKey("HLastLoc", Player.SteamID):
             l = self.Replace(DataStore.Get("HLastLoc", Player.SteamID))
             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
@@ -1155,8 +1274,16 @@ class HungerGames:
                     if maxp == count:
                         HurtEvent.Attacker.MessageFrom(sysname, "You reached the max spawnpoints")
                         return
-                    ini.AddSetting("WallLocations", str(count + 1), str(HurtEvent.Entity.X) + "," +
-                                   str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
+                    name = HurtEvent.Entity.Name
+                    c = count + 1
+                    ini.AddSetting("WallLocations", name + "-" + str(c),
+                                                   str(HurtEvent.Entity.X) + "," +
+                                                   str(HurtEvent.Entity.Y) + "," +
+                                                   str(HurtEvent.Entity.Z) + "," +
+                                                   str(HurtEvent.Entity.Object.transform.rotation.x) + "," +
+                                                   str(HurtEvent.Entity.Object.transform.rotation.y) + "," +
+                                                   str(HurtEvent.Entity.Object.transform.rotation.z) + "," +
+                                                   str(HurtEvent.Entity.Object.transform.rotation.w))
                     ini.Save()
                     HurtEvent.Attacker.MessageFrom(sysname, "Added Wall.")
                 elif "box" in HurtEvent.Entity.Name.lower():
