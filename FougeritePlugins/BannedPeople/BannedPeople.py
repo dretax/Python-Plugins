@@ -249,10 +249,10 @@ class BannedPeople:
                     List["Health"] = p.Health
                     List["Player"] = p
                     List["Executor"] = Player
-                    List["Location"] = str(Player.Location)
+                    List["Location"] = str(p.Location)
                     p.TeleportTo(float(p.X), float(p.Y) + float(50), float(p.Z), False)
                     Player.MessageFrom(self.sysname, p.Name + " was dropped.")
-                    Plugin.CreateParallelTimer("hack", 4400, List).Start()
+                    Plugin.CreateParallelTimer("hack", 2200, List).Start()
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
