@@ -10,7 +10,7 @@ import re
 """
     Class
 """
-
+green = "[color #009900]"
 
 class BannedPeople:
     """
@@ -268,7 +268,7 @@ class BannedPeople:
             l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
             DataStore.Remove("DropTester", Player.SteamID)
             Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
-            Player.MessageFrom(self.sysname, "Teleported back to the same position!")
+            Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
 
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
@@ -281,7 +281,7 @@ class BannedPeople:
             List["Executor"].Notice("Player's Health Changed, but didn't die. Re-Test or BAN")
         elif List["Health"] > List["Player"].Health and not List["Player"].IsAlive:
             List["Executor"].Notice("Test was successful")
-            DataStore.Add("DropTester", List["Player"].SteamID, str())
+            DataStore.Add("DropTester", List["Player"].SteamID, str(List["Location"]))
         else:
             List["Executor"].Notice(List["Player"].Name + " failed the drop test.")
             Server.BanPlayer(List["Player"], List["Executor"].Name, self.bannedreason)
