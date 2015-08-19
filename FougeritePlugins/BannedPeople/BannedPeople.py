@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.5'
+__version__ = '1.6.6'
 
 import clr
 
@@ -24,6 +24,7 @@ class BannedPeople:
         ini = self.BannedPeopleConfig()
         self.sysname = ini.GetSetting("Main", "Name")
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
+        DataStore.Flush("DropTester")
         Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
 
@@ -126,14 +127,16 @@ class BannedPeople:
                         ConsoleEvent.ReplyWith("This owner of the ID is an Admin/Moderator.")
                         ConsoleEvent.ReplyWith("You need to remove him from the list first.")
                         return
-                    b = Server.BanPlayerID(name, "Console ban")
-                    if b:
+                    b = Server.IsBannedID(name)
+                    if not b:
+                        Server.BanPlayerID(name, "1", "You were banned.", "ConsoleOrRCON")
                         ConsoleEvent.ReplyWith("ID " + name + " banned!")
                     else:
                         ConsoleEvent.ReplyWith("ID " + name + " is already banned.")
                 elif ipmatch:
-                    b = Server.BanPlayerIP(name, "Console ban")
-                    if b:
+                    b = Server.IsBannedIP(name)
+                    if not b:
+                        Server.BanPlayerIP(name, "1", "You were banned.", "ConsoleOrRCON")
                         ConsoleEvent.ReplyWith("IP " + name + " banned!")
                     else:
                         ConsoleEvent.ReplyWith("IP " + name + " is already banned.")
@@ -229,23 +232,56 @@ class BannedPeople:
                 if Player.Admin or Player.Moderator:
                     id = str(args[0]).strip(' ')
                     if "." in id:
-                        Server.BanPlayerIP(id, "IP OfflineBanned By " + Player.Name + " | " + Player.SteamID)
+                        Server.BanPlayerIP(id, "1", "IP OfflineBanned", Player.Name + " | " + Player.SteamID)
                         Player.MessageFrom(self.sysname, "Player IP (" + id + ") was banned.")
                     else:
                         if Server.GetRustPPAPI().IsAdmin(long(id)):
                             Player.MessageFrom(self.sysname, "This owner of the ID is an Admin/Moderator.")
                             Player.MessageFrom(self.sysname, "You need to remove him from the list first.")
                             return
-                        Server.BanPlayerID(id, "ID OfflineBanned By " + Player.Name + " | " + Player.SteamID)
+                        Server.BanPlayerID(id, "1", "ID OfflineBanned", Player.Name + " | " + Player.SteamID)
                         Player.MessageFrom(self.sysname, "Player ID (" + id + ") was banned.")
         elif cmd == "drop":
             if Player.Admin or Player.Moderator:
                 p = self.CheckV(Player, args)
                 if p is not None:
-                    p.TeleportTo(float(p.X), float(p.Y) + float(30), float(p.Z), False)
-                    Player.Message(p.Name + " was dropped.")
+                    List = Plugin.CreateDict()
+                    List["Health"] = p.Health
+                    List["Player"] = p
+                    List["Executor"] = Player
+                    List["Location"] = str(Player.Location)
+                    p.TeleportTo(float(p.X), float(p.Y) + float(50), float(p.Z), False)
+                    Player.MessageFrom(self.sysname, p.Name + " was dropped.")
+                    Plugin.CreateParallelTimer("hack", 4400, List).Start()
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
         if ip.startswith("46.16.") or ip.startswith("199.188.") or ip.startswith("198.144."):
             Player.Disconnect()
+
+    def On_PlayerDisconnected(self, Player):
+        if DataStore.ContainsKey("DropTester", Player.SteamID):
+            DataStore.Remove("DropTester", Player.SteamID)
+
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        if DataStore.ContainsKey("DropTester", Player.SteamID):
+            l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
+            DataStore.Remove("DropTester", Player.SteamID)
+            Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
+            Player.MessageFrom(self.sysname, "Teleported back to the same position!")
+
+    def Replace(self, String):
+        str = re.sub('[(\)]', '', String)
+        return str.split(',')
+
+    def hackCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        if List["Health"] > List["Player"].Health and List["Player"].IsAlive:
+            List["Executor"].Notice("Player's Health Changed, but didn't die. Re-Test or BAN")
+        elif List["Health"] > List["Player"].Health and not List["Player"].IsAlive:
+            List["Executor"].Notice("Test was successful")
+            DataStore.Add("DropTester", List["Player"].SteamID, str())
+        else:
+            List["Executor"].Notice(List["Player"].Name + " failed the drop test.")
+            Server.BanPlayer(List["Player"], List["Executor"].Name, self.bannedreason)
