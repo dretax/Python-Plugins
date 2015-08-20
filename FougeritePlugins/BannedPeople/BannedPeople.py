@@ -245,6 +245,7 @@ class BannedPeople:
             if Player.Admin or Player.Moderator:
                 p = self.CheckV(Player, args)
                 if p is not None:
+                    DataStore.Add("DropTester", p.SteamID, str(p.Location))
                     List = Plugin.CreateDict()
                     List["Health"] = p.Health
                     List["Player"] = p
