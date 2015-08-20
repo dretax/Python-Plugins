@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.6'
+__version__ = '1.4.7'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -673,11 +673,15 @@ class HungerGames:
                     dic = Server.GetRustPPAPI().Cache
                     Player.MessageFrom(sysname, pink + "===Top5===")
                     for nid in top:
+                        try:
+                            name = str(dic[long(nid)])
+                        except:
+                            name = "Unknown"
                         kills = self.Kills()
                         count = kills.GetSetting("Kills", nid)
                         if count is None:
                             count = "0"
-                        Player.MessageFrom(sysname, pink + " - " + str(dic[long(nid)]) + " Points: "
+                        Player.MessageFrom(sysname, pink + " - " + name + " Points: "
                                            + wini.GetSetting("Wins", nid)
                                            + " Kills: " + count)
                 elif arg == "stats":
@@ -1175,12 +1179,12 @@ class HungerGames:
     def On_PlayerDisconnected(self, Player):
         if Player in self.Players:
             if not self.HasStarted:
+                self.RemovePlayerDirectly(Player, True)
                 leng = len(self.Players)
                 if leng < minp and Plugin.GetTimer("Force") is not None:
                     Server.BroadcastFrom(sysname, red + "Minimum player count is not enough to force start.")
                     Server.BroadcastFrom(sysname, red + "Stopping timer...")
                     Plugin.KillTimer("Force")
-                self.RemovePlayerDirectly(Player, True)
                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
                                     + green + str(leng) + red + " Players are still in-game.")
             else:
@@ -1280,10 +1284,10 @@ class HungerGames:
                                                    str(HurtEvent.Entity.X) + "," +
                                                    str(HurtEvent.Entity.Y) + "," +
                                                    str(HurtEvent.Entity.Z) + "," +
-                                                   str(HurtEvent.Entity.Object.transform.rotation.x) + "," +
-                                                   str(HurtEvent.Entity.Object.transform.rotation.y) + "," +
-                                                   str(HurtEvent.Entity.Object.transform.rotation.z) + "," +
-                                                   str(HurtEvent.Entity.Object.transform.rotation.w))
+                                                   str(HurtEvent.Entity.Rotation.x) + "," +
+                                                   str(HurtEvent.Entity.Rotation.y) + "," +
+                                                   str(HurtEvent.Entity.Rotation.z) + "," +
+                                                   str(HurtEvent.Entity.Rotation.w))
                     ini.Save()
                     HurtEvent.Attacker.MessageFrom(sysname, "Added Wall.")
                 elif "box" in HurtEvent.Entity.Name.lower():
