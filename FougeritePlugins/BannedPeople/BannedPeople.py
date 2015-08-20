@@ -250,9 +250,9 @@ class BannedPeople:
                     List["Player"] = p
                     List["Executor"] = Player
                     List["Location"] = str(p.Location)
-                    p.TeleportTo(float(p.X), float(p.Y) + float(50), float(p.Z), False)
+                    p.TeleportTo(float(p.X), float(p.Y) + float(55), float(p.Z), False)
                     Player.MessageFrom(self.sysname, p.Name + " was dropped.")
-                    Plugin.CreateParallelTimer("hack", 2200, List).Start()
+                    Plugin.CreateParallelTimer("hack", 3000, List).Start()
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
@@ -275,13 +275,11 @@ class BannedPeople:
         return str.split(',')
 
     def hackCallback(self, timer):
-        timer.Kill()
         List = timer.Args
-        if List["Health"] > List["Player"].Health and List["Player"].IsAlive:
-            List["Executor"].Notice("Player's Health Changed, but didn't die. Re-Test or BAN")
-        elif List["Health"] > List["Player"].Health and not List["Player"].IsAlive:
-            List["Executor"].Notice("Test was successful")
-            DataStore.Add("DropTester", List["Player"].SteamID, str(List["Location"]))
-        else:
-            List["Executor"].Notice(List["Player"].Name + " failed the drop test.")
-            Server.BanPlayer(List["Player"], List["Executor"].Name, self.bannedreason)
+        timer.Kill()
+        player = List["Player"]
+        if player.IsAlive:
+            List["Executor"].Notice(player.Name + " failed the drop test.")
+            if player.Admin or player.Moderator:
+                return
+            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed")
