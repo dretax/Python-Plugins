@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.7'
+__version__ = '1.4.8'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -111,7 +111,6 @@ class HungerGames:
     st = None
     objects = None
     chests = None
-    structures = None
     RandomAdmin = None
     count = None
     count2 = None
@@ -126,7 +125,6 @@ class HungerGames:
     Players = []
     LootableObject = None
     LootableObjects = None
-    #FirstLocation = None
     ItemRewards = None
     StoreRewards = None
     MinRewards = None
@@ -250,7 +248,7 @@ class HungerGames:
         c = 0
         for entity in World.Entities:
             if "spike" in entity.Name.lower() or "box" in entity.Name.lower() \
-                or "stash" in entity.Name.lower():
+                    or "stash" in entity.Name.lower():
                 if Util.GetVectorsDistance(self.Middle, entity.Location) <= CDist:
                     entity.SetDecayEnabled(False)
                     try:
@@ -346,21 +344,6 @@ class HungerGames:
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
-        """if self.IsActive or self.HasStarted:
-            if Player in self.Players and cmd in RestrictedCommands:
-                Server.BroadcastFrom(sysname, red + Player.Name + " executed /" + cmd + " !")
-                Server.BroadcastFrom(sysname, red + "It's not allowed! We are removing you from the event.")
-                self.RemovePlayerDirectly(Player)
-                if self.HasStarted:
-                    Server.BroadcastFrom(sysname, green + str(len(self.Players))
-                                         + " of " + str(maxp) + " players are alive.")
-                    if len(self.Players) == 1:
-                        self.EndGame(self.Players[0])
-                else:
-                    Server.BroadcastFrom(sysname, green + "Currently " + str(len(self.Players))
-                                         + " of " + str(maxp) + " players are waiting.")
-                self.returnInventory(Player)
-                return"""
         if cmd == "hg":
             if len(args) == 0:
                 Player.MessageFrom(sysname, teal + "HungerGames By " + __author__ + " " + blue + "V" + __version__)
@@ -759,40 +742,20 @@ class HungerGames:
                             Player.Inventory.AddItem(item, c)
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
-                """elif arg == "checkwalls":
+                elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
                         if self.HasStarted or self.IsStarting:
                             Player.MessageFrom(sysname, "You can't do this now.")
                             return
-                        self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
                         ini = self.HungerGames()
                         enum3 = ini.EnumSection("WallLocations")
-                        Player.MessageFrom(sysname, "Checking walls, hold on.")
                         for wall in enum3:
                             l = ini.GetSetting("WallLocations", wall).split(',')
+                            name = wall.split('-')
                             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                            self.FindWalls(loc, False)
-                        for wall in walls:
-                            loc = wall.Location
-                            spawnRot = wall.Object.transform.rotation
-                            WallsCache[loc] = spawnRot
-                            try:
-                                wall.Destroy()
-                            except:
-                                pass
-                        i = 0
-                        for loc in WallsCache.keys():
-                            spawnRot = WallsCache.get(loc)
-                            try:
-                                sm = World.CreateSM(Player, loc.x, loc.y, loc.z, spawnRot)
-                                ent = Entity(World.Spawn(';struct_wood_wall', loc.x, loc.y, loc.z, spawnRot))
-                                sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
-                                walls[i] = ent
-                            except:
-                                pass
-                            i += 1
-                        del walls[:]
-                        Player.MessageFrom(sysname, "Walls replaced.")"""
+                            quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
+                            self.FindWalls(loc, name[0], quat)
+                        Player.MessageFrom(sysname, "Walls replaced.")
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
         id = Player.SteamID
@@ -815,11 +778,10 @@ class HungerGames:
                 DataStore.Remove("HLastLoc", id)
 
     def FindWalls(self, location, name, spawnRot):
-        for wall in self.structures:
-            Distance = Util.GetVectorsDistance(location, wall.transform.position)
-            if Distance < 1.5:
-                walls.append(Entity(wall))
-                return
+        wall = Util.FindStructureAt(location, float(1.5))
+        if wall is not None:
+            walls.append(wall)
+            return
         try:
             sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
             if WallsSpawn == 2:
@@ -833,11 +795,6 @@ class HungerGames:
             Plugin.Log("Error", "Failed to replace a Chest." + str(e))
 
     def FindChest(self, location, name, spawnRot):
-        """for chest in self.chests:
-            Distance = Util.GetVectorsDistance(location, chest.transform.position)
-            if Distance < 1:
-                loot.append(Entity(chest))
-                return"""
         chest = Util.FindChestAt(location)
         if chest is not None:
             loot.append(chest)
@@ -865,8 +822,6 @@ class HungerGames:
             Server.BroadcastFrom(sysname, green + "Currently " + str(leng) +
                                  " of " + str(maxp) + " players are waiting.")
             Server.BroadcastFrom(sysname, green + "Type /hg for the commands, and join!")
-            #  Server.BroadcastFrom(sysname, green + "Pack your items at home just in-case!")
-            #  Server.BroadcastFrom(sysname, green + "The plugins saves your inventory when you join.")
         else:
             if Plugin.GetTimer("Force") is not None:
                 Plugin.KillTimer("Force")
@@ -882,13 +837,8 @@ class HungerGames:
             except:
                 pass
             ini = self.HungerGames()
-            #self.FirstLocation = ini.GetSetting("SpawnLocations", "1")
-            #l = self.Replace(self.FirstLocation)
-            #self.FirstLocation = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
             enum2 = ini.EnumSection("ChestLocations")
             enum3 = ini.EnumSection("WallLocations")
-            #self.chests = UnityEngine.Object.FindObjectsOfType(self.dp)
-            self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
             for chest in enum2:
                 l = ini.GetSetting("ChestLocations", chest).split(',')
                 name = chest.split('-')
@@ -1024,7 +974,6 @@ class HungerGames:
             PlacedEntities.remove(x)
 
     def Reset(self):
-        self.structures = UnityEngine.Object.FindObjectsOfType(self.st)
         self.HasStarted = False
         self.IsActive = False
         self.IsStarting = False
@@ -1057,7 +1006,6 @@ class HungerGames:
         PointedPeople.clear()
         ini = self.HungerGames()
         enum3 = ini.EnumSection("WallLocations")
-        f = False
         for wall in enum3:
             l = ini.GetSetting("WallLocations", wall).split(',')
             name = wall.split('-')
@@ -1186,7 +1134,7 @@ class HungerGames:
                     Server.BroadcastFrom(sysname, red + "Stopping timer...")
                     Plugin.KillTimer("Force")
                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has disconnected. "
-                                    + green + str(leng) + red + " Players are still in-game.")
+                                     + green + str(leng) + red + " Players are still in-game.")
             else:
                 List = Plugin.CreateDict()
                 List["Player"] = Player
@@ -1268,13 +1216,13 @@ class HungerGames:
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("WallLocations"))
                     enum = ini.EnumSection("WallLocations")
+                    data = str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)
                     for x in enum:
-                        if ini.GetSetting("WallLocations", x) == \
-                                (str(HurtEvent.Entity.X) + "," +
-                                     str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)):
-                                HurtEvent.Attacker.MessageFrom(sysname, "This wall is already in.")
-                                HurtEvent.DamageAmount = float(0)
-                                return
+                        locs = ini.GetSetting("WallLocations", x)
+                        if data in locs:
+                            HurtEvent.Attacker.MessageFrom(sysname, "This wall is already in.")
+                            HurtEvent.DamageAmount = float(0)
+                            return
                     if maxp == count:
                         HurtEvent.Attacker.MessageFrom(sysname, "You reached the max spawnpoints")
                         return
@@ -1291,19 +1239,26 @@ class HungerGames:
                     ini.Save()
                     HurtEvent.Attacker.MessageFrom(sysname, "Added Wall.")
                 elif "box" in HurtEvent.Entity.Name.lower():
+                    data = str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z)
                     ini = self.HungerGames()
                     count = len(ini.EnumSection("ChestLocations"))
+                    name = HurtEvent.Entity.Name
                     enum = ini.EnumSection("ChestLocations")
                     for x in enum:
-                        if ini.GetSetting("ChestLocations", x) == \
-                                (str(HurtEvent.Entity.X) + "," + str(HurtEvent.Entity.Y) + "," +
-                                     str(HurtEvent.Entity.Z)):
+                        locs = ini.GetSetting("ChestLocations", x)
+                        if data in locs:
                             HurtEvent.Attacker.MessageFrom(sysname, "This chest is already in.")
                             HurtEvent.DamageAmount = float(0)
                             return
-
-                    ini.AddSetting("ChestLocations", str(count + 1), str(HurtEvent.Entity.X) + "," +
-                                   str(HurtEvent.Entity.Y) + "," + str(HurtEvent.Entity.Z))
+                    c = count + 1
+                    ini.AddSetting("ChestLocations", name + "-" + str(c),
+                                                   str(HurtEvent.Entity.X) + "," +
+                                                   str(HurtEvent.Entity.Y) + "," +
+                                                   str(HurtEvent.Entity.Z) + "," +
+                                                   str(HurtEvent.Entity.Rotation.x) + "," +
+                                                   str(HurtEvent.Entity.Rotation.y) + "," +
+                                                   str(HurtEvent.Entity.Rotation.z) + "," +
+                                                   str(HurtEvent.Entity.Rotation.w))
                     ini.Save()
                     HurtEvent.Attacker.MessageFrom(sysname, "Added Chest.")
                 HurtEvent.DamageAmount = float(0)
