@@ -74,13 +74,14 @@ class SetHealth:
 
     def On_Command(self, Player, cmd, args):
         if cmd == "sethealth":
-            if 1 >= len(args) or len(args) > 2:
-                Player.MessageFrom(sysname, "Usage: /sethealth playername amount")
-                return
-            pl = self.CheckV(Player, args[0])
-            if pl is None:
-                return
-            if not args[1].isnumeric():
-                Player.MessageFrom(sysname, "Usage: /sethealth playername amount")
-                return
-            pl.Health = float(args[1])
+            if Player.Admin or Player.Moderator:
+                if 1 >= len(args) or len(args) > 2:
+                    Player.MessageFrom(sysname, "Usage: /sethealth playername amount")
+                    return
+                pl = self.CheckV(Player, args[0])
+                if pl is None:
+                    return
+                if not args[1].isnumeric():
+                    Player.MessageFrom(sysname, "Usage: /sethealth playername amount")
+                    return
+                pl.Health = float(args[1])
