@@ -472,7 +472,7 @@ class HungerGames:
                         Player.MessageFrom(sysname, "Can't clean right now.")
                 elif arg == "addchests":
                     if self.Middle is not None:
-                        chests = UnityEngine.Object.FindObjectsOfType(self.dp)
+                        chests = Util.FindDeployablesAround(self.Middle, CDist, True)
                         c = 0
                         ini = self.HungerGames()
                         enum = ini.EnumSection("ChestLocations")
@@ -480,19 +480,19 @@ class HungerGames:
                             ini.DeleteSetting("ChestLocations", x)
                         ini.Save()
                         for x in chests:
-                            if "stash" in x.name.lower() or "box" in x.name.lower():
-                                if Util.GetVectorsDistance(self.Middle, x.transform.position) <= CDist:
-                                    name = x.name.replace('(Clone)', '')
+                            if "stash" in x.Name.lower() or "box" in x.Name.lower():
+                                if Util.GetVectorsDistance(self.Middle, x.Location) <= CDist:
+                                    name = x.Name
                                     c += 1
                                     ini.AddSetting("ChestLocations", name + "-" + str(c),
-                                                   str(x.transform.position.x) + "," +
-                                                   str(x.transform.position.y) + "," +
-                                                   str(x.transform.position.z) + "," +
-                                                   str(x.transform.rotation.x) + "," +
-                                                   str(x.transform.rotation.y) + "," +
-                                                   str(x.transform.rotation.z) + "," +
-                                                   str(x.transform.rotation.w))
-                                    ini.Save()
+                                                   str(x.X) + "," +
+                                                   str(x.Y) + "," +
+                                                   str(x.Z) + "," +
+                                                   str(x.Rotation.x) + "," +
+                                                   str(x.Rotation.y) + "," +
+                                                   str(x.Rotation.z) + "," +
+                                                   str(x.Rotation.w))
+                        ini.Save()
                         Player.MessageFrom(sysname, "Added " + str(c) + " entities.")
                 elif arg == "middle":
                     if Player.Admin or Player.Moderator:
