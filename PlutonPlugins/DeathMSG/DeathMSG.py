@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.7'
+__version__ = '2.2.7b'
 
 import clr
 
@@ -284,6 +284,8 @@ class DeathMSG:
 
     def On_PlayerDied(self, PlayerDeathEvent):
         attacker = PlayerDeathEvent.Attacker
+        if attacker is None:
+            return
         victim = PlayerDeathEvent.Victim
         attackername = str(attacker.Name)
         victimname = str(victim.Name)
