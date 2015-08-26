@@ -5,8 +5,7 @@ import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
-from System import DateTime
+from datetime import datetime
 import re
 rgbstringtemplate = re.compile(r'#[a-fA-F0-9]{6}$')
 
@@ -56,7 +55,7 @@ class DeathMSG:
     KillLog = None
     AnimalKills = None
     AnimalDeaths = None
-    #Messages.
+    # Messages.
     Animal = None
     AnimalDeath = None
     Beartrap = None
@@ -264,7 +263,6 @@ class DeathMSG:
             return
         if NPCDeathEvent.Attacker.ToPlayer() is None:
             return
-        #Skully
         if self.AnimalKills:
             Attacker = NPCDeathEvent.Attacker
             if Attacker.IsPlayer():
@@ -381,7 +379,8 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 Server.BroadcastFrom(self.SysName, dmgmsg)
                 if self.KillLog:
-                    Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
+                    i = datetime.now()
+                    Plugin.Log("KillLog", str(i.strftime('%Y/%m/%d %H:%M:%S')) + " " + dmgmsg)
             elif type == "Bleeding":
                 if victim.IsWounded:
                     bmsg = self.BleedingWounded
@@ -391,7 +390,6 @@ class DeathMSG:
                     bmsg = self.Bleeding
                 bmsg = bmsg.replace("victim", victimname)
                 Server.BroadcastFrom(self.SysName, bmsg)
-            # Nono, mr.stolenfromskullysmodification isnt here
             elif type == "Blunt":
                 damage = round(PlayerDeathEvent.DamageAmounts[11], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
@@ -413,7 +411,8 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("weapon", weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
-                    Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
+                    i = datetime.now()
+                    Plugin.Log("KillLog", str(i.strftime('%Y/%m/%d %H:%M:%S')) + " " + dmgmsg)
             elif type == "Stab":
                 damage = round(PlayerDeathEvent.DamageAmounts[15], 2)
                 weapon = PlayerDeathEvent.Weapon.Name
@@ -443,7 +442,8 @@ class DeathMSG:
                 dmgmsg = dmgmsg.replace("weapon", weapon)
                 dmgmsg = dmgmsg.replace("bodypart", bpart)
                 if self.KillLog:
-                    Plugin.Log("KillLog", str(System.DateTime.Now) + " " + dmgmsg)
+                    i = datetime.now()
+                    Plugin.Log("KillLog", str(i.strftime('%Y/%m/%d %H:%M:%S')) + " " + dmgmsg)
             else:
                 if self.NaturalDies:
                     msg = getattr(self, type)
