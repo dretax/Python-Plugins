@@ -32,5 +32,5 @@ class AdminChat:
                 name = Player.Name
                 sentence = str.join(" ", args)
                 for x in Server.Players:
-                    if x.Admin or (Player.Moderator and EnableForModerators):
+                    if x.Admin or (x.Moderator and EnableForModerators):
                         x.MessageFrom("AdminChat", green + name + " => " + teal + sentence)
