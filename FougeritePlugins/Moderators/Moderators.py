@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4b'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -71,7 +71,8 @@ class Moderators:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(systemname, "Found [color#FF0000]" + str(count)
+                               + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def On_PluginInit(self):
@@ -84,6 +85,7 @@ class Moderators:
         for mod in mods:
             modid = ini.GetSetting("Moderators", mod)
             DataStore.Add("Moderators", modid, mod)
+        DataStore.Save()
 
     def On_Command(self, Player, cmd, args):
         if cmd == "addmoderator":
@@ -130,7 +132,7 @@ class Moderators:
                 mods = ini.EnumSection("Moderators")
                 Player.Message("Current Moderators:")
                 for mod in mods:
-                    Player.Message("- "+ str(mod))
+                    Player.Message("- " + str(mod))
         elif cmd == "modflush":
             if Player.Admin:
                 self.AddIdsToDS()
