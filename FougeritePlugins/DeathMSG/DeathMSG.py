@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.5'
+__version__ = '3.5.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -125,6 +125,8 @@ class DeathMSG:
                                 (hometeleport == "none" or hometeleport is None):
                             z = self.banmsg
                             z = z.replace("killer", killer)
+                            if distance >= 1000:
+                                return
                             Server.BroadcastFrom(self.deathmsgname, self.red + z)
                             self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
                             DataStore.Add("DeathMSGBAN", vid, str(location))
@@ -132,7 +134,11 @@ class DeathMSG:
                         else:
                             t = self.tpamsg
                             t = t.replace("killer", killer)
+                            if distance >= 1000:
+                                return
                             Server.BroadcastFrom(self.deathmsgname, t)
+                            DataStore.Remove("tpfriendautoban", id)
+                            DataStore.Remove("homesystemautoban", id)
                             if self.kl == 1:
                                 self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
                         return
