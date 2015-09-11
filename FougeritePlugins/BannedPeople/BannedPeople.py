@@ -179,11 +179,7 @@ class BannedPeople:
             if Player.Admin or Player.Moderator:
                 if len(args) > 0:
                     name = self.argsToText(args)
-                    b = Server.UnbanByName(name, Player.Name)
-                    if not b:
-                        Player.Message("Target: " + name + " isn't in the database, or you misspelled It!")
-                    else:
-                        Player.MessageFrom(self.sysname, "Player " + name + " unbanned!")
+                    Server.UnbanByName(name, Player.Name, Player)
                 else:
                     Player.MessageFrom(self.sysname, "Specify a Name!")
         elif cmd == "banhidename":
