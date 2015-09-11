@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.6'
+__version__ = '1.6.7'
 
 import clr
 
@@ -166,21 +166,11 @@ class BannedPeople:
                             Player.MessageFrom(self.sysname, "You cannot ban admins!")
                             return
 
-                        id = playerr.SteamID
-                        ip = playerr.IP
-                        name = playerr.Name
-                        loc = str(playerr.Location)
-
-                        Player.Message("You banned " + name)
-                        Player.Message("Player's IP: " + ip)
-                        Player.Message("Player's ID: " + id)
-                        Player.Message("Player's Location: " + loc)
-
                         checking = DataStore.Get("BanIp", Player.SteamID)
                         if checking == "true":
-                            Server.BanPlayer(playerr, "Unknown", self.bannedreason)
+                            Server.BanPlayer(playerr, "Unknown", self.bannedreason, Player)
                         elif checking == "false" or checking is None:
-                            Server.BanPlayer(playerr, Player.Name, self.bannedreason)
+                            Server.BanPlayer(playerr, Player.Name, self.bannedreason, Player)
                 else:
                     Player.MessageFrom(self.sysname, "Specify a Name!")
             else:
@@ -248,7 +238,7 @@ class BannedPeople:
                     DataStore.Add("DropTester", p.SteamID, str(p.Location))
                     List = Plugin.CreateDict()
                     List["Health"] = p.Health
-                    List["Player"] = p
+                    List["Player"] = p.SteamID
                     List["Executor"] = Player
                     List["Location"] = str(p.Location)
                     p.TeleportTo(float(p.X), float(p.Y) + float(55), float(p.Z), False)
@@ -278,7 +268,10 @@ class BannedPeople:
     def hackCallback(self, timer):
         List = timer.Args
         timer.Kill()
-        player = List["Player"]
+        player = Server.FindPlayer(List["Player"])
+        if player is None:
+            List["Executor"].Notice(player.Name + " maybe disconnected.")
+            return
         if player.IsAlive:
             List["Executor"].Notice(player.Name + " failed the drop test.")
             if player.Admin or player.Moderator:
