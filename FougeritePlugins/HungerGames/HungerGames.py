@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.8'
+__version__ = '1.4.9'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -540,9 +540,8 @@ class HungerGames:
                             Player.MessageFrom(sysname, green + "First you have to do /hg inventory !")
                             return
                         self.Players.append(Player)
-                        if Server.CommandCancelList.ContainsKey(Player):
-                            Server.CommandCancelList.Remove(Player)
-                        Server.CommandCancelList.Add(Player, self.RestrictedCommands)
+                        for cmd in self.RestrictedCommands:
+                            Player.RestrictCommand(cmd)
                         leng = len(self.Players)
                         ini = self.HungerGames()
                         if PlayerSlots.get(leng) is not None:
@@ -581,8 +580,8 @@ class HungerGames:
                         leng = len(self.Players)
                         if leng > 1:
                             self.RemovePlayerDirectly(Player)
-                            if Server.CommandCancelList.ContainsKey(Player):
-                                Server.CommandCancelList.Remove(Player)
+                            for cmd in self.RestrictedCommands:
+                                Player.UnRestrictCommand(cmd)
                             leng = len(self.Players)
                             if self.HasStarted:
                                 Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
@@ -717,9 +716,8 @@ class HungerGames:
                             Player.MessageFrom(sysname, green + "First you have to do /hg inventory !")
                             return
                         self.Players.append(Player)
-                        if Server.CommandCancelList.ContainsKey(Player):
-                            Server.CommandCancelList.Remove(Player)
-                        Server.CommandCancelList.Add(Player, self.RestrictedCommands)
+                        for cmd in self.RestrictedCommands:
+                            Player.RestrictCommand(cmd)
                         leng = len(self.Players)
                         ini = self.HungerGames()
                         if PlayerSlots.get(leng) is not None:
@@ -764,8 +762,8 @@ class HungerGames:
         if Player.UID in Awaiting:
             Awaiting.remove(Player.UID)
         DataStore.Remove("HGIG", id)
-        if Server.CommandCancelList.ContainsKey(Player):
-            Server.CommandCancelList.Remove(Player)
+        for cmd in self.RestrictedCommands:
+            Player.UnRestrictCommand(cmd)
         for x in PlayerSlots.keys():
             if PlayerSlots[x] == Player:
                 PlayerSlots[x] = None
@@ -1089,8 +1087,8 @@ class HungerGames:
         if DeathEvent.Victim is not None:
             if DeathEvent.Victim in self.Players and self.HasStarted:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
-                if Server.CommandCancelList.ContainsKey(DeathEvent.Victim):
-                    Server.CommandCancelList.Remove(DeathEvent.Victim)
+                for cmd in self.RestrictedCommands:
+                    DeathEvent.Victim.UnRestrictCommand(cmd)
                 leng = len(self.Players)
                 if leng < 3:
                     if leng == 2:
@@ -1119,8 +1117,8 @@ class HungerGames:
                         kills.Save()
             elif DeathEvent.Victim in self.Players and self.IsActive:
                 self.RemovePlayerDirectly(DeathEvent.Victim, False, True)
-                if Server.CommandCancelList.ContainsKey(DeathEvent.Victim):
-                    Server.CommandCancelList.Remove(DeathEvent.Victim)
+                for cmd in self.RestrictedCommands:
+                    DeathEvent.Victim.UnRestrictCommand(cmd)
                 Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
                 Server.BroadcastFrom(sysname, red + "The match didn't even start yet!")
 
@@ -1153,8 +1151,8 @@ class HungerGames:
         Server.BroadcastFrom(sysname, green + Player.Name + red + " has failed to reconnect. "
                                  + green + str(leng) + red + " Players are still alive.")
         Awaiting.remove(Player.UID)
-        if Server.CommandCancelList.ContainsKey(Player):
-            Server.CommandCancelList.Remove(Player)
+        for cmd in self.RestrictedCommands:
+            Player.UnRestrictCommand(cmd)
         if leng < 3:
             if leng == 2:
                 PointedPeople[3] = Player
@@ -1175,11 +1173,9 @@ class HungerGames:
             if f is not None:
                 self.Players.remove(f)
                 self.Players.append(Player)
-                if Server.CommandCancelList.ContainsKey(f):
-                    Server.CommandCancelList.Remove(f)
-                if Server.CommandCancelList.ContainsKey(Player):
-                    Server.CommandCancelList.Remove(Player)
-                Server.CommandCancelList.Add(Player, self.RestrictedCommands)
+                f.CleanRestrictedCommands()
+                for cmd in self.RestrictedCommands:
+                    Player.RestrictCommand(cmd)
             Player.MessageFrom(sysname, green + "You reconnected in time!")
             return
         if DataStore.ContainsKey("HLastLoc", Player.SteamID):
