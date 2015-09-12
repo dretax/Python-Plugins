@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.7'
+__version__ = '1.6.7b'
 
 import clr
 
@@ -272,4 +272,4 @@ class BannedPeople:
             List["Executor"].Notice(player.Name + " failed the drop test.")
             if player.Admin or player.Moderator:
                 return
-            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed")
+            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"])
