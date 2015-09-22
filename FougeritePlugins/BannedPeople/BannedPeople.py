@@ -43,9 +43,9 @@ class BannedPeople:
 
     def BannedPeopleRange(self):
         if not Plugin.IniExists("BannedPeople"):
-            ini = Plugin.CreateIni("BannedPeopleConfig")
-            ini.AddSetting("Main", "Name", "[Equinox-BanSystem]")
-            ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
+            ini = Plugin.CreateIni("BannedPeople")
+            ini.AddSetting("RangeBan", "46.16.", "1")
+            ini.AddSetting("RangeBan", "199.188.", "1")
             ini.Save()
         return Plugin.GetIni("BannedPeople")
 
@@ -258,7 +258,6 @@ class BannedPeople:
         ip = Player.IP
         split = ip.split(".", 4)
         nip = split[0] + "." + split[1] + "."
-        Plugin.Log("asd", rangeip)
         if nip in rangeip:
             Server.BanPlayer(Player, "Console", "Range Ban Connection")
 
