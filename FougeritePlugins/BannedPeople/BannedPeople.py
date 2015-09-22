@@ -25,7 +25,7 @@ class BannedPeople:
         ini = self.BannedPeopleConfig()
         self.sysname = ini.GetSetting("Main", "Name")
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
-        range = self.BannedPeopleConfig()
+        range = self.BannedPeopleRange()
         enum = range.EnumSection("RangeBan")
         for ip in enum:
             rangeip.append(ip)
@@ -258,6 +258,7 @@ class BannedPeople:
         ip = Player.IP
         split = ip.split(".", 4)
         nip = split[0] + "." + split[1] + "."
+        Plugin.Log("asd", rangeip)
         if nip in rangeip:
             Server.BanPlayer(Player, "Console", "Range Ban Connection")
 
