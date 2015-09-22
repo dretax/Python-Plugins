@@ -52,7 +52,7 @@ class DeathMSG:
         self.spike = config.GetSetting("Settings", "spike")
         self.explosion = config.GetSetting("Settings", "explosionmsg")
         self.bleeding = config.GetSetting("Settings", "bmsg")
-        Util.ConsoleLog("DeathMSG by" + __author__ + " Version: " + __version__ + " loaded.", False)
+        Util.ConsoleLog("DeathMSG by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def On_Command(self, Player, cmd, args):
         if cmd == "uautoban":
