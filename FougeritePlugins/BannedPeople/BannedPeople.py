@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.7b'
+__version__ = '1.6.8'
 
 import clr
 
@@ -12,6 +12,7 @@ import re
 """
 green = "[color #009900]"
 
+rangeip = []
 class BannedPeople:
     """
         Methods
@@ -24,6 +25,10 @@ class BannedPeople:
         ini = self.BannedPeopleConfig()
         self.sysname = ini.GetSetting("Main", "Name")
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
+        range = self.BannedPeopleConfig()
+        enum = range.EnumSection("RangeBan")
+        for ip in enum:
+            rangeip.append(ip)
         DataStore.Flush("DropTester")
         Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
@@ -35,6 +40,14 @@ class BannedPeople:
             ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
             ini.Save()
         return Plugin.GetIni("BannedPeopleConfig")
+
+    def BannedPeopleRange(self):
+        if not Plugin.IniExists("BannedPeople"):
+            ini = Plugin.CreateIni("BannedPeopleConfig")
+            ini.AddSetting("Main", "Name", "[Equinox-BanSystem]")
+            ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
+            ini.Save()
+        return Plugin.GetIni("BannedPeople")
 
     """
         CheckV method based on Spock's method.
@@ -243,8 +256,10 @@ class BannedPeople:
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
-        if ip.startswith("46.16.") or ip.startswith("199.188.") or ip.startswith("198.144."):
-            Player.Disconnect()
+        split = ip.split(".", 4)
+        nip = split[0] + "." + split[1] + "."
+        if nip in rangeip:
+            Server.BanPlayer(Player, "Console", "Range Ban Connection")
 
     def On_PlayerDisconnected(self, Player):
         if DataStore.ContainsKey("DropTester", Player.SteamID):
@@ -272,4 +287,4 @@ class BannedPeople:
             List["Executor"].Notice(player.Name + " failed the drop test.")
             if player.Admin or player.Moderator:
                 return
-            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"])
+            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed")
