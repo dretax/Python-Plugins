@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.6'
+__version__ = '3.5.7'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -130,7 +130,8 @@ class DeathMSG:
                             Server.BroadcastFrom(self.deathmsgname, self.red + z)
                             self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
                             DataStore.Add("DeathMSGBAN", vid, str(location))
-                            Server.BanPlayer(DeathEvent.Attacker)
+                            Server.BanPlayer(DeathEvent.Attacker, "Console", "Range Ban: " + str(distance) + " Gun: " +
+                                             weapon)
                         else:
                             t = self.tpamsg
                             t = t.replace("killer", killer)
@@ -170,7 +171,8 @@ class DeathMSG:
                                 Server.BroadcastFrom(self.deathmsgname, self.red + z)
                                 self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
                                 DataStore.Add("DeathMSGBAN", vid, str(location))
-                                Server.BanPlayer(DeathEvent.Attacker)
+                                Server.BanPlayer(DeathEvent.Attacker, "Console", "Range Ban: " + str(distance)
+                                                 + " Gun: " + weapon)
                             else:
                                 t = self.tpamsg
                                 t = t.replace("killer", killer)
