@@ -287,4 +287,4 @@ class BannedPeople:
             List["Executor"].Notice(player.Name + " failed the drop test.")
             if player.Admin or player.Moderator:
                 return
-            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed")
+            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"])
