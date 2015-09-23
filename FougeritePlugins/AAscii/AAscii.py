@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.6.1'
+__version__ = '1.6.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -11,7 +11,7 @@ RandNames = []
 Names = []
 Restricted = []
 
-class ANA:
+class AAscii:
 
     a = None
     m = None
@@ -24,17 +24,9 @@ class ANA:
         self.maxl = int(ini.GetSetting("Settings", "NameLength"))
         enum = ini.EnumSection("Restrict")
         for checkn in enum:
-            get = ini.GetSetting("Restrict", checkn)
-            get = get.lower()
+            get = ini.GetSetting("Restrict", checkn).lower()
             Restricted.append(get)
-        Util.ConsoleLog("Anti Non ASCII by " + __author__ + " Version: " + __version__ + " loaded.", False)
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
+        Util.ConsoleLog("AAscii (ANA) by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
     def ANA(self):
         if not Plugin.IniExists("ANA"):
@@ -61,11 +53,6 @@ class ANA:
     def Replace(self, Old, To, Text):
         return re.sub('(?i)' + re.escape(Old), lambda m: To, Text)
 
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
-            return True
-        return False
-
     def Rename(self, Player):
         name = Player.Name
         name = self.CutName(name)
@@ -87,7 +74,7 @@ class ANA:
             n = 1
         if name.lower() in str(Restricted):
             n = 1
-        if name.lower() in str(Names).lower():
+        if name.lower() in str(Names).lower() and "stranger" not in name.lower():
             n = 1
         if n <= 1:
             name = "Stranger"
@@ -102,30 +89,19 @@ class ANA:
             self.Rename(Player)
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.SteamID
         if Player.Admin and self.a == 1:
             return
-        if self.isMod(id) and self.m == 1:
+        if Player.Moderator and self.m == 1:
             return
         DataStore.Add("ANA", id, True)
 
     def On_PlayerDisconnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            return
         name = Player.Name
         if "Stranger" in name:
             ssw = [int(s) for s in name if s.isdigit()]
             ssw = int(''.join(str(e) for e in ssw))
             if ssw in RandNames:
                 RandNames.remove(ssw)
-        try:
+        if name in Names:
             Names.remove(name)
-        except:
-            pass
