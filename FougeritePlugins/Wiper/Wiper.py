@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.6'
+__version__ = '1.3.7'
 
 import clr
 
@@ -33,8 +33,6 @@ class Wiper:
     Path = None
     Cooldown = None
     Broadcast = None
-    Deployable = None
-    Structure = None
 
     def On_PluginInit(self):
         ini = self.GetIni()
@@ -52,12 +50,6 @@ class Wiper:
             if self.bool(ini.GetSetting("Settings", "UseDayLimit")):
                 self.CollectIDs()
                 Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
-
-
-    def isMod(self, id):
-        if DataStore.ContainsKey("Moderators", id):
-            return True
-        return False
 
     def bool(self, s):
         if s.lower() == 'true':
@@ -180,6 +172,8 @@ class Wiper:
             if count2 > self.Cooldown:
                 IdsToWipe.append(long(id))
         mc = 0
+        if len(IdsToWipe) == 0:
+            return mc
         for x in IdsToWipe:
             pathtodir = path + self.Path + str(x)
             if os.path.exists(pathtodir):
@@ -202,14 +196,21 @@ class Wiper:
             v = EntityList.get(Entity.Name, None)
             if v is None:
                 continue
-            Entity.GetTakeDamage().health -= v
-            Entity.UpdateHealth()
+            Entity.Health -= v
 
     def WipeByID(self, id):
         c = 0
         id2 = long(id)
         for ent in World.Entities:
             if long(ent.OwnerID) == id2:
+                ent.Destroy()
+                c += 1
+        return c
+
+    def WipeByIDList(self, list):
+        c = 0
+        for ent in World.Entities:
+            if ent.OwnerID in list:
                 ent.Destroy()
                 c += 1
         return c
@@ -232,7 +233,7 @@ class Wiper:
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
         if cmd == "wipehelp":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 Player.MessageFrom("Wiper", "Wiper Commands:")
                 Player.MessageFrom("Wiper", "/wipecheck - Checks for inactive objects")
                 Player.MessageFrom("Wiper", "/wipetimerreset - Restarts the timer.")
@@ -241,7 +242,7 @@ class Wiper:
                 Player.MessageFrom("Wiper", "/wipecampf - Deletes all camp fires")
                 Player.MessageFrom("Wiper", "/wipeforced - Force a decay")
         elif cmd == "wipecheck":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 if self.Broadcast:
                     Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
                 n = self.LaunchCheck()
@@ -250,7 +251,7 @@ class Wiper:
                 else:
                     Player.MessageFrom("Wiper", "Wiped: " + str(n) + " objects.")
         elif cmd == "wipetimerreset":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 Plugin.KillTimer("Wipe")
                 Plugin.KillTimer("Decay")
                 Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
@@ -263,12 +264,12 @@ class Wiper:
             if not args[0].isdigit():
                 Player.MessageFrom("Wiper", "The id is only made of numbers")
                 return
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 num = self.WipeByID(args[0])
                 Plugin.Log("Log", Player.Name + " wiped " + args[0] + "'s objects. Total: " + str(num))
                 Player.MessageFrom("Wiper", "Wiped " + str(num) + " objects!")
         elif cmd == "wipebarr":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 c = 0
                 for ent in World.Entities:
                     if "barricade" in ent.Name.lower():
@@ -276,7 +277,7 @@ class Wiper:
                         c += 1
                 Player.MessageFrom("Wiper", "Wiped " + str(c) + " barricades.")
         elif cmd == "wipecampf":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 c = 0
                 for ent in World.Entities:
                     if "camp" in ent.Name.lower():
@@ -284,12 +285,12 @@ class Wiper:
                         c += 1
                 Player.MessageFrom("Wiper", "Wiped " + str(c) + " camp fires.")
         elif cmd == "wipeforced":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 Player.MessageFrom("Wiper", "Forcing Decay...")
                 self.ForceDecay()
                 Player.MessageFrom("Wiper", "Force Decay Finished.")
         elif cmd == "wipewl":
-            if Player.Admin or self.isMod(id):
+            if Player.Admin or Player.Moderator:
                 if len(args) == 0 or len(args) > 1:
                     Player.MessageFrom("Wiper", "Usage: /wipewl playerid")
                     return
@@ -303,3 +304,28 @@ class Wiper:
                 ini.AddSetting("WhiteList", args[0], "1")
                 ini.Save()
                 Player.MessageFrom("Wiper", "Added!")
+        elif cmd == "wipeall":
+            if Player.Admin:
+                ini = self.GetIni()
+                wl = self.WhiteList()
+                enum = ini.EnumSection("Objects")
+                Server.Broadcast("Wiping objects.....")
+                Store = []
+                #StoreP = []
+                for id in enum:
+                    if wl.ContainsSetting("WhiteList", id):
+                        continue
+                    Store.append(id)
+                self.WipeByIDList(Store)
+                """Server.Broadcast("Disconnecting players.....")
+                for x in Server.Players:
+                    StoreP.append(x)
+                for x in StoreP:
+                    x.Disconnect()"""
+                for x in Store:
+                    pathtodir = path + self.Path + str(x)
+                    if os.path.exists(pathtodir):
+                        idlist = os.listdir(pathtodir)
+                        for file in idlist:
+                            os.remove(path + self.Path + str(x) + "\\" + file)
+                        os.rmdir(path + self.Path + str(x))
