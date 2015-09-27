@@ -82,28 +82,47 @@ class PluIRC:
         if len(name) <= 2:
             name = "PlutonUser" + str(random.randint(1, 100))
         name = name + "-PluIRC"
+        Player.MessageFrom(sysname, "Connecting with name: " + name)
         irc.connect((server, 6667))
         irc.send("USER " + name + " " + name + " " + name + " Just logging in:\n")
         irc.send("NICK " + name + "\n")
         # irc.send("PRIVMSG nickserv ) TODO
         irc.send("JOIN " + channel + "\n")
         PlayersWithSockets[Player] = irc
-        Player.MessageFrom(sysname, ColorText("green", "Connected! Receiving messages..."))
+        Player.MessageFrom(sysname, ColorText("green", "Connected! Loading..."))
         while 1:
             if Player not in PlayersWithThreads.keys():
                 return
             try:
                 text = irc.recv(2040)
-            except:
+            except Exception as ex:
+                Plugin.Log("Error", str(ex))
                 continue
+            if ":Nickname is already in use." in text:
+                name = "PluIRC" + str(random.randint(1, 10000))
+                irc.send("NICK " + name + "\n")
+                irc.send("JOIN " + channel + "\n")
+                Player.MessageFrom(sysname, "Name in use. New name: " + name)
+
             if text.find('PING') != -1:
                 irc.send('PONG ' + text.split()[1] + '\r\n')
+            if text.find('JOIN') != -1:
+                Player.MessageFrom(sysname, ColorText("green", "You joined #pluton"))
             else:
                 if "Welcome to freenode - supporting the free and open source" not in text:
                     if "!~" in text:
-                        text = text.split("!~")
-                        Player.MessageFrom(sysname, ColorText("green", "[IRC]: " + ColorText("yellow",
-                                                                                             text[0].replace(':', ''))))
+                        if "PRIVMSG" not in text:
+                            Player.MessageFrom(sysname,
+                                           ColorText("green", "[IRC]: " + ColorText("yellow", text
+                                                                                    )))
+                        else:
+                            sender = text.split("!~")
+                            # todo when you are not feeling like an idiot, swap this into a 1 lined regex please
+                            sender = sender[0].replace(":", "")
+                            msg = text.split("PRIVMSG")
+                            msg = msg[1].replace("#pluton :", "")
+                            Player.MessageFrom(sysname, ColorText("green", "[IRC]: "
+                                                                  + ColorText("yellow", sender + " -> " + msg)))
 
     def irc(self, args, Player):
         args = Util.GetQuotedArgs(args)
@@ -119,12 +138,12 @@ class PluIRC:
             PlayersWithThreads[Player] = t
             t.start()
         else:
-            if len(args) > 0:
+            """if len(args) > 0:
                 if args[0] == "list":
                     Player.MessageFrom(sysname, ColorText("blue", "Current Users Online: "))
                     PlayersWithSockets[Player].send("NAMES " + "\n")
-                return
-            Player.MessageFrom(sysname, ColorText("green", "Removing!"))
+                return"""
+            Player.MessageFrom(sysname, ColorText("green", "Disconnected!"))
             PlayersWithThreads.pop(Player)
             PlayersWithSockets[Player].close()
             PlayersWithSockets.pop(Player)
