@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.4'
+__version__ = '1.2.5'
 
 import clr
 
@@ -134,7 +134,8 @@ class Clans:
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for player in online:
             name = player.Name.replace('[' + Clan + ']', '').strip(' ')
-            player.basePlayer.displayName = name
+            # player.basePlayer.displayName = name
+            ReflectionExtensions.SetFieldValue(player.basePlayer.displayName, "displayName", name)
             player.MessageFrom(sys, "Your clan was disbanded.")
         enum = ini.EnumSection(Clan)
         for d in enum:
@@ -392,7 +393,8 @@ class Clans:
         if self.HasClan(Player.SteamID):
             clan = self.GetClanOfPlayer(Player.SteamID)
             name = Player.Name
-            Player.basePlayer.displayName = "[" + clan + "] " + name
+            # Player.basePlayer.displayName = "[" + clan + "] " + name
+            ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] " + name)
             claninfo = self.ClanInfo()
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
@@ -577,7 +579,8 @@ class Clans:
                 self.TakeMoney(id, cost, Player)
             Server.BroadcastFrom(sys, text + " got created by " + Player.Name)
             Player.MessageFrom(sys, "You created your first clan! /cinvite playername to invite!")
-            Player.basePlayer.displayName = "[" + text + "] " + name
+            # Player.basePlayer.displayName = "[" + text + "] " + name
+            ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + text + "] " + name)
         elif command == "cinvite":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cinvite playername")
@@ -639,7 +642,9 @@ class Clans:
             online = self.GetAllOnlinePlayersOfClan(clan)
             for player in online:
                 player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
-            Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
+            # Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
+                ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] "
+                                                   + Player.Name)
         elif command == "cm":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cm message")
@@ -729,7 +734,8 @@ class Clans:
                 self.RemovePlayerFromClan(clan, playerr.SteamID)
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
-                playerr.basePlayer.displayName = name
+                # playerr.basePlayer.displayName = name
+                ReflectionExtensions.SetFieldValue(playerr.basePlayer.displayName, "displayName", name)
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
                 playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
@@ -876,7 +882,9 @@ class Clans:
                 self.RemovePlayerFromClan(clan, id)
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
-                Player.basePlayer.displayName = name
+                # Player.basePlayer.displayName = name
+                ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] "
+                                                   + name)
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", name + " left the clan.")
                 Player.MessageFrom(clan, "You left your clan.")
