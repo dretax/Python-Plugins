@@ -242,6 +242,7 @@ class DeathMSG:
         'assets/bundled/prefabs/items/rocket_basic.prefab': 'Rocket',
         'assets/bundled/prefabs/items/rocket_fire.prefab:': 'Fire Rocket',
         'assets/bundled/prefabs/items/rocket_heli.prefab': 'Helicopter Rocket',
+        'assets/bundled/prefabs/projectiles/helibullet.prefab': 'Helicopter Bullet',
         'assets/bundled/prefabs/items/rocket_hv.prefab': 'HV Rocket',
         'assets/bundled/prefabs/items/rocket_smoke.prefab': 'Smoke Rocket',
         'assets/bundled/prefabs/items/floor_spikes.prefab': 'Floor Spikes',
