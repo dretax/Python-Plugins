@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 __about__ = 'Communication on server, with the Pluton Staff'
 
 import clr
@@ -63,15 +63,6 @@ class PluIRC:
             .setDescription("Contact staff on #pluton channel ingame.") \
             .setUsage("/irc - Join/Quit")
 
-    def On_Chat(self, ChatEvent):
-        Player = ChatEvent.User
-        if Player in PlayersWithThreads.keys():
-            irc = PlayersWithSockets[Player]
-            msg = ChatEvent.OriginalText
-            Player.MessageFrom(sysname, ColorText("teal", "You sent: ") + ColorText("green", msg))
-            irc.send('PRIVMSG ' + channel + ' :' + msg + ' \r\n')
-            ChatEvent.FinalText = ""
-
     def DefaultSample(self, Player):
         irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         Player.MessageFrom(sysname, "Connecting to IRC.....")
@@ -130,20 +121,30 @@ class PluIRC:
             Player.MessageFrom(sysname, ColorText("red", "You aren't an admin!"))
             return
         name = Player.Name
-        if Player not in PlayersWithThreads.keys():
-            Player.MessageFrom(sysname, ColorText("green", "Launching!"))
-            setattr(self, name + "Caller", self.DefaultSample)
-            caller = getattr(self, name + "Caller")
-            t = threading.Thread(target=caller, args=(Player,))
-            PlayersWithThreads[Player] = t
-            t.start()
-        else:
-            """if len(args) > 0:
-                if args[0] == "list":
-                    Player.MessageFrom(sysname, ColorText("blue", "Current Users Online: "))
-                    PlayersWithSockets[Player].send("NAMES " + "\n")
-                return"""
-            Player.MessageFrom(sysname, ColorText("green", "Disconnected!"))
-            PlayersWithThreads.pop(Player)
-            PlayersWithSockets[Player].close()
-            PlayersWithSockets.pop(Player)
+        if len(args) > 0:
+            if args[0] == "list":
+                Player.MessageFrom(sysname, ColorText("blue", "Current Users Online: "))
+                PlayersWithSockets[Player].send("NAMES " + "\n")
+                """elif args[0] == "pm":
+                if len(args) > 2:
+                    PlayersWithSockets[Player].send("PRIVMSG nickserv")"""
+            elif args[0] == "m":
+                if Player in PlayersWithThreads.keys():
+                    irc = PlayersWithSockets[Player]
+                    msg = str.join(' ', args)
+                    msg = re.sub('m[\s]', '', msg)
+                    Player.MessageFrom(sysname, ColorText("teal", "You sent: ") + ColorText("green", msg))
+                    irc.send('PRIVMSG ' + channel + ' :' + msg + ' \r\n')
+            elif args[0] == "disconnect":
+                Player.MessageFrom(sysname, ColorText("green", "Disconnected!"))
+                PlayersWithThreads.pop(Player)
+                PlayersWithSockets[Player].close()
+                PlayersWithSockets.pop(Player)
+            elif args[0] == "connect":
+                if Player not in PlayersWithThreads.keys():
+                    Player.MessageFrom(sysname, ColorText("green", "Loading Client..."))
+                    setattr(self, name + "Caller", self.DefaultSample)
+                    caller = getattr(self, name + "Caller")
+                    t = threading.Thread(target=caller, args=(Player,))
+                    PlayersWithThreads[Player] = t
+                    t.start()
