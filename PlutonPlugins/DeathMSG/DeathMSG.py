@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.2.7b'
+__version__ = '2.2.8'
 
 import clr
 
@@ -232,30 +232,33 @@ class DeathMSG:
     def IsRGB(self, value):
         return bool(rgbstringtemplate.match(value))
 
-    #Objects and IsAnimals were stolen from Skully
     Misc = {
-        'items/campfire_deployed': 'Fire',
-        'items/beartrap': 'BearTrap',
-        'items/barricades/barricade.wood': 'Wood Barricade',
-        'items/barricades/barricade.metal': 'Metal Barricade',
-        'items/barricades/barricade.woodwire': 'Wired Wood Barricade',
-        'items/grenade.f1.deployed': 'F1 Grenade',
-        'items/rocket_basic': 'Rocket',
-        'items/rocket_hv': 'Rocket',
-        'items/floor_spikes': 'Floor Spikes',
-        'items/items/grenade.beancan.deployed': 'Beancan Grenade',
-        'items/timed.explosive.deployed': 'C4',
-        'autospawn/animals/bear': 'Bear',
-        'autospawn/animals/wolf': 'Wolf'
+        'assets/bundled/prefabs/items/campfire_deployed.prefab': 'Fire',
+        'assets/bundled/prefabs/items/beartrap.prefab': 'BearTrap',
+        'assets/bundled/prefabs/items/barricades/barricade.wood.prefab': 'Wood Barricade',
+        'assets/bundled/prefabs/items/barricades/barricade.metal.prefab': 'Metal Barricade',
+        'assets/bundled/prefabs/items/barricades/barricade.woodwire.prefab': 'Wired Wood Barricade',
+        'assets/content/weapons/f1 grenade/effects/f1grenade_explosion.prefab': 'F1 Grenade',
+        'assets/bundled/prefabs/items/rocket_basic.prefab': 'Rocket',
+        'assets/bundled/prefabs/items/rocket_fire.prefab:': 'Fire Rocket',
+        'assets/bundled/prefabs/items/rocket_heli.prefab': 'Helicopter Rocket',
+        'assets/bundled/prefabs/items/rocket_hv.prefab': 'HV Rocket',
+        'assets/bundled/prefabs/items/rocket_smoke.prefab': 'Smoke Rocket',
+        'assets/bundled/prefabs/items/floor_spikes.prefab': 'Floor Spikes',
+        'assets/bundled/prefabs/items/grenade.beancan.deployed.prefab': 'Beancan Grenade',
+        'assets/bundled/prefabs/items/timed.explosive.deployed.prefab': 'C4',
+        'assets/bundled/prefabs/autospawn/animals/bear.prefab': 'Bear',
+        'assets/bundled/prefabs/autospawn/animals/wolf.prefab': 'Wolf',
+        'assets/bundled/prefabs/items/landmine.prefab': 'Land Mine'
     }
 
     IsAnimal = {
-        'autospawn/animals/bear': 'Bear',
-        'autospawn/animals/wolf': 'Wolf',
-        'autospawn/animals/stag': 'Stag',
-        'autospawn/animals/boar': 'Boar',
-        'autospawn/animals/chicken': 'Chicken',
-        'autospawn/animals/horse': 'Horse'
+        'assets/bundled/prefabs/autospawn/animals/bear.prefab': 'Bear',
+        'assets/bundled/prefabs/autospawn/animals/wolf.prefab': 'Wolf',
+        'assets/bundled/prefabs/autospawn/animals/stag.prefab': 'Stag',
+        'assets/bundled/prefabs/autospawn/animals/boar.prefab': 'Boar',
+        'assets/bundled/prefabs/autospawn/animals/chicken.prefab': 'Chicken',
+        'assets/bundled/prefabs/autospawn/animals/horce.prefab': 'Horse'
     }
 
     def On_NPCKilled(self, NPCDeathEvent):
