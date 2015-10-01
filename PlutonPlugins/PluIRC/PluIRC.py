@@ -57,6 +57,13 @@ class PluIRC:
             PlayersWithSockets[x].close()
         PlayersWithSockets.clear()
 
+    def On_PlayerDisconnected(self, Player):
+        if Player in PlayersWithThreads.keys():
+            PlayersWithThreads.pop(Player)
+        if Player in PlayersWithSockets.keys():
+            PlayersWithSockets[Player].close()
+            PlayersWithSockets.pop(Player)
+
     def On_PluginInit(self):
         Commands.Register("irc") \
             .setCallback("irc") \
