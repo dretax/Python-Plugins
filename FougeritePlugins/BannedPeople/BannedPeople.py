@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.8'
+__version__ = '1.6.9'
 
 import clr
 
@@ -11,6 +11,7 @@ import re
     Class
 """
 green = "[color #009900]"
+red = "[color #FF0000]"
 
 rangeip = []
 class BannedPeople:
@@ -244,12 +245,13 @@ class BannedPeople:
             if Player.Admin or Player.Moderator:
                 p = self.CheckV(Player, args)
                 if p is not None:
+                    self.recordInventory(p)
                     DataStore.Add("DropTester", p.SteamID, str(p.Location))
                     List = Plugin.CreateDict()
                     List["Health"] = p.Health
-                    List["Player"] = p.SteamID
+                    List["Player"] = p
                     List["Executor"] = Player
-                    List["Location"] = str(p.Location)
+                    List["Location"] = p.Location
                     p.TeleportTo(float(p.X), float(p.Y) + float(55), float(p.Z), False)
                     Player.MessageFrom(self.sysname, p.Name + " was dropped.")
                     Plugin.CreateParallelTimer("hack", 3000, List).Start()
@@ -258,7 +260,7 @@ class BannedPeople:
         ip = Player.IP
         split = ip.split(".", 4)
         nip = split[0] + "." + split[1] + "."
-        if nip in rangeip:
+        if nip in rangeip and (not Server.IsBannedID(Player.SteamID) or not Server.IsBannedIP(ip)):
             Server.BanPlayer(Player, "Console", "Range Ban Connection")
 
     def On_PlayerDisconnected(self, Player):
@@ -270,18 +272,57 @@ class BannedPeople:
             l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
             DataStore.Remove("DropTester", Player.SteamID)
             Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
+            self.returnInventory(Player)
             Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
 
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
         return str.split(',')
 
+    def recordInventory(self, Player):
+        Inventory = []
+        id = Player.SteamID
+        for Item in Player.Inventory.Items:
+            if Item and Item.Name:
+                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                Inventory.append(myitem)
+        for Item in Player.Inventory.ArmorItems:
+            if Item and Item.Name:
+                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                Inventory.append(myitem)
+        for Item in Player.Inventory.BarItems:
+            if Item and Item.Name:
+                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                Inventory.append(myitem)
+
+        DataStore.Add("DropTester2", id, Inventory)
+        DataStore.Save()
+        Player.Inventory.ClearAll()
+
+    def returnInventory(self, Player):
+        id = Player.SteamID
+        if DataStore.ContainsKey("DropTester2", id):
+            Inventory = DataStore.Get("DropTester2", id)
+            Player.Inventory.ClearAll()
+            for dictionary in Inventory:
+                if dictionary['name'] is not None:
+                    Player.Inventory.AddItemTo(dictionary['name'], dictionary['slot'], dictionary['quantity'])
+                else:
+                    Player.MessageFrom(self.sysname, red + "No dictionary found in the for cycle?!")
+            Player.MessageFrom(self.sysname, green + "Your have received your original inventory")
+            DataStore.Remove("DropTester2", id)
+        else:
+            Player.MessageFrom(self.sysname, red + "No Items of your last inventory found!")
+
     def hackCallback(self, timer):
         List = timer.Args
         timer.Kill()
-        player = Server.FindPlayer(List["Player"])
+        player = List["Player"]
         if player is None:
             List["Executor"].Notice(player.Name + " maybe disconnected.")
+            return
+        if List["Location"] == player.Location:
+            List["Executor"].Notice(player.Name + " has the same position, maybe bugged?")
             return
         if player.IsAlive:
             List["Executor"].Notice(player.Name + " failed the drop test.")
