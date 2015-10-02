@@ -10,11 +10,15 @@ import re
 """
     Class
 """
+
 green = "[color #009900]"
 red = "[color #FF0000]"
-
 rangeip = []
+
+
 class BannedPeople:
+
+
     """
         Methods
     """
