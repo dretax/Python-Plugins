@@ -1,11 +1,10 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.7'
+__version__ = '3.5.8'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
-import sys
 
 """
     Class
@@ -101,10 +100,9 @@ class DeathMSG:
             bleed = str(DeathEvent.DamageType)
             if bleed == "Bullet":
                 if DeathEvent.Sleeper:
-                    if self.essn:
-                        message = self.sleeper
-                    else:
+                    if not self.essn:
                         return
+                    message = self.sleeper
                 else:
                     message = self.bullet
                 n = message.replace("victim", victim)
@@ -207,7 +205,10 @@ class DeathMSG:
                 x = self.explosion
                 x = x.replace("killer", killer)
                 x = x.replace("victim", victim)
-                x = x.replace("weapon", "C4/F1 Grenade")
+                if weapon == "F1 Grenade":
+                    x = x.replace("weapon", "F1 Grenade")
+                elif weapon == "Explosive Charge":
+                    x = x.replace("weapon", "C4")
                 Server.BroadcastFrom(self.deathmsgname, x)
             elif bleed == "Bleeding":
                 n = self.bleeding
