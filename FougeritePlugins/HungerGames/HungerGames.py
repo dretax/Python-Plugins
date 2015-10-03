@@ -10,6 +10,7 @@ import Fougerite
 from Fougerite import Entity
 import re
 import sys
+from System import Array
 
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
@@ -34,6 +35,8 @@ teal = "[color #00FFFF]"
 green = "[color #009900]"
 purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
+yellow = "[color #FFFF00]"
+
 sysname = "HungerGames"
 #  Minimum players to start the MinimumTime counter.
 minp = 15
@@ -674,7 +677,7 @@ class HungerGames:
                         return
                     d = {}
                     for x in enum:
-                        d[x] = int(wini.GetSetting("Wins", x))
+                        d[x] = float(wini.GetSetting("Wins", x))
                     top = sorted(d, key=d.get, reverse=True)[:TopListC]
                     dic = Server.GetRustPPAPI().Cache
                     Player.MessageFrom(sysname, pink + "===Top" + str(TopListC) + "===")
@@ -702,7 +705,7 @@ class HungerGames:
                     Player.MessageFrom(sysname, pink + "Points: " + data)
                     d = {}
                     for x in enum:
-                        d[x] = int(wini.GetSetting("Wins", x))
+                        d[x] = float(wini.GetSetting("Wins", x))
                     count = len(enum)
                     top = sorted(d, key=d.get, reverse=True)[:count]
                     lid = long(id)
@@ -785,22 +788,26 @@ class HungerGames:
                     if Player in self.Players:
                         Player.MessageFrom(sysname, "You can't do this now.")
                         return
-                    if len(args) <= 1:
-                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                    if len(args) <= 2:
+                        Player.MessageFrom(sysname, 'Usage: /hg buy "item" "amount"')
                         Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
                         return
-                    if '"' not in args:
+                    s = str.join(' ', args)
+                    if '"' not in s:
+                        Player.MessageFrom(sysname, 'Usage: /hg buy "item" "amount"')
+                        Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
                         return
-                    quote = Util.GetQuotedArgs(args)
+                    msg = re.sub('buy[\s]', '', s)
+                    quote = Util.GetQuotedArgs(msg)
                     if len(quote) <= 1:
-                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                        Player.MessageFrom(sysname, 'Usage: /hg buy "item" "amount"')
                         Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
                         return
                     if quote[0] not in ShopD.keys():
                         Player.MessageFrom(sysname, red + 'Item not found! Use /slist to list the items.')
                         return
                     if not quote[1].isnumeric():
-                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                        Player.MessageFrom(sysname, 'Usage: /hg buy "item" "amount"')
                         Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
                         return
                     winsini = self.Wins()
@@ -810,19 +817,19 @@ class HungerGames:
                     if winsini.GetSetting("Wins", id) is None:
                         Player.MessageFrom(sysname, red + 'GET POINTS FIRST YOU N00B')
                         return
-                    points = int(winsini.GetSetting("Wins", id))
+                    points = float(winsini.GetSetting("Wins", id))
                     finalp = price * amount
                     if finalp > points:
                         Player.MessageFrom(sysname, red + "You can't afford buying " + str(amount) + " " + item
-                                           + "(s) for :" + str(finalp) + " points!")
+                                           + "(s) for " + str(finalp) + " points!")
                         return
                     if Player.Inventory.FreeSlots <= 6:
                         Player.MessageFrom(sysname, red + "Have atleast 6 free slots in your inventory")
                         return
                     winsini.SetSetting("Wins", id, str(points - finalp))
                     winsini.Save()
-                    Player.MessageFrom(sysname, green + "You bought " + str(amount + " " + item + "(s) for "
-                                                                            + str(finalp) + " points!"))
+                    Player.MessageFrom(sysname, green + "You bought " + str(amount) + " " + item + "(s) for "
+                                       + str(finalp) + " points!")
                     Plugin.Log("Purchases", Player.Name + "-" + id + " bought " + str(amount) + " amount of " + item
                                + "(s) for " + str(finalp) + " points!")
                     Player.Inventory.AddItem(item, amount)
@@ -832,7 +839,7 @@ class HungerGames:
                         return
                     Player.MessageFrom(sysname, purple + "===Shop===")
                     for x in ShopD.keys():
-                        Player.MessageFrom(sysname, green + "Item " + x + teal + " Price: " + str(ShopD[x]))
+                        Player.MessageFrom(sysname, green + "Item: " + yellow + x + teal + " Price: " + str(ShopD[x]))
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
         id = Player.SteamID
@@ -1104,13 +1111,13 @@ class HungerGames:
         for y in PointedPeople.keys():
             x = PointedPeople[y]
             if y == 3:
-                p = 1
+                p = 1.0
             elif y == 2:
-                p = 3
+                p = 3.0
             else:
-                p = 5
+                p = 5.0
             if winsini.GetSetting("Wins", x.SteamID) is not None:
-                c = int(winsini.GetSetting("Wins", x.SteamID)) + p
+                c = float(winsini.GetSetting("Wins", x.SteamID)) + p
                 winsini.SetSetting("Wins", x.SteamID, str(c))
             else:
                 winsini.AddSetting("Wins", x.SteamID, str(p))
