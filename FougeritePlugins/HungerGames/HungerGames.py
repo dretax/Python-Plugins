@@ -375,6 +375,8 @@ class HungerGames:
                 Player.MessageFrom(sysname, green + "/hg alive - List the alive players!")
                 Player.MessageFrom(sysname, green + "/hg toplist - List the top5 players!")
                 Player.MessageFrom(sysname, green + "/hg stats - View your stats!")
+                Player.MessageFrom(sysname, green + "/hg buy - Buy items for points!")
+                Player.MessageFrom(sysname, green + "/hg slist - List Shop Items!")
                 return
             else:
                 arg = args[0]
