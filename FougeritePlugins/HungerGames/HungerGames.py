@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.9'
+__version__ = '1.5.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -76,7 +76,9 @@ RadS = 3
 # Anti Radiation number if player is not out of the RadRange
 RadAnti = 75
 # Range where the radiation should Start
-RadStart = 310 # Map size is marked at 400, I recommend the half
+RadStart = 310  # Map size is marked at 400, I recommend the half
+# TopList Count
+TopListC = 5  # Shouldn't be more than 10
 
 PlayerSlots = {
 
@@ -101,6 +103,7 @@ PointedPeople = {
 }
 
 Awaiting = []
+
 
 class HungerGames:
     # Values
@@ -287,7 +290,6 @@ class HungerGames:
             if msg:
                 Player.MessageFrom(sysname, red + "You are now free!")
 
-
     def bool(self, s):
         if s.lower() == 'true':
             return True
@@ -362,6 +364,7 @@ class HungerGames:
                         if self.IsActive:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
+                            self.Reset()
                             Server.BroadcastFrom(sysname, red + "----------------------------"
                                                                 "HUNGERGAMES--------------------------------")
                             Server.BroadcastFrom(sysname, green +
@@ -651,9 +654,9 @@ class HungerGames:
                     d = {}
                     for x in enum:
                         d[x] = int(wini.GetSetting("Wins", x))
-                    top = sorted(d, key=d.get, reverse=True)[:5]
+                    top = sorted(d, key=d.get, reverse=True)[:TopListC]
                     dic = Server.GetRustPPAPI().Cache
-                    Player.MessageFrom(sysname, pink + "===Top5===")
+                    Player.MessageFrom(sysname, pink + "===Top" + str(TopListC) + "===")
                     for nid in top:
                         try:
                             name = str(dic[long(nid)])
@@ -789,8 +792,8 @@ class HungerGames:
             sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
             walls.append(ent)
         except Exception as e:
-            Server.BroadcastFrom(sysname, "Failed to replace a Chest.")
-            Plugin.Log("Error", "Failed to replace a Chest." + str(e))
+            Server.BroadcastFrom(sysname, "Failed to replace a Wall.")
+            Plugin.Log("Error", "Failed to replace a Wall. " + str(e) + " Location: " + str(location))
 
     def FindChest(self, location, name, spawnRot):
         chest = Util.FindChestAt(location)
@@ -804,7 +807,7 @@ class HungerGames:
             loot.append(ent)
         except Exception as e:
             Server.BroadcastFrom(sysname, "Failed to replace a Chest.")
-            Plugin.Log("Error", "Failed to replace a Chest." + str(e))
+            Plugin.Log("Error", "Failed to replace a Chest. " + str(e) + " Location: " + str(location))
 
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
@@ -992,7 +995,10 @@ class HungerGames:
             if inv is None:
                 continue
             inv.ClearAll()
+        tplayers = []
         for pl in self.Players:
+            tplayers.append(pl)
+        for pl in tplayers:
             self.RemovePlayerDirectly(pl, False)
         #  Just in-case
         for x in PlayerSlots.keys():
@@ -1149,7 +1155,7 @@ class HungerGames:
         self.RemovePlayerDirectly(Player, True)
         leng = len(self.Players)
         Server.BroadcastFrom(sysname, green + Player.Name + red + " has failed to reconnect. "
-                                 + green + str(leng) + red + " Players are still alive.")
+                             + green + str(leng) + red + "  Players are still alive.")
         Awaiting.remove(Player.UID)
         for cmd in self.RestrictedCommands:
             Player.UnRestrictCommand(cmd)
