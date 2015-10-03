@@ -79,6 +79,8 @@ RadAnti = 75
 RadStart = 310  # Map size is marked at 400, I recommend the half
 # TopList Count
 TopListC = 5  # Shouldn't be more than 10
+# Enable Shop?
+EShop = True
 
 PlayerSlots = {
 
@@ -103,6 +105,10 @@ PointedPeople = {
 }
 
 Awaiting = []
+
+ShopD = {
+
+}
 
 
 class HungerGames:
@@ -165,6 +171,10 @@ class HungerGames:
         self.StoreRewards = self.bool(ini2.GetSetting("Random", "StoreRewards"))
         self.MinRewards = int(ini2.GetSetting("Random", "MinRewards"))
         self.MaxRewards = int(ini2.GetSetting("Random", "MaxRewards"))
+        shop = self.Shop()
+        senum = shop.EnumSection("Shop")
+        for x in senum:
+            ShopD[x] = float(shop.GetSetting("Shop", x))
         if ini.GetSetting("Middle", "1") is not None:
             n = self.Replace(ini.GetSetting("Middle", "1"))
             self.Middle = Util.CreateVector(float(n[0]), float(n[1]), float(n[2]))
@@ -228,6 +238,15 @@ class HungerGames:
             ini.AddSetting("SItems", "2", "Holo sight")
             ini.Save()
         return Plugin.GetIni("DefaultItems")
+
+    def Shop(self):
+        if not Plugin.IniExists("Shop"):
+            ini = Plugin.CreateIni("Shop")
+            ini.AddSetting("Shop", "P250", "10")
+            ini.AddSetting("Shop", "M4", "30")
+            ini.AddSetting("Shop", "Explosive Charge", "50")
+            ini.Save()
+        return Plugin.GetIni("Shop")
 
     def Store(self):
         if not Plugin.IniExists("Store"):
@@ -757,6 +776,61 @@ class HungerGames:
                             quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
                             self.FindWalls(loc, name[0], quat)
                         Player.MessageFrom(sysname, "Walls replaced.")
+                elif arg == "buy":
+                    if not EShop:
+                        Player.MessageFrom(sysname, red + "Feature is disabled on this server")
+                        return
+                    if Player in self.Players:
+                        Player.MessageFrom(sysname, "You can't do this now.")
+                        return
+                    if len(args) <= 1:
+                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                        Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
+                        return
+                    if '"' not in args:
+                        return
+                    quote = Util.GetQuotedArgs(args)
+                    if len(quote) <= 1:
+                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                        Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
+                        return
+                    if quote[0] not in ShopD.keys():
+                        Player.MessageFrom(sysname, red + 'Item not found! Use /slist to list the items.')
+                        return
+                    if not quote[1].isnumeric():
+                        Player.MessageFrom(sysname, 'Usage: /buy "item" "amount"')
+                        Player.MessageFrom(sysname, '(Buying Items will reduce you rank)')
+                        return
+                    winsini = self.Wins()
+                    item = quote[0]
+                    amount = int(quote[1])
+                    price = ShopD[item]
+                    if winsini.GetSetting("Wins", id) is None:
+                        Player.MessageFrom(sysname, red + 'GET POINTS FIRST YOU N00B')
+                        return
+                    points = int(winsini.GetSetting("Wins", id))
+                    finalp = price * amount
+                    if finalp > points:
+                        Player.MessageFrom(sysname, red + "You can't afford buying " + str(amount) + " " + item
+                                           + "(s) for :" + str(finalp) + " points!")
+                        return
+                    if Player.Inventory.FreeSlots <= 6:
+                        Player.MessageFrom(sysname, red + "Have atleast 6 free slots in your inventory")
+                        return
+                    winsini.SetSetting("Wins", id, str(points - finalp))
+                    winsini.Save()
+                    Player.MessageFrom(sysname, green + "You bought " + str(amount + " " + item + "(s) for "
+                                                                            + str(finalp) + " points!"))
+                    Plugin.Log("Purchases", Player.Name + "-" + id + " bought " + str(amount) + " amount of " + item
+                               + "(s) for " + str(finalp) + " points!")
+                    Player.Inventory.AddItem(item, amount)
+                elif arg == "slist":
+                    if not EShop:
+                        Player.MessageFrom(sysname, red + "Feature is disabled on this server")
+                        return
+                    Player.MessageFrom(sysname, purple + "===Shop===")
+                    for x in ShopD.keys():
+                        Player.MessageFrom(sysname, green + "Item " + x + teal + " Price: " + str(ShopD[x]))
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
         id = Player.SteamID
