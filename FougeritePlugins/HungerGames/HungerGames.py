@@ -592,6 +592,8 @@ class HungerGames:
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
                         if leng == minp and Plugin.GetTimer("Force") is None:
+                            if self.IsStarting or self.HasStarted:
+                                return
                             Server.BroadcastFrom(sysname, pink + "Detected " + str(minp) + " players.")
                             Server.BroadcastFrom(sysname, pink + "Forcing game start in " + str(MinimumTime) +
                                                  " minutes.")
