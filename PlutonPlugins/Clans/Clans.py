@@ -5,6 +5,7 @@ import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
+from Pluton import ReflectionExtensions
 import sys
 import re
 path = Util.GetPublicFolder()
@@ -135,7 +136,7 @@ class Clans:
         for player in online:
             name = player.Name.replace('[' + Clan + ']', '').strip(' ')
             # player.basePlayer.displayName = name
-            ReflectionExtensions.SetFieldValue(player.basePlayer.displayName, "displayName", name)
+            ReflectionExtensions.SetFieldValue(player.basePlayer, "_displayName", name)
             player.MessageFrom(sys, "Your clan was disbanded.")
         enum = ini.EnumSection(Clan)
         for d in enum:
@@ -394,7 +395,7 @@ class Clans:
             clan = self.GetClanOfPlayer(Player.SteamID)
             name = Player.Name
             # Player.basePlayer.displayName = "[" + clan + "] " + name
-            ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] " + name)
+            ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] " + name)
             claninfo = self.ClanInfo()
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
@@ -580,7 +581,7 @@ class Clans:
             Server.BroadcastFrom(sys, text + " got created by " + Player.Name)
             Player.MessageFrom(sys, "You created your first clan! /cinvite playername to invite!")
             # Player.basePlayer.displayName = "[" + text + "] " + name
-            ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + text + "] " + name)
+            ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + text + "] " + name)
         elif command == "cinvite":
             if len(args) == 0:
                 Player.MessageFrom(sys, "Usage /cinvite playername")
@@ -643,7 +644,7 @@ class Clans:
             for player in online:
                 player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
             # Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
-                ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] "
+                ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] "
                                                    + Player.Name)
         elif command == "cm":
             if len(args) == 0:
@@ -735,7 +736,7 @@ class Clans:
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
                 # playerr.basePlayer.displayName = name
-                ReflectionExtensions.SetFieldValue(playerr.basePlayer.displayName, "displayName", name)
+                ReflectionExtensions.SetFieldValue(playerr.basePlayer, "_displayName", name)
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
                 playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
@@ -883,7 +884,7 @@ class Clans:
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
                 # Player.basePlayer.displayName = name
-                ReflectionExtensions.SetFieldValue(Player.basePlayer.displayName, "displayName", "[" + clan + "] "
+                ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] "
                                                    + name)
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", name + " left the clan.")
