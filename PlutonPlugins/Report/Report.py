@@ -1,14 +1,19 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
+from time import gmtime, strftime
 
 """
     Class
 """
+
+def ColorText(color, part):
+    return '<color=' + color + '>' + part + '</color>'
+
 
 
 class Report:
@@ -95,16 +100,18 @@ class Report:
             Player = ChatEvent.User
             # Avoid null players.
             bpl = str(DataStore.Get("Reports", Player.SteamID)).split(":")
-            dt = str(System.DateTime.Now)
+            dt = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             ini = self.Reports()
-            ini.AddSetting(bpl[0], dt + " | Reported: " + bpl[1] + " | Report By: " + Player.Name)
-            ini.AddSetting(bpl[0], dt + " | Reason: " + reason)
+            l = len(ini.EnumSection(bpl[0])) + 1
+            ini.AddSetting(bpl[0], str(l), dt + " | Reported: " + bpl[1] + " | Report By: " + Player.Name)
+            ini.AddSetting(bpl[0], str(l), dt + " | Reason: " + reason)
             ini.Save()
-            Player.MessageFrom(systemname, "Report Submitted!")
+            Player.MessageFrom(systemname, ColorText("green", "Report Submitted!"))
             for admin in Server.ActivePlayers:
                 if admin.Admin:
-                    admin.MessageFrom(systemname, "Complaint From Player: " + Player.Name + " about " + bpl[1])
-                    admin.MessageFrom(systemname, "Reason: " + reason)
+                    admin.MessageFrom(systemname, ColorText("red", "Complaint From Player: " + Player.Name
+                                                            + " about " + bpl[1]))
+                    admin.MessageFrom(systemname, ColorText("red", "Reason: " + reason))
             DataStore.Remove("Reports", Player.SteamID)
             ChatEvent.FinalText = ""
 
