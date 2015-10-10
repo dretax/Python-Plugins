@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 import clr
 clr.AddReferenceByPartialName("Pluton")
@@ -87,29 +87,18 @@ class HomeSystem:
                 Player.MessageFrom(homesystemname, "You moved before teleporting!")
                 return
         if not self.IsFloat(HLoc[0]) or not self.IsFloat(HLoc[1]) or not self.IsFloat(HLoc[2]):
-            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
-            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
+            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + Player.Name
+                       + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + Player.Name
+                               + " | " + Player.SteamID)
             Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             return
         loc = Vector3(float(HLoc[0]),float(HLoc[1]) + 5.5, float(HLoc[2]))
-        self.Teleport(Player, loc)
+        Player.Teleport(loc)
         #if safetp > 0:
             #Plugin.CreateParallelTimer("HomeSafeTy", safetp * 1000, HomeSystem).Start()
         Player.MessageFrom(homesystemname, "Teleported to Home!")
-
-    def Teleport(self, Player, Location):
-        Player.basePlayer.StartSleeping()
-        Player.basePlayer.transform.position = Location
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
-        Player.basePlayer.UpdateNetworkGroup()
-        Player.basePlayer.UpdatePlayerCollider(True, False)
-        Player.basePlayer.SendNetworkUpdateImmediate(False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
-        Player.basePlayer.SendFullSnapshot()
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
 
 
     def HomeSafeTyCallback(self, timer):
@@ -124,13 +113,16 @@ class HomeSystem:
         HLoc = re.sub('[)\(\[\'\]]', '', str(HLoc))
         HLoc = HLoc.split(',')
         if not self.IsFloat(HLoc[0]) or not self.IsFloat(HLoc[1]) or not self.IsFloat(HLoc[2]):
-            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
-            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + str(Player.Name) + " | " + Player.SteamID)
-            Player.MessageFrom("HomeSystem", "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
+            Plugin.Log("HomeSystemError", "Something is wrong at: " + str(HLoc) + " | " + Player.Name
+                       + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem", "Something is wrong at: " + str(HLoc) + " | " + Player.Name
+                               + " | " + Player.SteamID)
+            Player.MessageFrom("HomeSystem",
+                               "Teleportation cancelled, please tell the admin's to check HomeSystem's directory for logs.")
             DataStore.Add("home_cooldown", Player.SteamID, 7)
             return
         Home = Vector3(float(HLoc[0]), float(HLoc[1]) + 5.5, float(HLoc[2]))
-        self.Teleport(Player, Home)
+        Player.Teleport(Home)
         Player.MessageFrom(homesystemname, "Teleported Again!")
 
     """
@@ -341,6 +333,7 @@ class HomeSystem:
             plloc = Player.Location
             maxh = int(config.GetSetting("Settings", "Maxhomes"))
             foundation = int(config.GetSetting("Settings", "Foundation"))
+            Util.Log(str(ini.EnumSection(id)))
             homel = ini.EnumSection(id)
             count = len(homel)
             if count >= maxh:
