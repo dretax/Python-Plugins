@@ -5,8 +5,6 @@ import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
-import System
-from System import *
 
 """
     Class
@@ -21,48 +19,73 @@ class Report:
             ini.Save()
         return Plugin.GetIni("Reports")
 
-    def GetPlayerName(self, namee):
-        name = namee.lower()
-        for pl in Server.ActivePlayers:
-            if pl.Name.lower() == name:
-                return pl
+    """
+        CheckV Assistants
+    """
+
+    def GetPlayerName(self, name, Mode=1):
+        if Mode == 1 or Mode == 3:
+            for pl in Server.ActivePlayers:
+                if pl.Name.lower() == name:
+                    return pl
+        if Mode == 2 or Mode == 3:
+            for pl in Server.OfflinePlayers.Values:
+                if pl.Name.lower() == name:
+                    return pl
         return None
 
     """
         CheckV method based on Spock's method.
         Upgraded by DreTaX
         Can Handle Single argument and Array args.
-        V4.0
+        Mode: Search mode (Default: 1)
+            1 = Search Online Players
+            2 = Search Offline Players
+            3 = Both
+        V6.0
     """
-    def CheckV(self, Player, args):
-        systemname = "[Report System]"
+
+    def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(String.Join(" ", args))
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            for pl in Server.ActivePlayers:
-                for namePart in args:
-                    if namePart.lower() in pl.Name.lower():
+            if Mode == 1 or Mode == 3:
+                for pl in Server.ActivePlayers:
+                    for namePart in args:
+                        if namePart.lower() in pl.Name.lower():
+                            p = pl
+                            count += 1
+            if Mode == 2 or Mode == 3:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    for namePart in args:
+                        if namePart.lower() in offlineplayer.Name.lower():
+                            p = offlineplayer
+                            count += 1
+        else:
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
+            if p is not None:
+                return p
+            if Mode == 1 or Mode == 3:
+                for pl in Server.ActivePlayers:
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-                        continue
-        else:
-            p = self.GetPlayerName(str(args))
-            if p is not None:
-                return p
-            for pl in Server.ActivePlayers:
-                if str(args).lower() in pl.Name.lower():
-                    p = pl
-                    count += 1
-                    continue
+            if Mode == 2 or Mode == 3:
+                for offlineplayer in Server.OfflinePlayers.Values:
+                    if ag in offlineplayer.Name.lower():
+                        p = offlineplayer
+                        count += 1
         if count == 0:
-            Player.MessageFrom(systemname, "Couldn't find " + String.Join(" ", args) + "!")
+            Player.MessageFrom("FindingThing", "Couldn't Find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(systemname, "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("FindingThing", "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
 
     def On_Chat(self, ChatEvent):
