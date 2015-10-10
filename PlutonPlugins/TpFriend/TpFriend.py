@@ -16,6 +16,8 @@ import BasePlayer
 """
 
 Pending = []
+
+
 class TpFriend:
 
     def On_PlayerConnected(self, Player):
