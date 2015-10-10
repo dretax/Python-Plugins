@@ -1,13 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.1'
+__version__ = '1.5.2'
 
 import clr
 
 clr.AddReferenceByPartialName("Pluton")
 import Pluton
 import math
-import System
-from System import *
 import re
 
 """
@@ -34,21 +32,13 @@ class Kits:
     """
 
     def GetPlayerName(self, name, Mode=1):
-        Name = name.lower()
-        if Mode == 1:
+        if Mode == 1 or Mode == 3:
             for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
-        elif Mode == 2:
+        if Mode == 2 or Mode == 3:
             for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
-                    return pl
-        else:
-            for pl in Server.ActivePlayers:
-                if pl.Name.lower() == Name:
-                    return pl
-            for pl in Server.OfflinePlayers.Values:
-                if pl.Name.lower() == Name:
+                if pl.Name.lower() == name:
                     return pl
         return None
 
@@ -60,68 +50,50 @@ class Kits:
             1 = Search Online Players
             2 = Search Offline Players
             3 = Both
-        V5.0
+        V6.0
     """
 
     def CheckV(self, Player, args, Mode=1):
         count = 0
         if hasattr(args, '__len__') and (not isinstance(args, str)):
-            p = self.GetPlayerName(str.Join(" ", args), Mode)
+            p = self.GetPlayerName(str.Join(" ", args).lower(), Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
                     for namePart in args:
                         if namePart.lower() in pl.Name.lower():
                             p = pl
                             count += 1
-            elif Mode == 2:
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    for namePart in args:
-                        if namePart.lower() in offlineplayer.Name.lower():
-                            p = offlineplayer
-                            count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    for namePart in args:
-                        if namePart.lower() in pl.Name.lower():
-                            p = pl
-                            count += 1
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
                     for namePart in args:
                         if namePart.lower() in offlineplayer.Name.lower():
                             p = offlineplayer
                             count += 1
         else:
-            p = self.GetPlayerName(str(args), Mode)
+            ag = str(args).lower()  # just incase
+            p = self.GetPlayerName(ag, Mode)
             if p is not None:
                 return p
-            if Mode == 1:
+            if Mode == 1 or Mode == 3:
                 for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
+                    if ag in pl.Name.lower():
                         p = pl
                         count += 1
-            elif Mode == 2:
+            if Mode == 2 or Mode == 3:
                 for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
-                        p = offlineplayer
-                        count += 1
-            else:
-                for pl in Server.ActivePlayers:
-                    if str(args).lower() in pl.Name.lower():
-                        p = pl
-                        count += 1
-                for offlineplayer in Server.OfflinePlayers.Values:
-                    if str(args).lower() in offlineplayer.Name.lower():
+                    if ag in offlineplayer.Name.lower():
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom("Kits", "Couldn't find " + str.Join(" ", args) + "!")
+            Player.MessageFrom("Kits", "Couldn't Find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom("Kits", "Found " + str(count) + " player with similar name. Use more correct name!")
+            Player.MessageFrom("Kits", "Found " + str(count) +
+                               " player with similar name. Use more correct name!")
             return None
 
     def GetStringFromArray(self, Array, String):
@@ -263,7 +235,8 @@ class Kits:
                         else:
                             done = round((calc / 1000) / 60, 2)
                             done2 = round((cooldown / 1000) / 60, 2)
-                            Player.MessageFrom("Kits", str(get[0]) + " is still on cooldown: " + str(done) + "/" + str(done2) + " minutes")
+                            Player.MessageFrom("Kits", str(get[0]) + " is still on cooldown: "
+                                               + str(done) + "/" + str(done2) + " minutes")
 
     def On_Respawn(self, RespawnEvent):
         Delay = Plugin.CreateDict()
