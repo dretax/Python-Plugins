@@ -132,6 +132,7 @@ class PluIRC:
             if args[0] == "list":
                 Player.MessageFrom(sysname, ColorText("blue", "Current Users Online: "))
                 PlayersWithSockets[Player].send("NAMES " + "\n")
+                # todo fix
                 """elif args[0] == "pm":
                 if len(args) > 2:
                     PlayersWithSockets[Player].send("PRIVMSG nickserv")"""
@@ -155,3 +156,9 @@ class PluIRC:
                     t = threading.Thread(target=caller, args=(Player,))
                     PlayersWithThreads[Player] = t
                     t.start()
+            else:
+                Player.MessageFrom(sysname, ColorText("blue", "Commands: "))
+                Player.MessageFrom(sysname, "/irc - List Commands")
+                Player.MessageFrom(sysname, "/irc m message - Send Message")
+                Player.MessageFrom(sysname, "/irc disconnect - Disconnect")
+                Player.MessageFrom(sysname, "/irc connect - Connect")
