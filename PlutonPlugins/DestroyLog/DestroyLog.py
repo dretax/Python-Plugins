@@ -1,10 +1,11 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 clr.AddReferenceByPartialName("Pluton")
 import Pluton, datetime
 path = Util.GetPublicFolder()
+
 
 class DestroyLog:
 
@@ -32,8 +33,9 @@ class DestroyLog:
                     return
                 for x in HurtEvent.DamageAmounts:
                     if x > h:
-                        Plugin.Log(path + "\\Plugins\\DestroyLog\\Logs\\" + str(datetime.date.today()), HurtEvent.Victim.Name +
-                            " | " + str(HurtEvent.Victim.Location) +
-                            " | " + weapon + " | " + attacker +
-                            " | " + loc + " | " + id + " | " + ip)
+                        Plugin.Log(path + "\\Plugins\\DestroyLog\\Logs\\" + str(datetime.date.today()),
+                                   HurtEvent.Victim.Name +
+                                   " | " + str(HurtEvent.Victim.Location) +
+                                   " | " + weapon + " | " + attacker +
+                                   " | " + loc + " | " + id + " | " + ip)
                         break
