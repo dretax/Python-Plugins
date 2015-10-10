@@ -7,6 +7,7 @@ clr.AddReferenceByPartialName("Pluton")
 clr.AddReferenceByPartialName("UnityEngine")
 clr.AddReferenceByPartialName("Assembly-CSharp")
 import Pluton
+from Pluton import ReflectionExtensions
 import UnityEngine
 from UnityEngine import Vector3 as Vector3
 import System
@@ -158,7 +159,6 @@ class AdminCommands:
             .setCallback("getowner")\
             .setDescription("Gives you owner")\
             .setUsage("getowner password")
-
         Commands.Register("airdropr")\
             .setCallback("airdropr")\
             .setDescription("Request an airdrop to a random place")\
@@ -207,6 +207,10 @@ class AdminCommands:
             .setCallback("boardusers")\
             .setDescription("Tells you every playername and playerid in a Tool Cupboard, if It's closer than 6m.")\
             .setUsage("boardusers")
+        Commands.Register("rename")\
+            .setCallback("rename")\
+            .setDescription("Renames your name")\
+            .setUsage("rename")
 
     def AdminCmdConfig(self):
         if not Plugin.IniExists("AdminCmdConfig"):
@@ -244,19 +248,6 @@ class AdminCommands:
         if ini.GetSetting(ofid, id) and ini.GetSetting(ofid, id) is not None:
             return True
         return False
-
-    def Teleport(self, Player, Location):
-        Player.basePlayer.StartSleeping()
-        Player.basePlayer.transform.position = Location
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
-        Player.basePlayer.UpdateNetworkGroup()
-        Player.basePlayer.UpdatePlayerCollider(True, False)
-        Player.basePlayer.SendNetworkUpdateImmediate(False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
-        Player.basePlayer.SendFullSnapshot()
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
 
     """
         CheckV Assistants
@@ -363,13 +354,13 @@ class AdminCommands:
         if not self.IsonDuty(Player):
             Player.MessageFrom(self.Sysname, "You aren't on duty!")
             return
-        pl = self.CheckV(Player, args, 3)
+        pl = self.CheckV(Player, args)
         if pl is not None:
             if "offlineplayer" in str(pl).lower():
                 loc = Vector3(pl.X, pl.Y, pl.Z)
-                self.Teleport(Player, loc)
+                Player.Teleport(loc)
             else:
-                self.Teleport(Player, pl.Location)
+                Player.Teleport(pl.Location)
 
     def tphere(self, args, Player):
         args = Util.GetQuotedArgs(args)
@@ -384,7 +375,22 @@ class AdminCommands:
             return
         pl = self.CheckV(Player, args)
         if pl is not None:
-            self.Teleport(pl, Player.Location)
+            pl.Teleport(Player.Location)
+
+    def rename(self, args, Player):
+        args = Util.GetQuotedArgs(args)
+        if not Player.Admin:
+            Player.MessageFrom(self.Sysname, "You aren't an admin!")
+            return
+        if not self.IsonDuty(Player):
+            Player.MessageFrom(self.Sysname, "You aren't on duty!")
+            return
+        if len(args) == 0:
+            Player.MessageFrom(self.Sysname, "Usage: /rename name")
+            return
+        s = str.join(' ', args)
+        ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", s)
+        Player.MessageFrom(self.Sysname, "You renamed yourself to: " + s)
 
     def god(self, args, Player):
         if not Player.Admin:
@@ -399,8 +405,7 @@ class AdminCommands:
             Player.MessageFrom(self.Sysname, "God mode off.")
         else:
             DataStore.Add("godmode", Player.SteamID, 1)
-            infinity = float("inf")
-            Player.basePlayer.InitializeHealth(infinity, infinity)
+            Player.basePlayer.InitializeHealth(100, 100)
             Player.MessageFrom(self.Sysname, "God mode on.")
 
     def ad(self, args, Player):
@@ -746,7 +751,7 @@ class AdminCommands:
         if vector == self.DefaultVector:
             Player.MessageFrom(self.Sysname, "Target is too far.")
             return
-        self.Teleport(Player, vector)
+        Player.Teleport(vector)
         Player.MessageFrom(self.Sysname, "Teleported!")
 
     def teleportto(self, args, Player):
@@ -763,7 +768,7 @@ class AdminCommands:
             Player.MessageFrom(self.Sysname, "Usage: /teleportto x,y,z")
             return
         loc = Vector3(float(sp[0]), float(sp[1]), float(sp[2]))
-        self.Teleport(Player, loc)
+        Player.Teleport(loc)
         Player.MessageFrom(self.Sysname, "Teleported!")
 
     def addfriend(self, args, Player):
@@ -858,7 +863,6 @@ class AdminCommands:
                 ani = res.GetSetting("Resources", a)
                 for x in xrange(1, num + 1):
                     World.SpawnAnimal(ani, vector.x, vector.y + 1.0, vector.z)
-            # Skully xD
             Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
         elif type == "list":
             Player.MessageFrom(self.Sysname, "List: " + str(Animals))
@@ -866,11 +870,11 @@ class AdminCommands:
         elif type in Animals:
             for x in xrange(1, num + 1):
                 World.SpawnAnimal(type, vector.x, vector.y + 1.0, vector.z)
-            # Skully xD
             Player.MessageFrom(self.Sysname, "Hey " + Player.Name + " ... We are here to eat you :P")
         elif type in Resources.keys():
             for x in xrange(1, num + 1):
                 World.SpawnMapEntity(Resources[type], vector.x, vector.y, vector.z)
+            Player.MessageFrom(self.Sysname, "Spawned " + str(num) + " amount of " + type + "(s)")
         else:
             Player.MessageFrom(self.Sysname, "Couldn't find command.")
 
@@ -928,6 +932,16 @@ class AdminCommands:
         Server.Broadcast(str(DataStore.Get("adoor", DoorEvent.Player.SteamID)))
         if DataStore.Get("adoor", DoorEvent.Player.SteamID):
             DoorEvent.Open = True"""
+
+    def On_PlayerHealthChange(self, PlayerHealthChangedEvent):
+        if DataStore.ContainsKey("godmode", PlayerHealthChangedEvent.Player.SteamID):
+            player = PlayerHealthChangedEvent.Player
+            player.basePlayer.metabolism.bleeding.Reset()
+            player.basePlayer.metabolism.poison.Reset()
+            player.basePlayer.metabolism.oxygen.Reset()
+            player.basePlayer.metabolism.wetness.Reset()
+            player.basePlayer.metabolism.temperature.Reset()
+            PlayerHealthChangedEvent.Player.Health = 100
 
     def On_Chat(self, args):
         if DataStore.ContainsKey("MuteList", args.User.SteamID):

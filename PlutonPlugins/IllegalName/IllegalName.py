@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4.1'
 
 import clr
 
@@ -9,24 +9,28 @@ import Pluton
 import re
 import sys
 path = Util.GetPublicFolder()
-Lib = True
 try:
     sys.path.append(path + "\\Python\\Lib\\")
     import random
 except ImportError:
-    Lib = False
+    raise ImportError("IllegalName: Download the Python Extra libs from the website!")
+
 """
     Class
 """
 
 RandNames = []
 Names = []
+Restricted = []
+
+
 class IllegalName:
 
     Words = {}
     asciie = None
     regex = None
     samename = None
+    maxl = None
 
     def On_PluginInit(self):
         ini = self.IllegalNameConfig()
@@ -37,6 +41,12 @@ class IllegalName:
         self.asciie = int(ini.GetSetting("Settings", "CheckForNonAscii"))
         self.regex = int(ini.GetSetting("Settings", "CheckWithRegEx"))
         self.samename = int(ini.GetSetting("Settings", "SameName"))
+        self.maxl = int(ini.GetSetting("Settings", "NameLength"))
+        illini = self.getIllegal()
+        enum = illini.EnumSection("IllegalNames")
+        for checkn in enum:
+            get = illini.GetSetting("IllegalNames", checkn).lower()
+            Restricted.append(get)
 
     def GetNum(self):
         for x in xrange(0, 1000):
@@ -69,41 +79,35 @@ class IllegalName:
 
     def On_ClientAuth(self, AuthEvent):
         name = AuthEvent.Name
-        illini = self.getIllegal()
-        listnames = illini.EnumSection("IllegalNames")
         compile = re.compile(r'\b(' + '|'.join(self.Words.keys()) + r')\b')
         name = compile.sub(lambda x: self.Words[x.group()], name)
-        if self.asciie == 1:
-            newname = self.CutName(name)
-            name = newname
-        if self.regex == 1:
-            name = re.sub(' +',' ', name)
-            name = re.sub('[\t]+','', name)
-            starts = name.startswith(' ')
-            ends = name.endswith(' ')
-            if starts is True:
-                name.replace(name[0], '')
-            if ends is True:
-                n = len(name)
-                name.replace(name[n-1], '')
-            a = re.match('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', name)
-            if not a:
-                name = re.sub('^[a-zA-Z0-9_!+?%()<>/\@#,.\\s\[\]-]+$', "", name)
+        name = self.CutName(name)
+        name = re.sub(' +', ' ', name)
+        name = re.sub('[\t]+', '', name)
+        starts = name.startswith(' ')
+        ends = name.endswith(' ')
+        if starts:
+            name = name.replace(name[0], '')
+        if ends:
+            n = len(name)
+            if n > 1:
+                name = name.replace(name[n - 1], '')
+        a = re.match('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', name)
+        if not a:
+            name = re.sub('^[a-zA-Z0-9_!+?()<>/@#,. \[\]\\-]+$', "", name)
         n = len(name)
-        for checkn in listnames:
-            get = illini.GetSetting("IllegalNames", checkn)
-            if get.lower() in name.lower():
-                n = 1
-        if self.samename == 1:
-            if name in Names:
-                n = 1
+        if n > self.maxl:
+            n = 1
+        if name.lower() in str(Restricted):
+            n = 1
+        if name.lower() in str(Names).lower() and "stranger" not in name.lower():
+            n = 1
         if n <= 1:
             name = "Stranger"
-            if Lib:
-                rand = self.GetNum()
-                name = name + str(rand)
+            rand = self.GetNum()
+            name = name + str(rand)
         Names.append(name)
-        AuthEvent.Connection.username = str(name)
+        AuthEvent.Connection.username = name
 
     def On_PlayerDisconnected(self, Player):
         name = Player.Name

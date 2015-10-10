@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.8.1'
+__version__ = '1.8.2'
 
 import clr
 
@@ -64,7 +64,7 @@ class TpFriend:
                 return
             DataStore.Remove("tpfriendpending", id)
             DataStore.Remove("tpfriendpending2", id2)
-            self.Teleport(PlayerFrom, PlayerTo.Location)
+            PlayerFrom.Teleport(PlayerTo.Location)
             PlayerFrom.MessageFrom(systemname, "Teleported!")
             PlayerTo.MessageFrom(systemname, str(PlayerFrom.Name) + " teleported to you!")
         elif callback == 2:
@@ -172,19 +172,6 @@ class TpFriend:
                                " player with similar name. Use more correct name!")
             return None
 
-    def Teleport(self, Player, Location):
-        Player.basePlayer.StartSleeping()
-        Player.basePlayer.transform.position = Location
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "ForcePositionTo", Location)
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, True)
-        Player.basePlayer.UpdateNetworkGroup()
-        Player.basePlayer.UpdatePlayerCollider(True, False)
-        Player.basePlayer.SendNetworkUpdateImmediate(False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "StartLoading")
-        Player.basePlayer.SendFullSnapshot()
-        Player.basePlayer.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, False)
-        Player.basePlayer.ClientRPCPlayer(None, Player.basePlayer, "FinishLoading")
-
     def On_Command(self, cmd):
         Player = cmd.User
         args = cmd.args
@@ -284,7 +271,7 @@ class TpFriend:
                         self.addJob(tpdelay, playerfromm, Player, 1, pending, id)
                         playerfromm.MessageFrom(systemname, "Teleporting you in: " + str(tpdelay) + " second(s)")
                     else:
-                        self.Teleport(playerfromm, Player.Location)
+                        playerfromm.Teleport(Player.Location)
                         playerfromm.MessageFrom(systemname, "Teleported!")
                         Player.MessageFrom(systemname, playerfromm.Name + " teleported to you!")
                 else:
