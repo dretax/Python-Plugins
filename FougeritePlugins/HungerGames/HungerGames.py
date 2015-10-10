@@ -864,8 +864,8 @@ class HungerGames:
                 DataStore.Remove("HLastLoc", id)
 
     def FindWalls(self, location, name, spawnRot):
-        wall = Util.FindStructureAt(location, float(1.5))
-        if wall is not None:
+        wall = Util.FindStructuresAround(location, float(1.5))
+        if len(wall) >= 1:
             walls.append(wall)
             return
         try:
@@ -1009,7 +1009,8 @@ class HungerGames:
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
         for wall in walls:
-            wall.Destroy()
+            for iw in wall:
+                iw.Destroy()
         del walls[:]
 
     def FreezerCallback(self, timer):
