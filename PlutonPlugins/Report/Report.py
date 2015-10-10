@@ -79,12 +79,12 @@ class Report:
                         p = offlineplayer
                         count += 1
         if count == 0:
-            Player.MessageFrom("FindingThing", "Couldn't Find " + str.Join(" ", args) + "!")
+            Player.MessageFrom("Reports", "Couldn't Find " + str.Join(" ", args) + "!")
             return None
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom("FindingThing", "Found " + str(count) +
+            Player.MessageFrom("Reports", "Found " + str(count) +
                                " player with similar name. Use more correct name!")
             return None
 
