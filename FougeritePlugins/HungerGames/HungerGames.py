@@ -388,7 +388,6 @@ class HungerGames:
                         if self.IsActive:
                             Player.MessageFrom(sysname, "Hunger Games is already active!")
                         else:
-                            self.Reset()
                             Server.BroadcastFrom(sysname, red + "----------------------------"
                                                                 "HUNGERGAMES--------------------------------")
                             Server.BroadcastFrom(sysname, green +
@@ -400,6 +399,7 @@ class HungerGames:
                                                                 "HUNGERGAMES--------------------------------")
                             self.RandomAdmin = Player
                             self.IsActive = True
+                            self.ResetWalls()
                             del self.Players[:]
                             if Plugin.GetTimer("StartingIn") is not None:
                                 Plugin.KillTimer("StartingIn")
@@ -441,6 +441,7 @@ class HungerGames:
                                                      red + "----------------------------"
                                                      "HUNGERGAMES--------------------------------")
                                 self.EndGame(self.Players[0])
+                                self.ResetWalls()
                             else:
                                 Server.BroadcastFrom\
                                     (sysname, red + "----------------------------HUNGERGAMES"
@@ -450,6 +451,7 @@ class HungerGames:
                                                      red + "----------------------------"
                                                      "HUNGERGAMES--------------------------------")
                                 self.Reset()
+                                self.ResetWalls()
                         else:
                             if not self.IsActive:
                                 Player.MessageFrom(sysname, "Hunger Games is already in-active!")
@@ -462,6 +464,7 @@ class HungerGames:
                                                  "----------------------------"
                                                  "HUNGERGAMES--------------------------------")
                             self.Reset()
+                            self.ResetWalls()
                     else:
                         Player.Message("You aren't admin!")
                         return
@@ -774,14 +777,7 @@ class HungerGames:
                         if self.HasStarted or self.IsStarting:
                             Player.MessageFrom(sysname, "You can't do this now.")
                             return
-                        ini = self.HungerGames()
-                        enum3 = ini.EnumSection("WallLocations")
-                        for wall in enum3:
-                            l = ini.GetSetting("WallLocations", wall).split(',')
-                            name = wall.split('-')
-                            loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                            quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
-                            self.FindWalls(loc, name[0], quat)
+                        self.ResetWalls()
                         Player.MessageFrom(sysname, "Walls replaced.")
                 elif arg == "buy":
                     if not EShop:
@@ -865,8 +861,9 @@ class HungerGames:
 
     def FindWalls(self, location, name, spawnRot):
         wall = Util.FindStructuresAround(location, float(1.5))
-        if len(wall) >= 1:
-            walls.append(wall)
+        if wall.Count >= 1:
+            for x in wall:
+                walls.append(x)
             return
         try:
             sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
@@ -876,9 +873,8 @@ class HungerGames:
                 ent = Entity(World.Spawn(';struct_metal_wall', location.x, location.y, location.z, spawnRot))
             sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
             walls.append(ent)
-        except Exception as e:
-            Server.BroadcastFrom(sysname, "Failed to replace a Wall.")
-            Plugin.Log("Error", "Failed to replace a Wall. " + str(e) + " Location: " + str(location))
+        except:
+            pass
 
     def FindChest(self, location, name, spawnRot):
         chest = Util.FindChestAt(location)
@@ -890,9 +886,8 @@ class HungerGames:
             ent = Entity(World.Spawn(n, location.x, location.y, location.z, spawnRot))
             ent.ChangeOwner(self.RandomAdmin)
             loot.append(ent)
-        except Exception as e:
-            Server.BroadcastFrom(sysname, "Failed to replace a Chest.")
-            Plugin.Log("Error", "Failed to replace a Chest. " + str(e) + " Location: " + str(location))
+        except:
+            pass
 
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
@@ -1009,8 +1004,7 @@ class HungerGames:
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
         for wall in walls:
-            for iw in wall:
-                iw.Destroy()
+            wall.Destroy()
         del walls[:]
 
     def FreezerCallback(self, timer):
@@ -1094,6 +1088,9 @@ class HungerGames:
         del loot[:]
         del Awaiting[:]
         PointedPeople.clear()
+        self.CleanMess()
+
+    def ResetWalls(self):
         ini = self.HungerGames()
         enum3 = ini.EnumSection("WallLocations")
         for wall in enum3:
@@ -1102,7 +1099,6 @@ class HungerGames:
             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
             quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
             self.FindWalls(loc, name[0], quat)
-        self.CleanMess()
 
     def EndGame(self, Player):
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
@@ -1157,6 +1153,7 @@ class HungerGames:
                         x._inventory.Clear()
                         Util.DestroyObject(x.gameObject)
         self.Reset()
+        self.ResetWalls()
         Player.MessageFrom(sysname, green + "You received your rewards!")
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
 
