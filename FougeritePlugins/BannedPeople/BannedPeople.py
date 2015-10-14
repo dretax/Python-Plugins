@@ -271,6 +271,8 @@ class BannedPeople:
     def On_PlayerDisconnected(self, Player):
         if DataStore.ContainsKey("DropTester", Player.SteamID):
             DataStore.Remove("DropTester", Player.SteamID)
+        if Player.UID in droped:
+            droped.remove(Player.UID)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         if DataStore.ContainsKey("DropTester", Player.SteamID):
