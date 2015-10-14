@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.6.9'
+__version__ = '1.7.0'
 
 import clr
 
@@ -14,6 +14,7 @@ import re
 green = "[color #009900]"
 red = "[color #FF0000]"
 rangeip = []
+droped = []
 
 
 class BannedPeople:
@@ -318,6 +319,11 @@ class BannedPeople:
         else:
             Player.MessageFrom(self.sysname, red + "No Items of your last inventory found!")
 
+    def On_PlayerKilled(self, DeathEvent):
+        if DeathEvent.Victim is not None:
+            if DataStore.ContainsKey("DropTester", DeathEvent.Victim.SteamID):
+                droped.append(DeathEvent.Victim.UID)
+
     def hackCallback(self, timer):
         List = timer.Args
         timer.Kill()
@@ -325,8 +331,11 @@ class BannedPeople:
         if player is None:
             List["Executor"].Notice(player.Name + " maybe disconnected.")
             return
-        if List["Location"] == player.Location:
+        elif List["Location"] == player.Location:
             List["Executor"].Notice(player.Name + " has the same position, maybe bugged?")
+            return
+        elif player.UID in droped:
+            droped.remove(player.UID)
             return
         if player.IsAlive:
             List["Executor"].Notice(player.Name + " failed the drop test.")
