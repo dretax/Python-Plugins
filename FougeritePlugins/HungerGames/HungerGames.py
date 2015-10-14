@@ -10,7 +10,6 @@ import Fougerite
 from Fougerite import Entity
 import re
 import sys
-from System import Array
 
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
@@ -1018,7 +1017,8 @@ class HungerGames:
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
         Server.BroadcastFrom(sysname, red + "Radiation activated!")
         Server.BroadcastFrom(sysname, red + "You will receive " + str(RadR) + " rad every " + str(RadS) + " secs")
-        Server.BroadcastFrom(sysname, red + "if you are out of range! Current range: " + str(self.CurrentRadRange) + "m!")
+        Server.BroadcastFrom(sysname, red + "if you are out of range! Current range: "
+                             + str(self.CurrentRadRange) + "m!")
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
         Plugin.CreateTimer("RadiationRange", RadDC * 60000).Start()
 
@@ -1052,7 +1052,6 @@ class HungerGames:
         for x in PlacedEntities:
             if x.Health > 0:
                 x.Destroy()
-            PlacedEntities.remove(x)
 
     def Reset(self):
         self.HasStarted = False
@@ -1089,6 +1088,7 @@ class HungerGames:
         del Awaiting[:]
         PointedPeople.clear()
         self.CleanMess()
+        del PlacedEntities[:]
 
     def ResetWalls(self):
         ini = self.HungerGames()
