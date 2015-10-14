@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.4b'
+__version__ = '1.4c'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -67,7 +67,7 @@ class JZap:
             if not Server.HasRustPP:
                 return
             dict = Server.GetRustPPAPI().Cache
-            if dict.ContainsKey(long(he.Entity.OwnerID)):
+            if not dict.ContainsKey(long(he.Entity.OwnerID)):
                 name = "UnKnown"
             else:
                 name = dict[long(he.Entity.OwnerID)]
