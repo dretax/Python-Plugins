@@ -860,7 +860,7 @@ class HungerGames:
 
     def FindWalls(self, location, name, spawnRot):
         wall = Util.FindStructuresAround(location, float(1.5))
-        if wall.Count >= 1:
+        if len(wall) >= 1:
             for x in wall:
                 walls.append(x)
             return
