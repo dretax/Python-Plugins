@@ -775,6 +775,10 @@ class HungerGames:
                         for item in enum:
                             c = int(ini2.GetSetting("DefaultItems", item))
                             Player.Inventory.AddItem(item, c)
+                        if self.GotRustPP:
+                            Server.GetRustPPAPI().RemoveGod(Player.UID)
+                            Server.GetRustPPAPI().RemoveInstaKO(Player.UID)
+                            Server.GetRustPPAPI().GetFriendsCommand.AddTempException(Player.UID)
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
                 elif arg == "checkwalls":
@@ -782,6 +786,7 @@ class HungerGames:
                         if self.HasStarted or self.IsStarting:
                             Player.MessageFrom(sysname, "You can't do this now.")
                             return
+                        self.RandomAdmin = Player
                         self.ResetWalls()
                         Player.MessageFrom(sysname, "Walls replaced.")
                 elif arg == "buy":
