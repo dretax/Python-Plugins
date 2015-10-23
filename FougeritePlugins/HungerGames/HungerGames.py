@@ -146,6 +146,7 @@ class HungerGames:
     CurrentRadRange = RadStart
     Metabolism = None
     RadRunning = False
+    GotRustPP = False
 
     def On_PluginInit(self):
         self.dp = Util.TryFindReturnType("DeployableObject")
@@ -173,6 +174,7 @@ class HungerGames:
         self.StoreRewards = self.bool(ini2.GetSetting("Random", "StoreRewards"))
         self.MinRewards = int(ini2.GetSetting("Random", "MinRewards"))
         self.MaxRewards = int(ini2.GetSetting("Random", "MaxRewards"))
+        self.GotRustPP = Server.HasRustPP
         shop = self.Shop()
         senum = shop.EnumSection("Shop")
         for x in senum:
@@ -593,6 +595,10 @@ class HungerGames:
                             Player.Inventory.AddItem(item, c)
                         Player.MessageFrom(sysname, "You joined the game!")
                         DataStore.Add("HGIG", id, "1")
+                        if self.GotRustPP:
+                            Server.GetRustPPAPI().RemoveGod(Player.UID)
+                            Server.GetRustPPAPI().RemoveInstaKO(Player.UID)
+                            Server.GetRustPPAPI().GetFriendsCommand.AddTempException(Player.UID)
                         if leng == minp and Plugin.GetTimer("Force") is None:
                             if self.IsStarting or self.HasStarted:
                                 return
@@ -844,6 +850,8 @@ class HungerGames:
             self.Players.remove(Player)
         if Player.UID in Awaiting:
             Awaiting.remove(Player.UID)
+        if self.GotRustPP:
+            Server.GetRustPPAPI().GetFriendsCommand.RemoveTempException(Player.UID)
         DataStore.Remove("HGIG", id)
         for cmd in self.RestrictedCommands:
             Player.UnRestrictCommand(cmd)
@@ -1275,6 +1283,8 @@ class HungerGames:
             DataStore.Remove("HLastLoc", Player.SteamID)
             self.Freezer(Player, 2, False)
             Player.AddAntiRad(Player.RadLevel)
+            if self.GotRustPP:
+                Server.GetRustPPAPI().GetFriendsCommand.RemoveTempException(Player.UID)
 
     def On_EntityDeployed(self, Player, Entity):
         if Player in self.Players:
