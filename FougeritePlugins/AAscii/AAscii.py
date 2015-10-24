@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.6.2'
+__version__ = '1.6.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -16,11 +16,15 @@ class AAscii:
     a = None
     m = None
     maxl = None
+    DeleteIllegalCharsMods = None
+    DeleteIllegalCharsAdmins = None
 
     def On_PluginInit(self):
         ini = self.ANA()
         self.a = int(ini.GetSetting("Settings", "DontRenameAdmins"))
         self.m = int(ini.GetSetting("Settings", "DontRenameMods"))
+        self.DeleteIllegalCharsAdmins = int(ini.GetSetting("Settings", "DeleteIllegalCharsAdmins"))
+        self.DeleteIllegalCharsMods = int(ini.GetSetting("Settings", "DeleteIllegalCharsMods"))
         self.maxl = int(ini.GetSetting("Settings", "NameLength"))
         enum = ini.EnumSection("Restrict")
         for checkn in enum:
@@ -33,6 +37,8 @@ class AAscii:
             ini = Plugin.CreateIni("ANA")
             ini.AddSetting("Settings", "DontRenameAdmins", "1")
             ini.AddSetting("Settings", "DontRenameMods", "1")
+            ini.AddSetting("Settings", "DeleteIllegalCharsAdmins", "1")
+            ini.AddSetting("Settings", "DeleteIllegalCharsMods", "1")
             ini.AddSetting("Settings", "NameLength", "17")
             ini.AddSetting("Restrict", "1", "DerpTeamNoob")
             ini.AddSetting("Restrict", "2", "Changeme")
@@ -83,18 +89,22 @@ class AAscii:
         Player.Name = name
         Names.append(name)
 
-    def On_PlayerSpawned(self, Player, SpawnEvent):
-        if DataStore.ContainsKey("ANA", Player.SteamID):
-            DataStore.Remove("ANA", Player.SteamID)
-            self.Rename(Player)
-
     def On_PlayerConnected(self, Player):
-        id = Player.SteamID
         if Player.Admin and self.a == 1:
+            if self.DeleteIllegalCharsAdmins == 1:
+                name = Player.Name
+                name = self.CutName(name)
+                Player.Name = name
+                Names.append(name)
             return
         if Player.Moderator and self.m == 1:
+            if self.DeleteIllegalCharsMods == 1:
+                name = Player.Name
+                name = self.CutName(name)
+                Player.Name = name
+                Names.append(name)
             return
-        DataStore.Add("ANA", id, True)
+        self.Rename(Player)
 
     def On_PlayerDisconnected(self, Player):
         name = Player.Name
