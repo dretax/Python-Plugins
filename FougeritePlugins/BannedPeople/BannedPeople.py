@@ -278,7 +278,7 @@ class BannedPeople:
         if DataStore.ContainsKey("DropTester", Player.SteamID):
             l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
             DataStore.Remove("DropTester", Player.SteamID)
-            Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
+            Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]))
             # self.returnInventory(Player)
             Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
 
