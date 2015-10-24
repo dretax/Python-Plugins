@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.0'
+__version__ = '1.7.1'
 
 import clr
 
@@ -250,7 +250,7 @@ class BannedPeople:
             if Player.Admin or Player.Moderator:
                 p = self.CheckV(Player, args)
                 if p is not None:
-                    self.recordInventory(p)
+                    # self.recordInventory(p)
                     DataStore.Add("DropTester", p.SteamID, str(p.Location))
                     List = Plugin.CreateDict()
                     List["Health"] = p.Health
@@ -279,7 +279,7 @@ class BannedPeople:
             l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
             DataStore.Remove("DropTester", Player.SteamID)
             Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
-            self.returnInventory(Player)
+            # self.returnInventory(Player)
             Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
 
     def Replace(self, String):
