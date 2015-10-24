@@ -324,6 +324,7 @@ class BannedPeople:
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.Victim is not None:
             if DataStore.ContainsKey("DropTester", DeathEvent.Victim.SteamID):
+                DataStore.Add("DropTester", DeathEvent.Victim.SteamID, str(DeathEvent.Victim.Location))
                 droped.append(DeathEvent.Victim.UID)
 
     def hackCallback(self, timer):
