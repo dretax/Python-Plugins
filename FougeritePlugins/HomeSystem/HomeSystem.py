@@ -1,5 +1,6 @@
 __author__ = 'DreTaX'
-__version__ = '2.5.9'
+__version__ = '2.6.0'
+
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 clr.AddReferenceByPartialName("UnityEngine")
@@ -21,6 +22,8 @@ except ImportError:
 
 red = "[color #FF0000]"
 Pending = []
+
+
 class HomeSystem:
 
     sendhome = None
@@ -34,6 +37,7 @@ class HomeSystem:
     type = None
     movec = None
     found = None
+    doubleteleport = None
 
     def On_PluginInit(self):
         DataStore.Flush("home_joincooldown")
@@ -51,6 +55,7 @@ class HomeSystem:
         self.antiroof = int(config.GetSetting("Settings", "antiroofdizzy"))
         self.type = Util.TryFindReturnType("StructureComponent")
         self.movec = int(config.GetSetting("Settings", "movecheck"))
+        self.doubleteleport = self.bool(config.GetSetting("Settings", "doubleteleport"))
         self.found = self.bool(config.GetSetting("Settings", "foundationhome"))
         Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
@@ -220,7 +225,8 @@ class HomeSystem:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(self.homesystemname, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(self.homesystemname, "Found [color#FF0000]" + str(count)
+                               + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def Freezer(self, Player, num, msg=True):
@@ -274,35 +280,36 @@ class HomeSystem:
         config = self.HomeConfig()
         List = timer.Args
         Player = List["Player"]
-        if Player not in Server.Players or Player not in Pending:
+        if not Player.IsOnline or Player not in Pending:
             return
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            return
+        id = Player.SteamID
         callback = List["Call"]
         loc = List["house"]
         DataStore.Add("homesystemautoban", id, "using")
         # Join Callback, this should handle the delay
         if callback == 1:
-            Player.SafeTeleportTo(loc)
-            Player.MessageFrom(self.homesystemname, "You have been teleported to your home")
+            Player.TeleportTo(loc, True)
+            Player.MessageFrom(self.homesystemname, "You have been teleported to your home again.")
+            Pending.remove(Player)
         # Home Teleport Callback
         elif callback == 2:
             if self.movec == 1:
                 fr = self.Freezer(Player, 2)
                 if not fr:
                     return
-                Player.SafeTeleportTo(loc)
-                Pending.remove(Player)
+                Player.TeleportTo(loc, False)
                 Player.MessageFrom(self.homesystemname, "You have been teleported home.")
                 DataStore.Add("homey", id, loc.y)
-                # self.addJob(Player, 2, 4, None)
+                if self.doubleteleport:
+                    self.addJob(Player, 3, 1, loc)
             else:
-                Player.SafeTeleportTo(loc)
+                Player.TeleportTo(loc)
+                if self.doubleteleport:
+                    self.addJob(Player, 3, 1, loc)
                 Player.MessageFrom(self.homesystemname, "You have been teleported home.")
         # Random Teleportation Delay
         elif callback == 3:
-            Player.SafeTeleportTo(loc)
+            Player.TeleportTo(loc)
             Player.MessageFrom(self.homesystemname, "You have been teleported to a random location!")
             Player.MessageFrom(self.homesystemname, "Type /setdefaulthome HOMENAME")
             Player.MessageFrom(self.homesystemname, "To spawn at your home!")
@@ -324,10 +331,11 @@ class HomeSystem:
                 home = Util.CreateVector(float(tp[0]), float(tp[1]), float(tp[2]))
                 Player.TeleportTo(home)
                 Server.BroadcastFrom(self.homesystemname, Player.Name + red + " tried to fall through a house.")
-                Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " + Player.IP + " - " + str(Player.Location))
+                Plugin.Log("DizzyHackBypass", Player.Name + " - " + Player.SteamID + " - " + Player.IP + " - "
+                           + str(Player.Location))
                 DataStore.Remove("homey", id)
                 #  self.addJob(Player, 2, 6, None)
-                # Handles those players who joined after X seconds. Dizzy hack bypasser.
+        # Handles those players who joined after X seconds. Dizzy hack bypasser.
         elif callback == 5:
             randomloc = int(config.GetSetting("Settings", "randomlocnumber"))
             DataStore.Add("home_joincooldown", id, 7)
@@ -369,7 +377,8 @@ class HomeSystem:
                             vector = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                             dist = Util.GetVectorsDistance(vector, plloc)
                             if dist <= maxdist and not self.FriendOf(idof, id):
-                                Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist) + "m!")
+                                Player.MessageFrom(self.homesystemname, "There is a home within: " + str(maxdist)
+                                                   + "m!")
                                 return False
         if checkwall == 1:
             objects = UnityEngine.Object.FindObjectsOfType(self.type)
@@ -437,7 +446,7 @@ class HomeSystem:
                 if calc >= cooldown or time == 7:
                     loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                     if tpdelay == 0:
-                        Player.SafeTeleportTo(loc)
+                        Player.TeleportTo(loc)
                         self.addJob(Player, 2, 2, loc)
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         Player.MessageFrom(self.homesystemname, "Teleported to home!")
@@ -445,7 +454,8 @@ class HomeSystem:
                         DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                         Pending.append(Player)
                         self.addJob(Player, tpdelay, 2, loc)
-                        Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay) + " seconds")
+                        Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay)
+                                           + " seconds")
                         movec = int(config.GetSetting("Settings", "movecheck"))
                         dmg = int(config.GetSetting("Settings", "checkdamage"))
                         if movec == 1:
@@ -485,7 +495,8 @@ class HomeSystem:
                 s = self.Check(Player, plloc)
                 if not s:
                     return
-                self.SaveHome(Player, home, plloc)
+                vec = Util.CreateVector(float(plloc.x), float(plloc.y) + 5.0, float(plloc.z))
+                self.SaveHome(Player, home, vec)
             else:
                 DataStore.Add("HomeHit", id, home)
                 Player.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
@@ -661,7 +672,7 @@ class HomeSystem:
                     DataStore.Add("home_cooldown", id, System.Environment.TickCount)
                     home = self.HomeOf(Player, check)
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
-                    Player.SafeTeleportTo(home)
+                    Player.TeleportTo(home)
                     if self.antiroof == 1:
                         DataStore.Add("homey", id, float(home[1]))
                         self.addJob(Player, 2, 4, home)
@@ -678,12 +689,15 @@ class HomeSystem:
                 if "Ceiling" in HurtEvent.Entity.Name or "Foundation" in HurtEvent.Entity.Name:
                     if self.FriendOf(HurtEvent.Entity.OwnerID, id):
                         DataStore.Remove("HomeHit", id)
-                        vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y + 3), float(HurtEvent.Entity.Z))
+                        vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y) + 5.0,
+                                                float(HurtEvent.Entity.Z))
                         self.SaveHome(HurtEvent.Attacker, name, vec)
                     else:
-                        HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "You are not whitelisted for this foundation!")
+                        HurtEvent.Attacker.MessageFrom(self.homesystemname, red
+                                                       + "You are not whitelisted for this foundation!")
                 else:
-                    HurtEvent.Attacker.MessageFrom(self.homesystemname, red + "Hit a foundation/ceiling to save your home!")
+                    HurtEvent.Attacker.MessageFrom(self.homesystemname, red
+                                                   + "Hit a foundation/ceiling to save your home!")
 
     def On_PlayerConnected(self, Player):
         id = Player.SteamID
@@ -701,7 +715,8 @@ class HomeSystem:
             if System.Environment.TickCount <= jtime + self.cooldown * 1000:
                 calc2 = self.cooldown * 1000
                 calc2 = round((calc2 - calc) / 1000 - self.cooldown, 2)
-                Player.MessageFrom(self.homesystemname, red + str(self.cooldown) + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
+                Player.MessageFrom(self.homesystemname, red + str(self.cooldown)
+                                   + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
                 Player.Disconnect()
                 return
             elif System.Environment.TickCount > jtime + (self.cooldown * 1000):
