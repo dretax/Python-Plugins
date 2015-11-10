@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -13,9 +13,10 @@ green = "[color #009900]"
 purple = "[color #6600CC]"
 white = "[color #FFFFFF]"
 
+
 class iConomy:
 
-    #Plugin Settings
+    # Plugin Settings
     __MoneyMark__ = None
     __DefaultMoney__ = None
     __Sys__ = None
@@ -23,7 +24,7 @@ class iConomy:
     __PlayerKills__ = None
     __Buy__ = None
     __Sell__ = None
-    #Player Settings!
+    # Player Settings!
     __MoneyMode__ = None
     __KillPortion__ = None
     __KillPortion2__ = None
@@ -32,7 +33,7 @@ class iConomy:
 
     def On_PluginInit(self):
         ini = self.iConomy()
-        #Plugin Settings
+        # Plugin Settings
         self.__MoneyMark__ = ini.GetSetting("Settings", "MoneyMark")
         self.__DefaultMoney__ = float(ini.GetSetting("Settings", "DefaultMoney"))
         self.__Sys__ = ini.GetSetting("Settings", "Sysname")
@@ -40,7 +41,7 @@ class iConomy:
         self.__Sell__ = self.bool(ini.GetSetting("Settings", "Sell"))
         self.__AnimalKills__ = self.bool(ini.GetSetting("Settings", "AnimalKills"))
         self.__PlayerKills__ = self.bool(ini.GetSetting("Settings", "PlayerKills"))
-        #Player Settings!
+        # Player Settings!
         self.__MoneyMode__ = int(ini.GetSetting("PlayerKillSettings", "PercentageOrExtra"))
         self.__KillPortion__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion"))
         self.__KillPortion2__ = float(ini.GetSetting("PlayerKillSettings", "KillPortion2"))
@@ -58,6 +59,9 @@ class iConomy:
         DataStore.Add("iConomy", "PlayerKills", str(self.__PlayerKills__))
         DataStore.Add("iConomy", "Sell", str(self.__Sell__))
         DataStore.Add("iConomy", "Buy", str(self.__Buy__))
+
+    def On_ServerSaved(self):
+        DataStore.Save()
 
     def bool(self, s):
         if s.lower() == 'true':
@@ -142,13 +146,6 @@ class iConomy:
             ini = Plugin.CreateIni("ShopData")
             ini.Save()
         return Plugin.GetIni("ShopData")
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
 
     """
         Economy Methods
@@ -441,51 +438,56 @@ class iConomy:
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
             if not self.__PlayerKills__:
                 return
-            victim = str(DeathEvent.Victim.Name)
-            id = self.TrytoGrabID(DeathEvent.Attacker)
-            vid = self.TrytoGrabID(DeathEvent.Victim)
-            if id is None:
-                return
-            if long(id) == long(vid):
-                return
-            s = self.HandleMoney(id, vid)
-            s = s.split(':')
-            DeathEvent.Attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
-            if float(s[1]) == 0.0:
-                victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
-                return
-            DeathEvent.Victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
+            if DeathEvent.VictimIsPlayer and DeathEvent.AttackerIsPlayer:
+                victim = str(DeathEvent.Victim.Name)
+                id = DeathEvent.Attacker.SteamID
+                vid = DeathEvent.Victim.SteamID
+                if id is None:
+                    return
+                if long(id) == long(vid):
+                    return
+                s = self.HandleMoney(id, vid)
+                s = s.split(':')
+                DeathEvent.Attacker.MessageFrom(self.__Sys__, "You found " + str(s[0]) + self.__MoneyMark__)
+                if float(s[1]) == 0.0:
+                    victim.MessageFrom(self.__Sys__, "You lost all the money you had.")
+                    return
+                DeathEvent.Victim.MessageFrom(self.__Sys__, "You lost " + str(s[1]) + self.__MoneyMark__)
 
     def On_NPCKilled(self, DeathEvent):
         if DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            aid = self.TrytoGrabID(DeathEvent.Attacker)
-            if aid is None:
-                return
-            if not self.__AnimalKills__:
-                return
-            name = DeathEvent.Victim.Name.lower()
-            #NPC Settings
-            ini = self.iConomy()
-            if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
-                return
-            NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
-            if int(NMoneyMode) == 0:
-                return
-            NKillPortion = float(ini.GetSetting(name + "KillSettings", "KillPortion"))
-            NKillPortion2 = float(ini.GetSetting(name + "KillSettings", "KillPortion2"))
-            Aid = round(float(DataStore.Get("iConomy", aid)), 2)
-            if int(NMoneyMode) == 1:
-                n = None
-                c = round(Aid * NKillPortion, 2)
-                if Aid == 0.0:
-                    n = 20.0
-                    c = round(n * NKillPortion, 2)
-                DataStore.Add("iConomy", aid, c)
-                if n is not None:
-                   DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
+            if DeathEvent.AttackerIsPlayer:
+                aid = DeathEvent.Attacker.SteamID
+                if aid is None:
+                    return
+                if not self.__AnimalKills__:
+                    return
+                name = DeathEvent.Victim.Name.lower()
+                # NPC Settings
+                ini = self.iConomy()
+                if ini.GetSetting(name + "KillSettings", "PercentageOrExtra") is None:
+                    return
+                NMoneyMode = ini.GetSetting(name + "KillSettings", "PercentageOrExtra")
+                if int(NMoneyMode) == 0:
+                    return
+                NKillPortion = float(ini.GetSetting(name + "KillSettings", "KillPortion"))
+                NKillPortion2 = float(ini.GetSetting(name + "KillSettings", "KillPortion2"))
+                Aid = round(float(DataStore.Get("iConomy", aid)), 2)
+                if int(NMoneyMode) == 1:
+                    n = None
+                    c = round(Aid * NKillPortion, 2)
+                    if Aid == 0.0:
+                        n = 20.0
+                        c = round(n * NKillPortion, 2)
+                    DataStore.Add("iConomy", aid, c)
+                    if n is not None:
+                       DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) +
+                                                       self.__MoneyMark__)
+                    else:
+                        DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) +
+                                                        self.__MoneyMark__)
                 else:
-                    DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(c - Aid) + self.__MoneyMark__)
-            else:
-                c = Aid + NKillPortion2
-                DataStore.Add("iConomy", aid, c)
-                DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(NKillPortion2) + self.__MoneyMark__)
+                    c = Aid + NKillPortion2
+                    DataStore.Add("iConomy", aid, c)
+                    DeathEvent.Attacker.MessageFrom(self.__Sys__, "You received: " + str(NKillPortion2) +
+                                                    self.__MoneyMark__)
