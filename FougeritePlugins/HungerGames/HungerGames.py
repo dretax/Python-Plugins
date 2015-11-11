@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -83,6 +83,20 @@ RadStart = 310  # Map size is marked at 400, I recommend the half
 TopListC = 5  # Shouldn't be more than 10
 # Enable Shop?
 EShop = True
+# Players should start bleeding too from X radiation? 0 to disable
+BleedRad = 150
+# Chance to bleed? 0 to disable
+BleedChance = 100
+# Deal random damage from X radiation? 0 to disable
+DamageRad = 300
+# Damage Chance?
+DamageChance = 20
+# Damage amount randomized from 1 to x?
+DamageRandom = 10
+# Break player's legs after X rad?
+BreakAfterXRad = True
+# Break at X rad
+BreakAtXRad = 600
 
 PlayerSlots = {
 
@@ -111,6 +125,8 @@ Awaiting = []
 ShopD = {
 
 }
+
+BeingRadLegd = []
 
 
 class HungerGames:
@@ -324,13 +340,6 @@ class HungerGames:
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
         return str.split(',')
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
 
     def recordInventory(self, Player):
         Inventory = []
@@ -929,9 +938,11 @@ class HungerGames:
                 self.DecayMaxHP()
             except:
                 pass
+            Server.BroadcastFrom(sysname, green + "Prepairing..")
             ini = self.HungerGames()
             enum2 = ini.EnumSection("ChestLocations")
             enum3 = ini.EnumSection("WallLocations")
+            Server.BroadcastFrom(sysname, green + "Loaded 25%")
             for chest in enum2:
                 l = ini.GetSetting("ChestLocations", chest).split(',')
                 name = chest.split('-')
@@ -967,29 +978,40 @@ class HungerGames:
                         itemr = random.randint(1, self.item)
                     countr = 1
                     gitem = ini2.GetSetting("RandomItems", str(itemr))
-                    if "ammo" in gitem.lower() or "shell" in gitem.lower():
-                        countr = random.randint(1, self.count)
-                    elif "medkit" in gitem.lower():
-                        countr = random.randint(1, self.count2)
-                    elif "bandage" in gitem.lower():
-                        countr = random.randint(1, self.count2)
-                    elif "grenade" in gitem.lower():
-                        countr = random.randint(1, self.count3)
-                    elif "arrow" in gitem.lower():
-                        countr = random.randint(1, self.count4)
-                    elif "flare" in gitem.lower():
-                        countr = random.randint(1, self.count6)
+                    glower = gitem.lower()
+                    if "ammo" in glower or "shell" in glower:
+                        if self.count >= 1:
+                            countr = random.randint(1, self.count)
+                    elif "medkit" in glower:
+                        if self.count2 >= 1:
+                            countr = random.randint(1, self.count2)
+                    elif "bandage" in glower:
+                        if self.count2 >= 1:
+                            countr = random.randint(1, self.count2)
+                    elif "grenade" in glower:
+                        if self.count3 >= 1:
+                            countr = random.randint(1, self.count3)
+                    elif "arrow" in glower:
+                        if self.count4 >= 1:
+                            countr = random.randint(1, self.count4)
+                    elif "flare" in glower:
+                        if self.count6 >= 1:
+                            countr = random.randint(1, self.count6)
                     try:
                         inv.AddItemTo(gitem, slot, countr)
                     except:
                         pass
                 if self.sitem > 0:
                     countr = random.randint(1, self.count5)
+                    if "stash" in chest.Name.lower():
+                        countr = random.randint(1, 3)
                     for i in xrange(0, countr):
-                        if "large" not in chest.Name.lower():
-                            slot = random.randint(1, 11)
-                        else:
+                        if "large" in chest.Name.lower():
                             slot = random.randint(1, 35)
+                        elif "stash" in chest.Name.lower():
+                            slot = random.randint(1, 3)
+                        else:
+                            slot = random.randint(1, 11)
                         whichsight = random.randint(1, self.sitem)
                         gitem = ini2.GetSetting("SItems", str(whichsight))
                         try:
@@ -1033,7 +1055,21 @@ class HungerGames:
         Server.BroadcastFrom(sysname, red + "if you are out of range! Current range: "
                              + str(self.CurrentRadRange) + "m!")
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
+        Plugin.CreateTimer("Beware", 10000).Start()
         Plugin.CreateTimer("RadiationRange", RadDC * 60000).Start()
+
+    def BewareCallback(self, timer):
+        timer.Kill()
+        if BleedChance != 0:
+            Server.BroadcastFrom(sysname, yellow + "You have a chance to start bleeding if your rad is bigger than: "
+                                 + str(BleedRad))
+        if DamageChance != 0:
+            Server.BroadcastFrom(sysname, yellow
+                                 + "You have a chance to receive random damage if your rad is bigger than: "
+                                 + str(DamageRad))
+        if BreakAfterXRad:
+            Server.BroadcastFrom(sysname, yellow + "You won't be able to run after " + str(BreakAtXRad) + " rad")
+        Server.BroadcastFrom(sysname, teal + "Go to the middle of the map to avoid radiation!")
 
     def RadiationRangeCallback(self, timer):
         timer.Kill()
@@ -1052,13 +1088,29 @@ class HungerGames:
         for x in self.Players:
             if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
                 x.AddRads(RadR)
-                try:
-                    m = x.PlayerClient.controllable.GetComponent(self.Metabolism)
-                    m.Vomit()
-                except:
-                    pass
+                if BleedChance != 0:
+                    if x.RadLevel >= BleedRad:
+                        r = random.randint(0, 100)
+                        if r <= BleedChance:
+                            x.HumanBodyTakeDamage.SetBleedingLevel(80)
+                if DamageChance != 0:
+                    if x.RadLevel >= DamageRad:
+                        dmg = 1
+                        if DamageChance > 1:
+                            r = random.randint(0, 100)
+                            if r <= DamageChance:
+                                dmg = random.randint(1, DamageRandom)
+                        x.Damage(dmg)
+                if BreakAfterXRad:
+                    if x.RadLevel >= BreakAtXRad:
+                        x.FallDamage.SetLegInjury(1)
+                        if x.UID not in BeingRadLegd:
+                            BeingRadLegd.append(x.UID)
             else:
                 x.AddAntiRad(RadAnti)
+                if x.UID in BeingRadLegd:
+                    BeingRadLegd.remove(x.UID)
+                    x.FallDamage.SetLegInjury(0)
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
@@ -1137,10 +1189,16 @@ class HungerGames:
         Server.BroadcastFrom(sysname, pink + "---Stats---")
         try:
             Server.BroadcastFrom(sysname, "1st: " + PointedPeople[1].Name)
+        except:
+            Server.BroadcastFrom(sysname, red + "Failed to display stats of the 1st player...")
+        try:
             Server.BroadcastFrom(sysname, "2nd: " + PointedPeople[2].Name)
+        except:
+            Server.BroadcastFrom(sysname, red + "Failed to display stats of the 2nd player...")
+        try:
             Server.BroadcastFrom(sysname, "3rd: " + PointedPeople[3].Name)
         except:
-            Server.BroadcastFrom(sysname, "Failed to display stats...")
+            Server.BroadcastFrom(sysname, red + "Failed to display stats of the 3rd player...")
         arr = []
         if self.ItemRewards:
             max = random.randint(self.MinRewards, self.MaxRewards)
@@ -1192,12 +1250,15 @@ class HungerGames:
                 for cmd in self.RestrictedCommands:
                     DeathEvent.Victim.UnRestrictCommand(cmd)
                 leng = len(self.Players)
-                if leng < 3:
-                    if leng == 2:
-                        PointedPeople[3] = DeathEvent.Victim
-                    elif leng == 1:
-                        PointedPeople[2] = DeathEvent.Victim
-                        PointedPeople[1] = self.Players[0]
+                try:
+                    if leng <= 2:
+                        if leng == 2:
+                            PointedPeople[3] = DeathEvent.Victim
+                        elif leng == 1:
+                            PointedPeople[2] = DeathEvent.Victim
+                            PointedPeople[1] = self.Players[0]
+                except:
+                    pass
                 if leng > 1:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. "
                                          + green + str(leng) + red + " Players are still alive.")
@@ -1255,13 +1316,16 @@ class HungerGames:
         Awaiting.remove(Player.UID)
         for cmd in self.RestrictedCommands:
             Player.UnRestrictCommand(cmd)
-        if leng < 3:
-            if leng == 2:
-                PointedPeople[3] = Player
-            elif leng == 1:
-                PointedPeople[2] = Player
-                PointedPeople[1] = self.Players[0]
-        if len(self.Players) == 1:
+        try:
+            if leng <= 2:
+                if leng == 2:
+                    PointedPeople[3] = Player
+                elif leng == 1:
+                    PointedPeople[2] = Player
+                    PointedPeople[1] = self.Players[0]
+        except:
+            pass
+        if leng == 1:
             self.EndGame(self.Players[0])
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
@@ -1301,9 +1365,9 @@ class HungerGames:
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-            id = self.TrytoGrabID(HurtEvent.Attacker)
-            if id is None:
+            if not HurtEvent.AttackerIsPlayer:
                 return
+            id = HurtEvent.Attacker.SteamID
             if HurtEvent.Attacker in self.Players:
                 HurtEvent.Entity.Health = HurtEvent.Entity.MaxHealth
                 HurtEvent.DamageAmount = float(0)
