@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.3'
+__version__ = '1.3.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -439,7 +439,7 @@ class iConomy:
             if not self.__PlayerKills__:
                 return
             if DeathEvent.VictimIsPlayer and DeathEvent.AttackerIsPlayer:
-                victim = str(DeathEvent.Victim.Name)
+                victim = DeathEvent.Victim
                 id = DeathEvent.Attacker.SteamID
                 vid = DeathEvent.Victim.SteamID
                 if id is None:
