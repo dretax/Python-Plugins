@@ -16,6 +16,7 @@ path = Util.GetRootFolder()
     Storing Kit Data in a class.
 """
 
+
 class GivenKit:
 
     AdminCanUse = False
@@ -33,6 +34,7 @@ KitStore = {
 
 }
 
+
 class Kits:
 
     def KitsConfig(self):
@@ -40,7 +42,7 @@ class Kits:
             loc = Plugin.CreateIni("KitsConfig")
             loc.AddSetting("AdminKits", "AvailableKits", "starter, admin")
             loc.AddSetting("PlayerKits", "AvailableKits", "starter:120000")
-            loc.AddSetting("PlayerKits", "DefaultKits", "starter:True,AdminKit:False")
+            # loc.AddSetting("PlayerKits", "DefaultKits", "starter:True,AdminKit:False")
             loc.Save()
         return Plugin.GetIni("KitsConfig")
 
@@ -64,7 +66,7 @@ class Kits:
     def GetKitData(self, name):
         if name in KitStore.keys():
             return KitStore[name]
-        kit = Plugin.GetIni(path + "\\Save\\PyPlugins\\LoadOuts\\" + name)
+        kit = Plugin.GetIni(path + "\\Save\\PyPlugins\\Kits\\\LoadOuts\\" + name)
         if kit is not None:
             Admin = self.bool(kit.GetSetting("Kit", "AdminCanUse"))
             Moderator = self.bool(kit.GetSetting("Kit", "ModeratorCanUse"))
@@ -79,7 +81,6 @@ class Kits:
             return c
         return None
 
-
     def On_Command(self, Player, cmd, args):
         if cmd == "kit" or cmd == "kits":
             ini = self.KitsConfig()
@@ -87,17 +88,19 @@ class Kits:
                 akits = ini.GetSetting("AdminKits", "AvailableKits")
                 if len(args) == 0:
                     Player.MessageFrom("Kits", "Available Kits: " + akits)
-                    Player.MessageFrom("Kits", "Commands: /setdefaultkit kitname | /givekit playername")
+                    Player.MessageFrom("Kits", "Commands: /kit kitname")
                     return
                 data = self.GetKitData(args[0])
                 if data is not None:
                     if (Player.Admin and data.AdminCanUse) or (Player.Moderator and data.ModeratorCanUse):
                         inv = Player.Inventory
-                        # todo: finish adding
+                        for x in data.ItemsDict.keys():
+                            inv.AddItem(x, data.ItemsDict[x])
+                        Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
                     else:
-                       Player.Message("You can't use this!")
+                        Player.MessageFrom("Kits", "You can't use this!")
                 else:
-                    Player.Message("Kit " + args[0] + " not found!")
+                    Player.MessageFrom("Kits", "Kit " + args[0] + " not found!")
             else:
                 pkits = ini.GetSetting("PlayerKits", "AvailableKits")
                 array = pkits.split(',')
@@ -113,10 +116,10 @@ class Kits:
                     return
                 data = self.GetKitData(args[0])
                 if data is None:
-                    Player.Message("Kit " + str(args[0]) + " not found!")
+                    Player.MessageFrom("Kits", "Kit " + str(args[0]) + " not found!")
                     return
                 if not data.NormalCanUse:
-                    Player.Message("You can't get this!")
+                    Player.MessageFrom("Kits", "You can't get this!")
                     return
                 get = self.GetStringFromArray(array, str(args[0]))
                 get = re.sub('[[\]\']+', '', get).split(':')
@@ -132,13 +135,17 @@ class Kits:
                     calc = systick - time
                     if calc >= cooldown or time == 7:
                         inv = Player.Inventory
-                        # todo: finish adding
+                        for x in data.ItemsDict.keys():
+                            inv.AddItem(x, data.ItemsDict[x])
+                        Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
                         DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, System.Environment.TickCount)
                     else:
-                        Player.Message("You have to wait before using this again!")
+                        Player.MessageFrom("Kits", "You have to wait before using this again!")
                         done = round((calc / 1000) / 60, 2)
                         done2 = round((cooldown / 1000) / 60, 2)
-                        Player.Message("Time Remaining: " + str(done) + "/" + str(done2) + " minutes")
+                        Player.MessageFrom("Kits", "Time Remaining: " + str(done) + "/" + str(done2) + " minutes")
                 else:
                     inv = Player.Inventory
-                    # todo: finish adding
+                    for x in data.ItemsDict.keys():
+                        inv.AddItem(x, data.ItemsDict[x])
+                    Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
