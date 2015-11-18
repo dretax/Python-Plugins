@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.1'
+__version__ = '1.5.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -1038,7 +1038,10 @@ class HungerGames:
         Server.BroadcastFrom(sysname, blue + "Shoot to kill! Or swing to kill?")
         self.HasStarted = True
         for wall in walls:
-            wall.Destroy()
+            try:
+                wall.Destroy()
+            except:
+                pass
         del walls[:]
 
     def FreezerCallback(self, timer):
@@ -1086,31 +1089,36 @@ class HungerGames:
         if not self.HasStarted:
             return
         for x in self.Players:
-            if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
-                x.AddRads(RadR)
-                if BleedChance != 0:
-                    if x.RadLevel >= BleedRad:
-                        r = random.randint(0, 100)
-                        if r <= BleedChance:
-                            x.HumanBodyTakeDamage.SetBleedingLevel(80)
-                if DamageChance != 0:
-                    if x.RadLevel >= DamageRad:
-                        dmg = 1
-                        if DamageChance > 1:
+            if not x.IsOnline:
+                continue
+            try:
+                if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
+                    x.AddRads(RadR)
+                    if BleedChance != 0:
+                        if x.RadLevel >= BleedRad:
                             r = random.randint(0, 100)
-                            if r <= DamageChance:
-                                dmg = random.randint(1, DamageRandom)
-                        x.Damage(dmg)
-                if BreakAfterXRad:
-                    if x.RadLevel >= BreakAtXRad:
-                        x.FallDamage.SetLegInjury(1)
-                        if x.UID not in BeingRadLegd:
-                            BeingRadLegd.append(x.UID)
-            else:
-                x.AddAntiRad(RadAnti)
-                if x.UID in BeingRadLegd:
-                    BeingRadLegd.remove(x.UID)
-                    x.FallDamage.SetLegInjury(0)
+                            if r <= BleedChance:
+                                x.HumanBodyTakeDmg.SetBleedingLevel(80)
+                    if DamageChance != 0:
+                        if x.RadLevel >= DamageRad:
+                            dmg = 1
+                            if DamageChance > 1:
+                                r = random.randint(0, 100)
+                                if r <= DamageChance:
+                                    dmg = random.randint(1, DamageRandom)
+                            x.Damage(dmg)
+                    if BreakAfterXRad:
+                        if x.RadLevel >= BreakAtXRad:
+                            x.FallDamage.SetLegInjury(1)
+                            if x.UID not in BeingRadLegd:
+                                BeingRadLegd.append(x.UID)
+                else:
+                    x.AddAntiRad(RadAnti)
+                    if x.UID in BeingRadLegd:
+                        BeingRadLegd.remove(x.UID)
+                        x.FallDamage.SetLegInjury(0)
+            except Exception as e:
+                Plugin.Log("SendThisToDreTaX", "Error: " + str(e))
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
@@ -1267,7 +1275,9 @@ class HungerGames:
                         Plugin.CreateTimer("RadiationActivate", 60000 * RadM).Start()
                 else:
                     Server.BroadcastFrom(sysname, green + DeathEvent.Victim.Name + red + " has been killed. ")
-                    self.EndGame(self.Players[0])
+                    for x in self.Players:
+                        self.EndGame(x)
+                        break
                 if DeathEvent.Attacker is not None:
                     if DeathEvent.AttackerIsPlayer:
                         kills = self.Kills()
