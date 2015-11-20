@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 
@@ -13,6 +13,7 @@ import Fougerite
 sysname = "InventoryViewer"
 red = "[color #FF0000]"
 green = "[color #009900]"
+
 
 class InvLookup:
 
@@ -55,23 +56,26 @@ class InvLookup:
 
     def recordUserInventory(self, Player, userString):
         user = Server.FindPlayer(userString)
-        Inventory = []
-        id = user.SteamID
-        for Item in user.Inventory.Items:
-            if Item and Item.Name:
-                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
-                Inventory.append(myitem)
-        for Item in user.Inventory.ArmorItems:
-            if Item and Item.Name:
-                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
-                Inventory.append(myitem)
-        for Item in user.Inventory.BarItems:
-            if Item and Item.Name:
-                myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
-                Inventory.append(myitem)
+        if user is None:
+            Player.MessageFrom(sysname, userString + " is not online")
+        else:
+            Inventory = []
+            id = user.SteamID
+            for Item in user.Inventory.Items:
+                if Item and Item.Name:
+                    myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                    Inventory.append(myitem)
+            for Item in user.Inventory.ArmorItems:
+                if Item and Item.Name:
+                    myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                    Inventory.append(myitem)
+            for Item in user.Inventory.BarItems:
+                if Item and Item.Name:
+                    myitem = {'name': Item.Name, 'quantity': Item.Quantity, 'slot': Item.Slot}
+                    Inventory.append(myitem)
 
-        DataStore.Add("pinv", id, Inventory)
-        DataStore.Save()
+            DataStore.Add("pinv", id, Inventory)
+            DataStore.Save()
 
     def returnInventory(self, Player):
         id = Player.SteamID
