@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7'
+__version__ = '1.7.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -53,7 +53,7 @@ class DestroySystem:
         EntityList['MetalRamp'] = "Metal Ramp"
         EntityList['MetalWindowFrame'] = "Metal Window"
         EntityList['MetalDoor'] = "Metal Door"
-        EntityList['MetalBarsWindow'] = "Metal Window Bars"
+        # EntityList['MetalBarsWindow'] = "Metal Window Bars"
         EntityList['SmallStash'] = "Small Stash"
         EntityList['Campfire'] = "Camp fire"
         EntityList['Furnace'] = "Furnace"
@@ -108,7 +108,8 @@ class DestroySystem:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom("DestroySystem", "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom("DestroySystem", "Found [color#FF0000]" + str(count)
+                               + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def IsEligible(self, HurtEvent):
@@ -228,11 +229,13 @@ class DestroySystem:
                     if self.IsEligible(HurtEvent):
                         HurtEvent.Entity.Destroy()
                         if self.giveback == 1:
-                            HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
+                            if EntityName in EntityList.keys():
+                                HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
                 elif DataStore.ContainsKey("DestroySystem2", id):
                     structs = HurtEvent.Entity.GetLinkedStructs()
                     for ent in structs:
                         if self.giveback == 1:
-                            HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
+                            if EntityName in EntityList.keys():
+                                HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
                         ent.Destroy()
                     HurtEvent.Entity.Destroy()
