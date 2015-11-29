@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2b'
+__version__ = '1.3'
 
 import clr
 
@@ -30,13 +30,6 @@ class AdminTools:
         except:
             return None
 
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
-
     def IsAnimal(self, Entity):
         if "NPC" in str(Entity):
             return True
@@ -51,11 +44,11 @@ class AdminTools:
     def On_PlayerDisconnected(self, Player):
         name = Player.Name
         id = Player.SteamID
-        location = str(Player.Location)
+        location = str(Player.DisconnectLocation)
         Plugin.Log("LastQuit", str(name) + "|" + id + "|" + location)
 
     def On_ItemRemoved(self, InventoryModEvent):
-        if InventoryModEvent.Player is not None:
+        if InventoryModEvent.Player is not None and InventoryModEvent.InventoryItem is not None:
             en = InventoryModEvent.Inventory.name
             if "woodbox" in en.lower() or "stash" in en.lower():
                 n = InventoryModEvent.Player.Name
@@ -129,9 +122,9 @@ class AdminTools:
 
     def On_EntityHurt(self, HurtEvent):
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-            id = self.TrytoGrabID(HurtEvent.Attacker)
-            if id is None:
+            if not HurtEvent.AttackerIsPlayer:
                 return
+            id = HurtEvent.Attacker.SteamID
             OwnerID = HurtEvent.Entity.OwnerID
             if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
                 gun = HurtEvent.WeaponName
