@@ -4,6 +4,9 @@ __version__ = '1.0'
 import clr
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
+import System
+from System import *
+import math
 
 """
     Config Starts from here
@@ -19,6 +22,8 @@ MinPlayers = 15
 Mods = True
 # Whitelisted SteamIDs
 WLS = ["SteamIDHere", "SteamID2Here", "SteamID3Here"]
+# Cooldown time? 0 to disable | 300000 = 5 minutes
+Cooldown = 300000
 
 """
     End of Config
@@ -84,10 +89,12 @@ class Airdrops:
     }
 
     def On_PluginInit(self):
+        DataStore.Flush("AirdropCD")
         for x in self.d.keys():
             v = self.d[x].split(',')
             self.Vector2s[Util.CreateVector2(float(v[0]), float(v[1]))] = x
         self.d.clear()
+
         if TimedAirdrop:
             Plugin.CreateTimer("AirdropTimer", AirdropTime).Start()
 
@@ -102,7 +109,7 @@ class Airdrops:
 
     def On_Airdrop(self, Vector3):
         closest = float(999999999)
-        loc = Util.CreateVector2(Vector3.X, Vector3.Z)
+        loc = Util.CreateVector2(Vector3.x, Vector3.z)
         v = None
         for x in self.Vector2s.keys():
             dist = Util.GetVector2sDistance(loc, x)
@@ -119,9 +126,24 @@ class Airdrops:
                 if len(args) == 0:
                     Player.Message("Usage: /airdrop here/random")
                     return
-                if args[0] == "here":
-                    World.AirdropAtPlayer(Player)
-                    Player.Notice("\u2708", "Airdrop has been spawned!", 3)
-                elif args[0] == "random":
-                    World.Airdrop()
-                    Player.Notice("\u2708", "Airdrop has been spawned!", 3)
+                time = DataStore.Get("AirdropCD", "CD")
+                if time is None:
+                    DataStore.Add("AirdropCD", "CD", 0)
+                    time = 0
+                calc = System.Environment.TickCount - time
+                if calc < 0 or math.isnan(calc) or math.isnan(time):
+                    DataStore.Add("AirdropCD", "CD", 0)
+                    time = 0
+                if calc >= Cooldown or time == 0 or Cooldown == 0:
+                    if args[0] == "here":
+                        World.AirdropAtPlayer(Player)
+                        Player.Notice("\u2708", "Airdrop has been spawned!", 3)
+                        DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
+                    elif args[0] == "random":
+                        World.Airdrop()
+                        Player.Notice("\u2708", "Airdrop has been spawned!", 3)
+                        DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
+                else:
+                    done = round((calc / 1000) / 60, 2)
+                    done2 = round((Cooldown / 1000) / 60, 2)
+                    Player.Notice("\u2708", "Cooldown: " + str(done) + "/" + str(done2))
