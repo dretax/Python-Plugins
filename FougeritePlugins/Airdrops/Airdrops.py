@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -7,6 +7,15 @@ import Fougerite
 import System
 from System import *
 import math
+import sys
+
+path = Util.GetRootFolder()
+sys.path.append(path + "\\Save\\Lib\\")
+
+try:
+    import random
+except ImportError:
+    raise ImportError("Failed to import random!")
 
 """
     Config Starts from here
@@ -24,6 +33,8 @@ Mods = True
 WLS = ["SteamIDHere", "SteamID2Here", "SteamID3Here"]
 # Cooldown time? 0 to disable | 300000 = 5 minutes
 Cooldown = 300000
+# Chance for a drop? 0 to disable (1-100)
+Chance = 25
 
 """
     End of Config
@@ -101,7 +112,11 @@ class Airdrops:
     def AirdropTimerCallback(self, timer):
         timer.Kill()
         if len(Server.Players) >= MinPlayers:
-            World.Airdrop()
+            r = random.randint(1, 100)
+            if r <= Chance or Chance == 0:
+                World.Airdrop()
+            else:
+                Server.BroadcastFrom("Military", "We failed to drop the Airdrop at a location!")
         else:
             Server.BroadcastFrom("Military", "HQ needs atleast " + str(MinPlayers) + " soldiers on the ground!")
             Server.BroadcastFrom("Military", "We will check back in after " + str(AirdropTime / 60000) + " minutes!")
