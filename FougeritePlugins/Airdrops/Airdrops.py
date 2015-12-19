@@ -36,6 +36,16 @@ Cooldown = 300000
 # Chance for a drop? 0 to disable (1-100)
 Chance = 25
 
+#  Colors
+blue = "[color #0099FF]"
+red = "[color #FF0000]"
+pink = "[color #CC66FF]"
+teal = "[color #00FFFF]"
+green = "[color #009900]"
+purple = "[color #6600CC]"
+white = "[color #FFFFFF]"
+yellow = "[color #FFFF00]"
+
 """
     End of Config
 """
@@ -116,10 +126,12 @@ class Airdrops:
             if r <= Chance or Chance == 0:
                 World.Airdrop()
             else:
-                Server.BroadcastFrom("Military", "We failed to drop the Airdrop at a location!")
+                Server.BroadcastFrom("Military", red + "We failed to drop the Airdrop at a location!")
         else:
-            Server.BroadcastFrom("Military", "HQ needs atleast " + str(MinPlayers) + " soldiers on the ground!")
-            Server.BroadcastFrom("Military", "We will check back in after " + str(AirdropTime / 60000) + " minutes!")
+            Server.BroadcastFrom("Military", red + "HQ needs atleast " + white + str(MinPlayers) + red
+                                 + " soldiers on the ground!")
+            Server.BroadcastFrom("Military", red + "We will check back in after " + white + str(AirdropTime / 60000)
+                                 + red + " minutes!")
         Plugin.CreateTimer("AirdropTimer", AirdropTime).Start()
 
     def On_Airdrop(self, Vector3):
@@ -131,9 +143,9 @@ class Airdrops:
             if dist < closest:
                 v = x
                 closest = dist
-        Server.BroadcastFrom("Military", "==========================")
-        Server.BroadcastFrom("Military", "Airdrop is headed to: " + self.Vector2s[v])
-        Server.BroadcastFrom("Military", "==========================")
+        Server.BroadcastFrom("Military", green + "==========================")
+        Server.BroadcastFrom("Military", green + "Airdrop is headed to: " + teal + self.Vector2s[v])
+        Server.BroadcastFrom("Military", green + "==========================")
 
     def On_Command(self, Player, cmd, args):
         if cmd == "airdrop":
