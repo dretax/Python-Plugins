@@ -26,15 +26,17 @@ TimedAirdrop = True
 # Airdrop time, 1000 = 1 second | 1800000 = 30 minutes
 AirdropTime = 1800000
 # Minimum Players
-MinPlayers = 15
+MinPlayers = 20
 # Allow commands for mods?
 Mods = True
 # Whitelisted SteamIDs
 WLS = ["SteamIDHere", "SteamID2Here", "SteamID3Here"]
 # Cooldown time? 0 to disable | 300000 = 5 minutes
-Cooldown = 300000
+Cooldown = 1800000
 # Chance for a drop? 0 to disable (1-100)
-Chance = 25
+Chance = 47
+# Can Moderator call airdrop to his pos?
+ModCalltoPos = False
 
 #  Colors
 blue = "[color #0099FF]"
@@ -134,7 +136,7 @@ class Airdrops:
                                  + red + " minutes!")
         Plugin.CreateTimer("AirdropTimer", AirdropTime).Start()
 
-    def On_Airdrop(self, Vector3):
+    def CalcPos(self, Vector3):
         closest = float(999999999)
         loc = Util.CreateVector2(Vector3.x, Vector3.z)
         v = None
@@ -143,8 +145,16 @@ class Airdrops:
             if dist < closest:
                 v = x
                 closest = dist
+        if v not in self.Vector2s.keys():
+            pos = str(Vector3)
+        else:
+            pos = self.Vector2s[v]
+        return pos
+
+    def On_Airdrop(self, Vector3):
+        pos = self.CalcPos(Vector3)
         Server.BroadcastFrom("Military", green + "==========================")
-        Server.BroadcastFrom("Military", green + "Airdrop is headed to: " + teal + self.Vector2s[v])
+        Server.BroadcastFrom("Military", green + "Airdrop is headed to: " + teal + pos)
         Server.BroadcastFrom("Military", green + "==========================")
 
     def On_Command(self, Player, cmd, args):
@@ -163,14 +173,15 @@ class Airdrops:
                     time = 0
                 if calc >= Cooldown or time == 0 or Cooldown == 0:
                     if args[0] == "here":
-                        World.AirdropAtPlayer(Player)
-                        Player.Notice("\u2708", "Airdrop has been spawned!", 3)
-                        DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
+                        if Player.Admin or (Player.Moderator and ModCalltoPos):
+                            World.AirdropAtPlayer(Player)
+                            Player.Notice(u"\u2708", "Airdrop has been spawned!", 3)
+                            DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
                     elif args[0] == "random":
                         World.Airdrop()
-                        Player.Notice("\u2708", "Airdrop has been spawned!", 3)
+                        Player.Notice(u"\u2708", "Airdrop has been spawned!", 3)
                         DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
                 else:
                     done = round((calc / 1000) / 60, 2)
                     done2 = round((Cooldown / 1000) / 60, 2)
-                    Player.Notice("\u2708", "Cooldown: " + str(done) + "/" + str(done2))
+                    Player.Notice(u"\u2708", "Cooldown: " + str(done) + "/" + str(done2))
