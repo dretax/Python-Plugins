@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.2'
+__version__ = '1.5.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -127,6 +127,8 @@ ShopD = {
 }
 
 BeingRadLegd = []
+
+ParticipateItems = []
 
 
 class HungerGames:
@@ -1091,16 +1093,20 @@ class HungerGames:
         for x in self.Players:
             if not x.IsOnline:
                 continue
+            BodyTakeDMG = x.HumanBodyTakeDmg
+            FallDamage = x.FallDamage
+            rad = x.RadLevel
             try:
                 if Util.GetVectorsDistance(x.Location, self.Middle) >= self.CurrentRadRange:
                     x.AddRads(RadR)
                     if BleedChance != 0:
-                        if x.RadLevel >= BleedRad:
+                        if rad >= BleedRad:
                             r = random.randint(0, 100)
                             if r <= BleedChance:
-                                x.HumanBodyTakeDmg.SetBleedingLevel(80)
+                                if BodyTakeDMG is not None:
+                                    BodyTakeDMG.SetBleedingLevel(80)
                     if DamageChance != 0:
-                        if x.RadLevel >= DamageRad:
+                        if rad >= DamageRad:
                             dmg = 1
                             if DamageChance > 1:
                                 r = random.randint(0, 100)
@@ -1108,15 +1114,17 @@ class HungerGames:
                                     dmg = random.randint(1, DamageRandom)
                             x.Damage(dmg)
                     if BreakAfterXRad:
-                        if x.RadLevel >= BreakAtXRad:
-                            x.FallDamage.SetLegInjury(1)
+                        if rad >= BreakAtXRad:
+                            if FallDamage is not None:
+                                FallDamage.SetLegInjury(1)
                             if x.UID not in BeingRadLegd:
                                 BeingRadLegd.append(x.UID)
                 else:
                     x.AddAntiRad(RadAnti)
                     if x.UID in BeingRadLegd:
                         BeingRadLegd.remove(x.UID)
-                        x.FallDamage.SetLegInjury(0)
+                        if FallDamage is not None:
+                            FallDamage.SetLegInjury(0)
             except Exception as e:
                 Plugin.Log("SendThisToDreTaX", "Error: " + str(e))
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
