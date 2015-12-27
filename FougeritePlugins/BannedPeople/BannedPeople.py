@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.3'
+__version__ = '1.7.5'
 
 import clr
 
@@ -36,12 +36,14 @@ class BannedPeople:
     sysname = None
     bannedreason = None
     autoban = None
+    announce = None
 
     def On_PluginInit(self):
         ini = self.BannedPeopleConfig()
         self.sysname = ini.GetSetting("Main", "Name")
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
         self.autoban = int(ini.GetSetting("Main", "AutoDropBan"))
+        self.announce = int(ini.GetSetting("Main", "AnnounceBan"))
         range = self.BannedPeopleRange()
         enum = range.EnumSection("RangeBan")
         for ip in enum:
@@ -57,6 +59,7 @@ class BannedPeople:
             ini.AddSetting("Main", "Name", "[Equinox-BanSystem]")
             ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
             ini.AddSetting("Main", "AutoDropBan", "0")
+            ini.AddSetting("Main", "AnnounceBan", "0")
             ini.Save()
         return Plugin.GetIni("BannedPeopleConfig")
 
@@ -206,9 +209,15 @@ class BannedPeople:
 
                         checking = DataStore.Get("BanIp", Player.SteamID)
                         if checking == "true":
-                            Server.BanPlayer(playerr, "Unknown", self.bannedreason, Player)
+                            if self.announce == 1:
+                                Server.BanPlayer(playerr, "Unknown", self.bannedreason, Player, True)
+                            else:
+                                Server.BanPlayer(playerr, "Unknown", self.bannedreason, Player)
                         elif checking == "false" or checking is None:
-                            Server.BanPlayer(playerr, Player.Name, self.bannedreason, Player)
+                            if self.announce == 1:
+                                Server.BanPlayer(playerr, Player.Name, self.bannedreason, Player, True)
+                            else:
+                                Server.BanPlayer(playerr, Player.Name, self.bannedreason, Player)
                 else:
                     Player.MessageFrom(self.sysname, "Specify a Name!")
             else:
@@ -310,7 +319,10 @@ class BannedPeople:
                 if DataStore.Get("DropTester2", Player.SteamID) is not None:
                     pl = Server.Cache[DataStore.Get("DropTester2", Player.SteamID)]
                     DataStore.Remove("DropTester2", Player.SteamID)
-                    Server.BanPlayer(pl, Player.Name, "Drop Failed", Player)
+                    if self.announce == 1:
+                        Server.BanPlayer(pl, Player.Name, "Drop Failed", Player, True)
+                    else:
+                        Server.BanPlayer(pl, Player.Name, "Drop Failed", Player)
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
@@ -407,4 +419,7 @@ class BannedPeople:
             List["Executor"].Notice(player.Name + " failed the drop test.")
             if player.Admin or player.Moderator:
                 return
-            Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"])
+            if self.announce == 1:
+                Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"], True)
+            else:
+                Server.BanPlayer(player, List["Executor"].Name, "Drop Failed", List["Executor"])
