@@ -1,11 +1,20 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.1'
+__version__ = '1.7.3'
 
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import re
+GeoIPSupport = True
+try:
+    clr.AddReferenceByPartialName("GeoIP")
+    import GeoIP
+    from GeoIP import GeoIP as RealGeoIP
+    geo = RealGeoIP.Instance
+except:
+    Util.Log("[BannedPeople] GeoIP Support Disabled..")
+    GeoIPSupport = False
 
 """
     Class
@@ -26,16 +35,19 @@ class BannedPeople:
 
     sysname = None
     bannedreason = None
+    autoban = None
 
     def On_PluginInit(self):
         ini = self.BannedPeopleConfig()
         self.sysname = ini.GetSetting("Main", "Name")
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
+        self.autoban = int(ini.GetSetting("Main", "AutoDropBan"))
         range = self.BannedPeopleRange()
         enum = range.EnumSection("RangeBan")
         for ip in enum:
             rangeip.append(ip)
         DataStore.Flush("DropTester")
+        DataStore.Flush("DropTester2")
         Util.ConsoleLog("BannedPeople by " + __author__ + " Version: " + __version__ + " loaded.", False)
 
 
@@ -44,6 +56,7 @@ class BannedPeople:
             ini = Plugin.CreateIni("BannedPeopleConfig")
             ini.AddSetting("Main", "Name", "[Equinox-BanSystem]")
             ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
+            ini.AddSetting("Main", "AutoDropBan", "0")
             ini.Save()
         return Plugin.GetIni("BannedPeopleConfig")
 
@@ -54,6 +67,12 @@ class BannedPeople:
             ini.AddSetting("RangeBan", "199.188.", "1")
             ini.Save()
         return Plugin.GetIni("BannedPeople")
+
+    def TestBan(self):
+        if not Plugin.IniExists("TestBan"):
+            ini = Plugin.CreateIni("TestBan")
+            ini.Save()
+        return Plugin.GetIni("TestBan")
 
     """
         CheckV method based on Spock's method.
@@ -201,6 +220,27 @@ class BannedPeople:
                     Server.UnbanByName(name, Player.Name, Player)
                 else:
                     Player.MessageFrom(self.sysname, "Specify a Name!")
+        elif cmd == "testban":
+            if Player.Admin or Player.Moderator:
+                if len(args) > 0:
+                    if not GeoIPSupport:
+                        Player.MessageFrom(self.sysname, "This server doesn't support this feature.")
+                        return
+                    pl = self.CheckV(Player, args)
+                    if pl is None:
+                        return
+                    if pl.Admin or pl.Moderator:
+                        Player.MessageFrom(self.sysname, "You don't want to ban admins.")
+                        return
+                    ini = self.TestBan()
+                    IPData = geo.GetDataOfIP(pl.IP)
+                    pl.Disconnect()
+                    ini.AddSetting("TestBan", IPData.CityData.Latitude + "," + IPData.CityData.Longitude, pl.Name)
+                    ini.Save()
+                    Player.MessageFrom(self.sysname, red + "Test Banned " + pl.Name + "!")
+                    for x in Server.Players:
+                        if x.Admin or x.Moderator:
+                            x.MessageFrom(self.sysname, red + Player.Name + " test banned " + pl.Name + "!")
         elif cmd == "banhidename":
             if Player.Admin or Player.Moderator:
                 if not DataStore.ContainsKey("BanIp", Player.SteamID):
@@ -259,7 +299,18 @@ class BannedPeople:
                     List["Location"] = p.Location
                     p.TeleportTo(float(p.X), float(p.Y) + float(55), float(p.Z), False)
                     Player.MessageFrom(self.sysname, p.Name + " was dropped.")
-                    Plugin.CreateParallelTimer("hack", 3000, List).Start()
+                    if self.autoban == 1:
+                        Plugin.CreateParallelTimer("hack", 3000, List).Start()
+                    else:
+                        Player.MessageFrom(self.sysname, red + "===AutoBan is off===")
+                        Player.MessageFrom(self.sysname, red + "Type /dropb to issue a ban")
+                        DataStore.Add("DropTester2", Player.SteamID, p.UID)
+        elif cmd == "dropb":
+            if Player.Admin or Player.Moderator:
+                if DataStore.Get("DropTester2", Player.SteamID) is not None:
+                    pl = Server.Cache[DataStore.Get("DropTester2", Player.SteamID)]
+                    DataStore.Remove("DropTester2", Player.SteamID)
+                    Server.BanPlayer(pl, Player.Name, "Drop Failed", Player)
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
@@ -267,6 +318,18 @@ class BannedPeople:
         nip = split[0] + "." + split[1] + "."
         if nip in rangeip and (not Server.IsBannedID(Player.SteamID) or not Server.IsBannedIP(ip)):
             Server.BanPlayer(Player, "Console", "Range Ban Connection")
+        if not GeoIPSupport:
+            return
+        ini = self.TestBan()
+        IPData = geo.GetDataOfIP(ip)
+        if IPData is None:
+            return
+        s = IPData.CityData.Latitude + "," + IPData.CityData.Longitude
+        if ini.GetSetting("TestBan", s) is not None:
+            if not Server.IsBannedID(Player.SteamID) or not Server.IsBannedIP(ip):
+                Server.BanPlayer(Player, "Console", "You got rekt.")
+            else:
+                Player.Disconnect()
 
     def On_PlayerDisconnected(self, Player):
         if DataStore.ContainsKey("DropTester", Player.SteamID):
@@ -278,7 +341,7 @@ class BannedPeople:
         if DataStore.ContainsKey("DropTester", Player.SteamID):
             l = self.Replace(DataStore.Get("DropTester", Player.SteamID))
             DataStore.Remove("DropTester", Player.SteamID)
-            Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]))
+            Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
             # self.returnInventory(Player)
             Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
 
