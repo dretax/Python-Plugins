@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.5'
+__version__ = '1.7.6'
 
 import clr
 
@@ -27,7 +27,6 @@ droped = []
 
 
 class BannedPeople:
-
 
     """
         Methods
@@ -311,6 +310,9 @@ class BannedPeople:
                     if self.autoban == 1:
                         Plugin.CreateParallelTimer("hack", 3000, List).Start()
                     else:
+                        if p.Admin or p.Moderator:
+                            Player.MessageFrom(self.sysname, red + p.Name + " is an admin.")
+                            return
                         Player.MessageFrom(self.sysname, red + "===AutoBan is off===")
                         Player.MessageFrom(self.sysname, red + "Type /dropb to issue a ban")
                         DataStore.Add("DropTester2", Player.SteamID, p.UID)
