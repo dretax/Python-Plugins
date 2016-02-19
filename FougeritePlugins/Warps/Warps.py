@@ -26,6 +26,12 @@ SysName = "Warps"
 AllowModsSetWarp = True
 AllowModsDeleteWarp = True
 
+EnableTeleportDelay = False
+TeleportDelay = 10
+
+# EAC will check if the player glitched at TP. This may not be Necessary
+AllowEACToCheckTeleport = True
+
 
 class Warps:
 
@@ -80,8 +86,8 @@ class Warps:
                 ini = self.Warps()
                 ini.AddSetting("Warps", args[0], str(Player.X) + "," + str(Player.Y) + "," + str(Player.Z))
                 if onlyadmin:
-                    ini.AddSetting("AdminWarps", args[0], onlyadmin)
-                    ini.AddSetting("CanModsUse", args[0], canmodsuse)
+                    ini.AddSetting("AdminWarps", args[0], str(onlyadmin))
+                    ini.AddSetting("CanModsUse", args[0], str(canmodsuse))
                     OnlyAdminWarp[args[0]] = onlyadmin
                     CanModsUseAdminWarp[args[0]] = canmodsuse
                 ini.Save()
@@ -101,8 +107,16 @@ class Warps:
                 else:
                     Teleport = True
                 if Teleport:
-                    Player.TeleportTo(warps[warpname], True)
-                    Player.MessageFrom(SysName, "Teleported to " + warpname + "!")
+                    if not EnableTeleportDelay:
+                        Player.TeleportTo(warps[warpname], AllowEACToCheckTeleport)
+                        Player.MessageFrom(SysName, "Teleported to " + warpname + "!")
+                    else:
+                        List = Plugin.CreateDict()
+                        List["Player"] = Player
+                        List["Location"] = warps[warpname]
+                        List["Name"] = warpname
+                        Plugin.CreateParallelTimer("WarpDelay", TeleportDelay * 1000, List).Start()
+                        Player.MessageFrom(SysName, "Teleporting in " + str(TeleportDelay) + " seconds!")
                 else:
                     Player.MessageFrom(SysName, warpname + " is only for admins!")
             else:
@@ -140,6 +154,17 @@ class Warps:
                 warpns = warpns + x + ", "
             Player.MessageFrom(SysName, "===Warps===")
             Player.MessageFrom(SysName, warpns)
+
+    def WarpDelayCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        Player = List["Player"]
+        if not Player.IsOnline:
+            return
+        Location = List["Location"]
+        name = List["Name"]
+        Player.TeleportTo(Location, AllowEACToCheckTeleport)
+        Player.MessageFrom(SysName, "Teleported to " + name + "!")
 
     def Warps(self):
         if not Plugin.IniExists("Warps"):
