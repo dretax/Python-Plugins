@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.1'
+__version__ = '1.7.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -233,9 +233,13 @@ class DestroySystem:
                                 HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
                 elif DataStore.ContainsKey("DestroySystem2", id):
                     structs = HurtEvent.Entity.GetLinkedStructs()
+                    if self.giveback == 1:
+                        if EntityName in EntityList.keys():
+                            HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
                     for ent in structs:
                         if self.giveback == 1:
-                            if EntityName in EntityList.keys():
-                                HurtEvent.Attacker.Inventory.AddItem(EntityList[EntityName])
+                            namef = ent.Name
+                            if namef in EntityList.keys():
+                                HurtEvent.Attacker.Inventory.AddItem(EntityList[namef])
                         ent.Destroy()
                     HurtEvent.Entity.Destroy()
