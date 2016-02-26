@@ -351,6 +351,9 @@ class iConomy:
                 if m < float(args[1]):
                     Player.MessageFrom(self.__Sys__, "You can't pay more than you currently have.")
                     return
+                if float(args[1]) < 0:
+                    Player.MessageFrom(self.__Sys__, "Trying to send negative money? Really?")
+                    return
                 if playerr.SteamID == Player.SteamID:
                     Player.MessageFrom(self.__Sys__, "You can't pay money to yourself.")
                     return
