@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.4'
+__version__ = '1.3.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -351,8 +351,8 @@ class iConomy:
                 if m < float(args[1]):
                     Player.MessageFrom(self.__Sys__, "You can't pay more than you currently have.")
                     return
-                if float(args[1]) < 0:
-                    Player.MessageFrom(self.__Sys__, "Trying to send negative money? Really?")
+                if float(args[1]) <= 0:
+                    Player.MessageFrom(self.__Sys__, "Trying to send negative or 0 money? Really?")
                     return
                 if playerr.SteamID == Player.SteamID:
                     Player.MessageFrom(self.__Sys__, "You can't pay money to yourself.")
