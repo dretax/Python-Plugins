@@ -1,11 +1,12 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 
 Players = []
+
 
 class HighPing:
 
@@ -36,8 +37,9 @@ class HighPing:
     def PingCheckCallback(self, timer):
         timer.Kill()
         for pl in Players:
-            if int(pl.Ping) >= self.MaxPing:
-                pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) +
-                               " Maximum you can have: " + str(self.MaxPing) + ".")
-                pl.Disconnect()
+            if pl.IsOnline:
+                if int(pl.Ping) >= self.MaxPing:
+                    pl.MessageFrom("[High Ping Kicker]", "[color#FF2222]Your Ping: " + str(pl.Ping) +
+                                   " Maximum you can have: " + str(self.MaxPing) + ".")
+                    pl.Disconnect()
         Plugin.CreateTimer("PingCheck", self.Timer).Start()
