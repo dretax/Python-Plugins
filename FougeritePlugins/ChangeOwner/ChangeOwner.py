@@ -97,8 +97,11 @@ class ChangeOwner:
                     player = self.CheckV(Player, args[0])
                     if player is not None:
                         DataStore.Add("ChangeOwner", Player.UID, player.UID)
+                        Player.MessageFrom(sysname, "Hit the house to change ownership")
 
     def On_EntityHurt(self, HurtEvent):
+        if not HurtEvent.AttackerIsPlayer:
+            return
         if HurtEvent.Entity is not None and HurtEvent.Attacker is not None:
             if HurtEvent.Attacker.Admin and DataStore.ContainsKey("ChangeOwner", HurtEvent.Attacker.UID):
                 entity = HurtEvent.Entity
@@ -113,4 +116,7 @@ class ChangeOwner:
                     HurtEvent.Attacker.MessageFrom(sysname, "Successfully changed " + str(c) + " objects of "
                                                    + player.Name)
                     player.MessageFrom(sysname, "You became an owner of " + str(c) + " objects")
+                    DataStore.Remove("ChangeOwner", HurtEvent.Attacker.UID)
+                else:
+                    HurtEvent.Attacker.MessageFrom(sysname, "Selected Player is Offline.")
                     DataStore.Remove("ChangeOwner", HurtEvent.Attacker.UID)
