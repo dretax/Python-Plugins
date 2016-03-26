@@ -132,7 +132,6 @@ class Clans:
         # Todo: More to come.
 
     def DeleteClan(self, Clan):
-        cfg = self.ClansConfig()
         ini = self.Clans()
         claninfo = self.ClanInfo()
         online = self.GetAllOnlinePlayersOfClan(Clan)
@@ -405,7 +404,6 @@ class Clans:
             ChatEvent.BroadcastName = "[" + clan + "] " + ChatEvent.User.Name"""
 
     def On_Command(self, Player, command, args):
-        cfg = self.ClansConfig()
         claninfo = self.ClanInfo()
         if command == "chelp":
             if len(args) == 0:
