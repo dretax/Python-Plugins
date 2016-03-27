@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.1.1'
 
 import clr
 
@@ -12,6 +12,14 @@ sys.path.append(path + "\\Save\\Lib\\")
 import hashlib
 import datetime
 
+ClanFriendlyFireMemory = {
+
+}
+
+PlayersWhoAreInAClan = {
+
+}
+
 
 class Clans:
 
@@ -22,6 +30,15 @@ class Clans:
         cfg = self.ClansConfig()
         self.SystemName = cfg.GetSetting("Settings", "Sys")
         self.Cost = int(cfg.GetSetting("Settings", "Cost"))
+        claninfo = self.ClanInfo()
+        sec = claninfo.EnumSection("ClanList")
+        for clan in sec:
+            ff = claninfo.GetSetting("ClanInfo" + clan, "FriendlyFire")
+            if int(ff) == 1:
+                b = True
+            else:
+                b = False
+            ClanFriendlyFireMemory[clan] = b
 
     """
         Clan Methods.
@@ -49,7 +66,9 @@ class Clans:
 
     def HasClan(self, ID):
         ini = self.Clans()
-        if ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or \
+        if ID in PlayersWhoAreInAClan.keys():
+            return True
+        elif ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or \
                 ini.ContainsSetting("ClanOwners", ID) or ini.ContainsSetting("ClanCoOwners", ID):
             return True
         else:
@@ -63,15 +82,23 @@ class Clans:
 
     def GetClanOfPlayer(self, ID):
         ini = self.Clans()
-        if ini.ContainsSetting("ClanMembers", ID):
-            return ini.GetSetting("ClanMembers", ID)
-        elif ini.ContainsSetting("ClanOfficers", ID):
-            return ini.GetSetting("ClanOfficers", ID)
-        elif ini.ContainsSetting("ClanOwners", ID):
-            return ini.GetSetting("ClanOwners", ID)
-        elif ini.ContainsSetting("ClanCoOwners", ID):
-            return ini.GetSetting("ClanCoOwners", ID)
-        return None
+        if ID not in PlayersWhoAreInAClan.keys():
+            if ini.GetSetting("ClanMembers", ID) is not None:
+                PlayersWhoAreInAClan[ID] = ini.GetSetting("ClanMembers", ID)
+                return ini.GetSetting("ClanMembers", ID)
+            elif ini.GetSetting("ClanOfficers", ID) is not None:
+                PlayersWhoAreInAClan[ID] = ini.GetSetting("ClanOwners", ID)
+                return ini.GetSetting("ClanOfficers", ID)
+            elif ini.GetSetting("ClanOwners", ID) is not None:
+                PlayersWhoAreInAClan[ID] = ini.GetSetting("ClanOwners", ID)
+                return ini.GetSetting("ClanOwners", ID)
+            elif ini.GetSetting("ClanCoOwners", ID) is not None:
+                PlayersWhoAreInAClan[ID] = ini.GetSetting("ClanCoOwners", ID)
+                return ini.GetSetting("ClanCoOwners", ID)
+            else:
+                return None
+        else:
+            return PlayersWhoAreInAClan[ID]
 
     def GetAllOnlinePlayersOfClan(self, Clan):
         ini = self.Clans()
@@ -152,18 +179,26 @@ class Clans:
         for p in sec:
             n = ini.GetSetting("ClanMembers", p)
             if n == Clan:
+                if p in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(p)
                 ini.DeleteSetting("ClanMembers", p)
         for p in sec2:
             n = ini.GetSetting("ClanOwners", p)
             if n == Clan:
+                if p in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(p)
                 ini.DeleteSetting("ClanOwners", p)
         for p in sec3:
             n = ini.GetSetting("ClanOfficers", p)
             if n == Clan:
+                if p in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(p)
                 ini.DeleteSetting("ClanOfficers", p)
         for p in sec4:
             n = ini.GetSetting("ClanCoOwners", p)
             if n == Clan:
+                if p in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(p)
                 ini.DeleteSetting("ClanCoOwners", p)
         for p in sec5:
             claninfo.DeleteSetting("ClanInfo" + Clan, p)
@@ -374,6 +409,7 @@ class Clans:
     def On_PlayerConnected(self, Player):
         if self.HasClan(Player.SteamID):
             clan = self.GetClanOfPlayer(Player.SteamID)
+            PlayersWhoAreInAClan[Player.SteamID] = clan
             name = Player.Name
             # Player.basePlayer.displayName = "[" + clan + "] " + name
             # ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] " + name)
@@ -382,6 +418,9 @@ class Clans:
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
                 motd = claninfo.GetSetting("ClanInfo" + clan, "Motd")
                 Player.MessageFrom("[" + clan + "]", motd)
+        else:
+            if Player.SteamID in PlayersWhoAreInAClan.keys():
+                PlayersWhoAreInAClan.pop(Player.SteamID)
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.VictimIsPlayer and HurtEvent.AttackerIsPlayer:
@@ -392,9 +431,10 @@ class Clans:
                     ca = self.GetClanOfPlayer(aid)
                     cv = self.GetClanOfPlayer(vid)
                     if ca == cv:
-                        claninfo = self.ClanInfo()
-                        ff = int(claninfo.GetSetting("ClanInfo" + ca, "FriendlyFire"))
-                        if ff == 1:
+                        # claninfo = self.ClanInfo()
+                        # ff = int(claninfo.GetSetting("ClanInfo" + ca, "FriendlyFire"))
+                        ff = ClanFriendlyFireMemory[ca]
+                        if ff:
                             return
                         HurtEvent.DamageAmount = float(0)
 
@@ -448,8 +488,9 @@ class Clans:
                 n = self.GetClanPopulation(clan)
                 own = claninfo.GetSetting("ClanInfo" + clan, "Owner")
                 ex = claninfo.GetSetting("ClanInfo" + clan, "Creation")
-                ff = claninfo.GetSetting("ClanInfo" + clan, "FriendlyFire")
-                if int(ff) == 1:
+                # ff = claninfo.GetSetting("ClanInfo" + clan, "FriendlyFire")
+                ff = ClanFriendlyFireMemory[clan]
+                if ff:
                     ff = "Yes"
                 else:
                     ff = "No"
@@ -538,6 +579,7 @@ class Clans:
             if self.Cost > 0:
                 self.TakeMoney(id, self.Cost, Player)
             Server.BroadcastFrom(self.SystemName, text + " got created by " + Player.Name)
+            ClanFriendlyFireMemory[text] = False
             Player.MessageFrom(self.SystemName, "You created your first clan! /cinvite playername to invite!")
             # Player.basePlayer.displayName = "[" + text + "] " + name
             # ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + text + "] " + name)
@@ -601,6 +643,7 @@ class Clans:
             self.AddPlayerToClan(clan, id, str(Player.Name))
             DataStore.Remove("Clans", id)
             online = self.GetAllOnlinePlayersOfClan(clan)
+            PlayersWhoAreInAClan[id] = clan
             for player in online:
                 player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
             # Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
@@ -638,6 +681,13 @@ class Clans:
             if not v.isnumeric():
                 Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off)")
                 return
+            if int(v) != 1 or int(v) != 0:
+                Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off)")
+                return
+            if int(v) == 1:
+                ClanFriendlyFireMemory[clan] = True
+            else:
+                ClanFriendlyFireMemory[clan] = False
             claninfo.SetSetting("ClanInfo" + clan, "FriendlyFire", str(v))
             claninfo.Save()
             Player.MessageFrom(self.SystemName, "Friendly fire was set to " + str(v))
@@ -650,7 +700,7 @@ class Clans:
                 Player.MessageFrom(self.SystemName, "You don't have a clan!")
                 return
             clan = self.GetClanOfPlayer(id)
-            playerr = self.CheckV(Player, args, 3)
+            playerr = self.CheckV(Player, args)
             selfrank = self.GetClanRank(id)
             if playerr is None:
                 text = str.Join(" ", args)
@@ -668,6 +718,8 @@ class Clans:
                         if n == id:
                             Player.MessageFrom(self.SystemName, "Gosh, this is yourself....")
                             return
+                        if n in PlayersWhoAreInAClan.keys():
+                            PlayersWhoAreInAClan.pop(n)
                         self.RemovePlayerFromClan(clan, n)
                         namee = name
                 if namee:
@@ -698,6 +750,8 @@ class Clans:
                 # playerr.basePlayer.displayName = name
                 # ReflectionExtensions.SetFieldValue(playerr.basePlayer, "_displayName", name)
                 playerr.Name = name
+                if playerr.SteamID in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(playerr.SteamID)
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", playerr.Name + " got kicked by: " + Player.Name)
                 playerr.MessageFrom(clan, "You got kicked from the clan by: " + Player.Name)
@@ -763,7 +817,7 @@ class Clans:
             if len(args) == 0:
                 id = Player.SteamID
                 if not self.HasClan(id):
-                    Player.MessageFrom(sself.SystemNameys, "You don't have a clan!")
+                    Player.MessageFrom(self.SystemName, "You don't have a clan!")
                     return
                 rank = self.GetClanRank(id)
                 clan = self.GetClanOfPlayer(id)
@@ -820,6 +874,10 @@ class Clans:
                     n = hashlib.md5(str(args[0])).hexdigest()
                     if n == pw:
                         self.DeleteClan(clan)
+                        if Player.SteamID in PlayersWhoAreInAClan.keys():
+                            PlayersWhoAreInAClan.pop(Player.SteamID)
+                        if clan in ClanFriendlyFireMemory.keys():
+                            ClanFriendlyFireMemory.pop(clan)
                     else:
                         Player.MessageFrom(self.SystemName, "Wrong Password.")
                 else:
@@ -827,6 +885,10 @@ class Clans:
             else:
                 if rank == 4:
                     self.DeleteClan(clan)
+                    if Player.SteamID in PlayersWhoAreInAClan.keys():
+                        PlayersWhoAreInAClan.pop(Player.SteamID)
+                    if clan in ClanFriendlyFireMemory.keys():
+                        ClanFriendlyFireMemory.pop(clan)
         elif command == "cleave":
             id = Player.SteamID
             if not self.HasClan(id):
@@ -849,6 +911,8 @@ class Clans:
                 Player.Name = "[" + clan + "] " + name
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", name + " left the clan.")
+                if Player.SteamID in PlayersWhoAreInAClan.keys():
+                    PlayersWhoAreInAClan.pop(Player.SteamID)
                 Player.MessageFrom(clan, "You left your clan.")
         """elif command == "cleave":
             id = Player.SteamID
