@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 import clr
 
@@ -666,7 +666,7 @@ class Clans:
             text = str.Join(" ", args)
             self.SendPrivateMessage(clan, name, text)
         elif command == "cff":
-            if len(args) == 0 or len(args) > 1:
+            if len(args) == 0:
                 Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off)")
                 return
             id = Player.SteamID
@@ -681,8 +681,8 @@ class Clans:
             if not v.isnumeric():
                 Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off)")
                 return
-            if int(v) != 1 or int(v) != 0:
-                Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off)")
+            if int(v) != 1 and int(v) != 0:
+                Player.MessageFrom(self.SystemName, "Usage /cff 1 - 0 (0 means off) MUST BE 1 OR 0")
                 return
             if int(v) == 1:
                 ClanFriendlyFireMemory[clan] = True
