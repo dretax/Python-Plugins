@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.2'
+__version__ = '1.1.3'
 
 import clr
 
@@ -461,7 +461,7 @@ class Clans:
                     Player.MessageFrom(self.SystemName, "/cdeny - Denies Invitation (Auto Deny: 40 secs)")
                     Player.MessageFrom(self.SystemName, "/cjoin - Accept the invitation")
                     Player.MessageFrom(self.SystemName, "/clist - Lists all the clans")
-                    Player.MessageFrom(self.SystemName, "/cinfo - Tells info of the clan")
+                    Player.MessageFrom(self.SystemName, "/cinfo - Tells info of the clan (CASE-SENSITIVE)")
                 elif text == "2":
                     Player.MessageFrom(self.SystemName, "Clans Created by " + __author__ + " V" + __version__)
                     Player.MessageFrom(self.SystemName, "[PAGE 2/2]")
@@ -471,6 +471,7 @@ class Clans:
                     Player.MessageFrom(self.SystemName, "/cmotd - Sets motd of the clan")
                     Player.MessageFrom(self.SystemName, "/cleave - Leave clan")
                     Player.MessageFrom(self.SystemName, "/cdisband - Disbands clan, If ownerpw was set, It will need It")
+                    Player.MessageFrom(self.SystemName, "/cforcedel clanname - Deletes a clan")
                 else:
                     Player.MessageFrom(self.SystemName, "Usage /chelp pagenumber (1 or 2)")
         elif command == "clist":
@@ -478,6 +479,19 @@ class Clans:
             sec = claninfo.EnumSection("ClanList")
             for clanname in sec:
                 Player.MessageFrom(self.SystemName, "[" + clanname + "]")
+        elif command == "cforcedel":
+            if Player.Admin:
+                if len(args) == 0:
+                    Player.MessageFrom(self.SystemName, "Specify Clan name!")
+                    return
+                sec = claninfo.EnumSection("ClanList")
+                clan = str.Join(" ", args)
+                for clanname in sec:
+                    if clanname.lower == clan.lower():
+                        Player.MessageFrom(self.SystemName, "Clan " + clanname + " deleted!")
+                        self.DeleteClan(clanname)
+                        return
+                Player.MessageFrom(self.SystemName, "Couldn't find " + clan + "!")
         elif command == "cinfo":
             if len(args) == 0:
                 Player.MessageFrom(self.SystemName, "Specify Clan name!")
