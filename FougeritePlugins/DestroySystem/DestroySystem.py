@@ -27,8 +27,8 @@ class DestroySystem:
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
         ini = self.DestroySys()
         self.giveback = int(ini.GetSetting("options", "giveback"))
-        self.TurnOfAfterATime = int(ini.GetSetting("TurnOfAfterATime", "1"))
-        self.Time = int(ini.GetSetting("Time", "60")) * 1000
+        self.TurnOfAfterATime = int(ini.GetSetting("options", "TurnOfAfterATime"))
+        self.Time = int(ini.GetSetting("options", "Time")) * 1000
         DataStore.Flush("DestroySystem")
         DataStore.Flush("DestroySystem2")
         EntityList['WoodFoundation'] = "Wood Foundation"
