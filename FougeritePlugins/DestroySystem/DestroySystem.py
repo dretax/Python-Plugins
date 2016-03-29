@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.2'
+__version__ = '1.7.3'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -20,11 +20,15 @@ class DestroySystem:
     """
 
     giveback = None
+    TurnOfAfterATime = None
+    Time = None
 
     def On_PluginInit(self):
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
         ini = self.DestroySys()
         self.giveback = int(ini.GetSetting("options", "giveback"))
+        self.TurnOfAfterATime = int(ini.GetSetting("TurnOfAfterATime", "1"))
+        self.Time = int(ini.GetSetting("Time", "60")) * 1000
         DataStore.Flush("DestroySystem")
         DataStore.Flush("DestroySystem2")
         EntityList['WoodFoundation'] = "Wood Foundation"
@@ -36,8 +40,8 @@ class DestroySystem:
         EntityList['WoodWindowFrame'] = "Wood Window"
         EntityList['WoodStairs'] = "Wood Stairs"
         EntityList['WoodRamp'] = "Wood Ramp"
-        EntityList['WoodSpikeWall'] = "Wood Spike Wall"
-        EntityList['LargeWoodSpikeWall'] = "Large Wood Spike Wall"
+        EntityList['WoodSpikeWall'] = "Spike Wall"
+        EntityList['LargeWoodSpikeWall'] = "Large Spike Wall"
         EntityList['WoodBox'] = "Wood Storage Box"
         EntityList['WoodBoxLarge'] = "Large Wood Storage"
         EntityList['WoodGate'] = "Wood Gate"
@@ -119,13 +123,6 @@ class DestroySystem:
         except:
             return True
 
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
-
     def GetIt(self, Entity):
         try:
             if Entity.IsDeployableObject():
@@ -139,6 +136,8 @@ class DestroySystem:
         if not Plugin.IniExists("DestroySys"):
             ini = Plugin.CreateIni("DestroySys")
             ini.AddSetting("options", "giveback", "1")
+            ini.AddSetting("options", "TurnOfAfterATime", "1")
+            ini.AddSetting("options", "Time", "60")
             ini.Save()
         return Plugin.GetIni("DestroySys")
 
@@ -158,6 +157,20 @@ class DestroySystem:
             return True
         return False
 
+    def DestroyTimeoutCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        Player = List["Player"]
+        if not Player.IsOnline:
+            return
+        id = Player.SteamID
+        if DataStore.Get("DestroySystem", id) is not None:
+            Player.Message("---DestroySystem---")
+            Player.Message("You quit Destroy mode!")
+        elif DataStore.Get("DestroySystem2", id) is not None:
+            Player.Message("---DestroySystem---")
+            Player.Message("You quit Destroy ALL mode!")
+
     def On_Command(self, Player, cmd, args):
         ini = self.Foundation()
         if cmd == "destroy" or cmd == "crush" or cmd == "c":
@@ -167,6 +180,10 @@ class DestroySystem:
                 Player.Message("You are in Destroy mode")
                 Player.Message("If you finished, don't forget to quit from It!")
                 Player.Message("Shotgun cannot be used in destroy mode!")
+                if self.TurnOfAfterATime == 1:
+                    List = Plugin.CreateDict()
+                    List["Player"] = Player
+                    Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
             else:
                 DataStore.Remove("DestroySystem", Player.SteamID)
                 Player.Message("---DestroySystem---")
@@ -178,6 +195,10 @@ class DestroySystem:
                 Player.Message("You are in Destroy ALL mode")
                 Player.Message("If you finished, don't forget to quit from It!")
                 Player.Message("Shotgun cannot be used in Destroy ALL mode!")
+                if self.TurnOfAfterATime == 1:
+                    List = Plugin.CreateDict()
+                    List["Player"] = Player
+                    Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
             else:
                 DataStore.Remove("DestroySystem2", Player.SteamID)
                 Player.Message("---DestroySystem---")
@@ -213,16 +234,16 @@ class DestroySystem:
             Player.Message("Couldn't find: " + text)
 
     def On_EntityHurt(self, HurtEvent):
+        if not HurtEvent.AttackerIsPlayer:
+            return
         if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-            id = self.TrytoGrabID(HurtEvent.Attacker)
-            if id is None:
-                return
             gun = HurtEvent.WeaponName
             if gun == "Shotgun":
                 return
             OwnerID = self.GetIt(HurtEvent.Entity)
             if OwnerID is None:
                 return
+            id = HurtEvent.Attacker.SteamID
             if long(id) == long(OwnerID) or self.IsFriend(OwnerID, id):
                 EntityName = HurtEvent.Entity.Name
                 if DataStore.ContainsKey("DestroySystem", id):
