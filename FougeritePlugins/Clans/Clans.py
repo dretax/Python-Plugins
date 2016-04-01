@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.3'
+__version__ = '1.1.4'
 
 import clr
 
@@ -25,11 +25,13 @@ class Clans:
 
     SystemName = None
     Cost = None
+    AllowSelfDamage = None
 
     def On_PluginInit(self):
         cfg = self.ClansConfig()
         self.SystemName = cfg.GetSetting("Settings", "Sys")
         self.Cost = int(cfg.GetSetting("Settings", "Cost"))
+        self.AllowSelfDamage = cfg.GetBoolSetting("Settings", "AllowSelfDamage")
         claninfo = self.ClanInfo()
         sec = claninfo.EnumSection("ClanList")
         for clan in sec:
@@ -49,6 +51,7 @@ class Clans:
             ini = Plugin.CreateIni("ClansConfig")
             ini.AddSetting("Settings", "Sys", "[Clans]")
             ini.AddSetting("Settings", "Cost", "0")
+            ini.AddSetting("Settings", "AllowSelfDamage", "True")
             ini.Save()
         return Plugin.GetIni("ClansConfig")
 
@@ -434,7 +437,7 @@ class Clans:
                         # claninfo = self.ClanInfo()
                         # ff = int(claninfo.GetSetting("ClanInfo" + ca, "FriendlyFire"))
                         ff = ClanFriendlyFireMemory[ca]
-                        if ff:
+                        if ff or (self.AllowSelfDamage and HurtEvent.Attacker.UID == HurtEvent.Victim.UID):
                             return
                         HurtEvent.DamageAmount = float(0)
 
