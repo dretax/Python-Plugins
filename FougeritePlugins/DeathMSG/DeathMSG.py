@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.8'
+__version__ = '3.5.9'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -10,7 +10,9 @@ import re
     Class
 """
 
+
 class DeathMSG:
+
     """
         Methods
     """
@@ -28,6 +30,7 @@ class DeathMSG:
     explosion = None
     bleeding = None
     kl = None
+    dkl = None
     ean = None
     esn = None
     essn = None
@@ -44,6 +47,7 @@ class DeathMSG:
         self.suicide = config.GetSetting("Settings", "suicide")
         self.autoban = int(config.GetSetting("Settings", "autoban"))
         self.essn = int(config.GetSetting("Settings", "enablesleepermsg"))
+        self.dkl = int(config.GetSetting("Settings", "displaykilllog"))
         self.sleeper = config.GetSetting("Settings", "SleeperKill")
         self.huntingbow = config.GetSetting("Settings", "huntingbow")
         self.banmsg = config.GetSetting("Settings", "banmsg")
@@ -70,21 +74,24 @@ class DeathMSG:
                 Player.MessageFrom(self.deathmsgname, "Player " + pl + " unbanned!")
 
     def On_PlayerKilled(self, DeathEvent):
-        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
+        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None and \
+                (DeathEvent.AttackerIsPlayer or DeathEvent.AttackerIsNPC or DeathEvent.AttackerIsEntity):
             victim = str(DeathEvent.Victim.Name)
             try:
                 killer = str(DeathEvent.Attacker.Name)
             except:
                 return
-            if self.IsAnimal(DeathEvent.Attacker):
+            if DeathEvent.AttackerIsNPC:
                 if self.ean == 1:
                     a = self.animal
                     a = a.replace("victim", victim)
                     a = a.replace("killer", killer)
                     Server.BroadcastFrom(self.deathmsgname, a)
                 return
-            id = self.TrytoGrabID(DeathEvent.Attacker)
-            vid = self.TrytoGrabID(DeathEvent.Victim)
+            if not DeathEvent.AttackerIsPlayer:
+                return
+            id = DeathEvent.Attacker.SteamID
+            vid = DeathEvent.Victim.SteamID
             if self.WasSuicide(id, vid):
                 if self.esn == 1:
                     n = self.suicide
@@ -143,6 +150,8 @@ class DeathMSG:
                         return
                 if self.kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
+                    if self.dkl == 1:
+                        Util.Log("[Kill] " + n)
             elif bleed == "Melee":
                 if weapon == "Hunting Bow":
                     if DeathEvent.Sleeper:
@@ -180,16 +189,20 @@ class DeathMSG:
                             return
                     if self.kl == 1:
                         self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
+                        if self.dkl == 1:
+                            Util.Log("[Kill] " + hn)
                 elif weapon == "Spike Wall":
+                    ownername = DeathEvent.Victim.OwnerName
                     s = self.spike
                     s = s.replace("victim", victim)
-                    s = s.replace("killer", killer)
+                    s = s.replace("killer", ownername)
                     s = s.replace("weapon", "Spike Wall")
                     Server.BroadcastFrom(self.deathmsgname, s)
                 elif weapon == "Large Spike Wall":
+                    ownername = DeathEvent.Victim.OwnerName
                     s = self.spike
                     s = s.replace("victim", victim)
-                    s = s.replace("killer", killer)
+                    s = s.replace("killer", ownername)
                     s = s.replace("weapon", "Large Spike Wall")
                     Server.BroadcastFrom(self.deathmsgname, s)
                 else:
@@ -215,6 +228,8 @@ class DeathMSG:
                 n = n.replace("victim", victim)
                 n = n.replace("killer", killer)
                 Server.BroadcastFrom(self.deathmsgname, n)
+                if self.dkl == 1:
+                    Util.Log("[Kill] " + n)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         id = Player.SteamID
@@ -225,13 +240,6 @@ class DeathMSG:
             Player.TeleportTo(newloc)
             Player.MessageFrom(self.deathmsgname, self.green + "You got teleported back where you died!")
             DataStore.Remove("DeathMSGBAN", id)
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
 
     def argsToText(self, args):
         text = str.join(" ", args)
@@ -244,11 +252,6 @@ class DeathMSG:
         else:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
                        victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
-
-    def IsAnimal(self, Entity):
-        if "NPC" in str(Entity):
-            return True
-        return False
 
     def WasSuicide(self, killerid, victimid):
         if killerid == victimid:
