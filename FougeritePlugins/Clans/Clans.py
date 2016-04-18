@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.4'
+__version__ = '1.1.5'
 
 import clr
 
@@ -430,6 +430,8 @@ class Clans:
             if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
                 vid = HurtEvent.Victim.SteamID
                 aid = HurtEvent.Attacker.SteamID
+                if DataStore.Get("HGIG", vid) is not None:
+                    return
                 if self.HasClan(vid) and self.HasClan(aid):
                     ca = self.GetClanOfPlayer(aid)
                     cv = self.GetClanOfPlayer(vid)
