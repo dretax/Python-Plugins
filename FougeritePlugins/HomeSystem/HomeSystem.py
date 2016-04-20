@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.6.0'
+__version__ = '2.6.1'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -689,7 +689,7 @@ class HomeSystem:
                 if "Ceiling" in HurtEvent.Entity.Name or "Foundation" in HurtEvent.Entity.Name:
                     if self.FriendOf(HurtEvent.Entity.OwnerID, id):
                         DataStore.Remove("HomeHit", id)
-                        vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y) + 5.0,
+                        vec = Util.CreateVector(float(HurtEvent.Entity.X), float(HurtEvent.Entity.Y) + 5.7,
                                                 float(HurtEvent.Entity.Z))
                         self.SaveHome(HurtEvent.Attacker, name, vec)
                     else:
