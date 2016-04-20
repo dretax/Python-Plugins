@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.3'
+__version__ = '1.7.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -13,6 +13,11 @@ import System
 EntityList = {
 
 }
+
+Timers = {
+
+}
+
 
 class DestroySystem:
     """
@@ -167,9 +172,11 @@ class DestroySystem:
         if DataStore.Get("DestroySystem", id) is not None:
             Player.Message("---DestroySystem---")
             Player.Message("You quit Destroy mode!")
-        elif DataStore.Get("DestroySystem2", id) is not None:
+            DataStore.Remove("DestroySystem", Player.SteamID)
+        if DataStore.Get("DestroySystem2", id) is not None:
             Player.Message("---DestroySystem---")
             Player.Message("You quit Destroy ALL mode!")
+            DataStore.Remove("DestroySystem2", Player.SteamID)
 
     def On_Command(self, Player, cmd, args):
         ini = self.Foundation()
@@ -183,7 +190,11 @@ class DestroySystem:
                 if self.TurnOfAfterATime == 1:
                     List = Plugin.CreateDict()
                     List["Player"] = Player
-                    Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
+                    timedevent = Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
+                    if Player.UID in Timers.keys():
+                        Timers[Player.UID].Kill()
+                        Timers.pop(Player.UID)
+                    Timers[Player.UID] = timedevent
             else:
                 DataStore.Remove("DestroySystem", Player.SteamID)
                 Player.Message("---DestroySystem---")
@@ -198,7 +209,11 @@ class DestroySystem:
                 if self.TurnOfAfterATime == 1:
                     List = Plugin.CreateDict()
                     List["Player"] = Player
-                    Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
+                    timedevent = Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
+                    if Player.UID in Timers.keys():
+                        Timers[Player.UID].Kill()
+                        Timers.pop(Player.UID)
+                    Timers[Player.UID] = timedevent
             else:
                 DataStore.Remove("DestroySystem2", Player.SteamID)
                 Player.Message("---DestroySystem---")
