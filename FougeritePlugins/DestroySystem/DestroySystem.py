@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.4'
+__version__ = '1.7.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -192,7 +192,8 @@ class DestroySystem:
                     List["Player"] = Player
                     timedevent = Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
                     if Player.UID in Timers.keys():
-                        Timers[Player.UID].Kill()
+                        if Timers[Player.UID] is not None:
+                            Timers[Player.UID].Kill()
                         Timers.pop(Player.UID)
                     Timers[Player.UID] = timedevent
             else:
@@ -211,7 +212,8 @@ class DestroySystem:
                     List["Player"] = Player
                     timedevent = Plugin.CreateParallelTimer("DestroyTimeout", self.Time, List).Start()
                     if Player.UID in Timers.keys():
-                        Timers[Player.UID].Kill()
+                        if Timers[Player.UID] is not None:
+                            Timers[Player.UID].Kill()
                         Timers.pop(Player.UID)
                     Timers[Player.UID] = timedevent
             else:
