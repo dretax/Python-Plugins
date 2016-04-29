@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.3'
+__version__ = '1.5.4'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -10,6 +10,8 @@ import Fougerite
 from Fougerite import Entity
 import re
 import sys
+import math
+import System
 
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
@@ -129,6 +131,11 @@ ShopD = {
 BeingRadLegd = []
 
 ParticipateItems = []
+
+# Announce Cooldown WhiteList
+WhiteList = ["7656119798204xxxx", "7656119798204yyyy"]
+# Cooldown in minutes
+AnnounceCooldown = 30
 
 
 class HungerGames:
@@ -397,26 +404,39 @@ class HungerGames:
                 arg = args[0]
                 if arg == "announce":
                     if Player.Admin or Player.Moderator:
-                        if self.IsActive:
-                            Player.MessageFrom(sysname, "Hunger Games is already active!")
+                        time = DataStore.Get("HungerGamesACD", "Time")
+                        if time is None:
+                            DataStore.Add("HungerGamesACD", "Time", 7)
+                            time = 7
+                        calc = System.Environment.TickCount - time
+                        if calc < 0 or math.isnan(calc) or math.isnan(time):
+                            DataStore.Add("HungerGamesACD", "Time", 7)
+                            time = 7
+                        if calc >= AnnounceCooldown or time == 7 or id in WhiteList:
+                            if self.IsActive:
+                                Player.MessageFrom(sysname, "Hunger Games is already active!")
+                            else:
+                                DataStore.Add("HungerGamesACD", "Time", System.Environment.TickCount)
+                                Server.BroadcastFrom(sysname, red + "----------------------------"
+                                                                    "HUNGERGAMES--------------------------------")
+                                Server.BroadcastFrom(sysname, green +
+                                                     "Hunger Games is now active! Type /hg join to enter the battle!")
+                                Server.BroadcastFrom(sysname, green + "Type /hg to know more!")
+                                Server.BroadcastFrom(sysname, teal + "Pack your items at home just incase!")
+                                Server.BroadcastFrom(sysname, teal + "The plugins saves your inventory when you join.")
+                                Server.BroadcastFrom(sysname, red + "----------------------------"
+                                                                    "HUNGERGAMES--------------------------------")
+                                self.RandomAdmin = Player
+                                self.IsActive = True
+                                self.ResetWalls()
+                                del self.Players[:]
+                                if Plugin.GetTimer("StartingIn") is not None:
+                                    Plugin.KillTimer("StartingIn")
+                                if Plugin.GetTimer("Force") is not None:
+                                    Plugin.KillTimer("Force")
                         else:
-                            Server.BroadcastFrom(sysname, red + "----------------------------"
-                                                                "HUNGERGAMES--------------------------------")
-                            Server.BroadcastFrom(sysname, green +
-                                                 "Hunger Games is now active! Type /hg join to enter the battle!")
-                            Server.BroadcastFrom(sysname, green + "Type /hg to know more!")
-                            Server.BroadcastFrom(sysname, teal + "Pack your items at home just incase!")
-                            Server.BroadcastFrom(sysname, teal + "The plugins saves your inventory when you join.")
-                            Server.BroadcastFrom(sysname, red + "----------------------------"
-                                                                "HUNGERGAMES--------------------------------")
-                            self.RandomAdmin = Player
-                            self.IsActive = True
-                            self.ResetWalls()
-                            del self.Players[:]
-                            if Plugin.GetTimer("StartingIn") is not None:
-                                Plugin.KillTimer("StartingIn")
-                            if Plugin.GetTimer("Force") is not None:
-                                Plugin.KillTimer("Force")
+                            done = round((calc / 1000) / 60, 2)
+                            Player.Notice("Cooldown: " + str(done) + "/" + str(AnnounceCooldown))
                     else:
                         Player.Message("You aren't admin!")
                 elif arg == "cleanloot":
