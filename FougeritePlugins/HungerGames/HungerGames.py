@@ -179,6 +179,7 @@ class HungerGames:
         self.Metabolism = Util.TryFindReturnType("Metabolism")
         self.LootableObject = Util.TryFindReturnType("LootableObject")
         DataStore.Flush("HDoorMode")
+        DataStore.Flush("HungerGamesACD")
         ini = self.HungerGames()
         ini2 = self.DefaultItems()
         enum = ini.EnumSection("RestrictedCommands")
