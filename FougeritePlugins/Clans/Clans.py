@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.5'
+__version__ = '1.1.6'
 
 import clr
 
@@ -167,9 +167,7 @@ class Clans:
         online = self.GetAllOnlinePlayersOfClan(Clan)
         for player in online:
             name = player.Name.replace('[' + Clan + ']', '').strip(' ')
-            # player.basePlayer.displayName = name
             player.Name = name
-            # ReflectionExtensions.SetFieldValue(player.basePlayer, "_displayName", name)
             player.MessageFrom(self.SystemName, "Your clan was disbanded.")
         enum = ini.EnumSection(Clan)
         for d in enum:
@@ -206,8 +204,6 @@ class Clans:
         for p in sec5:
             claninfo.DeleteSetting("ClanInfo" + Clan, p)
         ini.Save()
-        # claninfo.DeleteSetting("ClanInfo" + Clan, "Creation")
-        # claninfo.DeleteSetting("ClanInfo" + Clan, "Owner")
         claninfo.DeleteSetting("ClanList", Clan)
         claninfo.Save()
 
@@ -414,8 +410,6 @@ class Clans:
             clan = self.GetClanOfPlayer(Player.SteamID)
             PlayersWhoAreInAClan[Player.SteamID] = clan
             name = Player.Name
-            # Player.basePlayer.displayName = "[" + clan + "] " + name
-            # ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] " + name)
             Player.Name = "[" + clan + "] " + name
             claninfo = self.ClanInfo()
             if claninfo.ContainsSetting("ClanInfo" + clan, "Motd"):
@@ -436,17 +430,10 @@ class Clans:
                     ca = self.GetClanOfPlayer(aid)
                     cv = self.GetClanOfPlayer(vid)
                     if ca == cv:
-                        # claninfo = self.ClanInfo()
-                        # ff = int(claninfo.GetSetting("ClanInfo" + ca, "FriendlyFire"))
                         ff = ClanFriendlyFireMemory[ca]
                         if ff or (self.AllowSelfDamage and HurtEvent.Attacker.UID == HurtEvent.Victim.UID):
                             return
                         HurtEvent.DamageAmount = float(0)
-
-    """def On_Chat(self, ChatEvent):
-        if self.HasClan(ChatEvent.User.SteamID):
-            clan = self.GetClanOfPlayer(ChatEvent.User.SteamID)
-            ChatEvent.BroadcastName = "[" + clan + "] " + ChatEvent.User.Name"""
 
     def On_Command(self, Player, command, args):
         claninfo = self.ClanInfo()
@@ -507,7 +494,6 @@ class Clans:
                 n = self.GetClanPopulation(clan)
                 own = claninfo.GetSetting("ClanInfo" + clan, "Owner")
                 ex = claninfo.GetSetting("ClanInfo" + clan, "Creation")
-                # ff = claninfo.GetSetting("ClanInfo" + clan, "FriendlyFire")
                 ff = ClanFriendlyFireMemory[clan]
                 if ff:
                     ff = "Yes"
@@ -600,8 +586,6 @@ class Clans:
             Server.BroadcastFrom(self.SystemName, text + " got created by " + Player.Name)
             ClanFriendlyFireMemory[text] = False
             Player.MessageFrom(self.SystemName, "You created your first clan! /cinvite playername to invite!")
-            # Player.basePlayer.displayName = "[" + text + "] " + name
-            # ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + text + "] " + name)
             Player.Name = "[" + text + "] " + name
         elif command == "cinvite":
             if len(args) == 0:
@@ -665,8 +649,6 @@ class Clans:
             PlayersWhoAreInAClan[id] = clan
             for player in online:
                 player.MessageFrom("[" + clan + "]", Player.Name + " joined to the clan!")
-            # Player.basePlayer.displayName = "[" + clan + "] " + Player.Name
-            # ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] " + Player.Name)
             Player.Name = "[" + clan + "] " + Player.Name
         elif command == "cm":
             if len(args) == 0:
@@ -766,8 +748,6 @@ class Clans:
                 self.RemovePlayerFromClan(clan, playerr.SteamID)
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
-                # playerr.basePlayer.displayName = name
-                # ReflectionExtensions.SetFieldValue(playerr.basePlayer, "_displayName", name)
                 playerr.Name = name
                 if playerr.SteamID in PlayersWhoAreInAClan.keys():
                     PlayersWhoAreInAClan.pop(playerr.SteamID)
@@ -925,24 +905,9 @@ class Clans:
                 self.RemovePlayerFromClan(clan, id)
                 online = self.GetAllOnlinePlayersOfClan(clan)
                 name = Player.Name.replace('[' + clan + ']', '').strip(' ')
-                # Player.basePlayer.displayName = name
-                #ReflectionExtensions.SetFieldValue(Player.basePlayer, "_displayName", "[" + clan + "] " + name)
-                Player.Name = "[" + clan + "] " + name
+                Player.Name = name
                 for pl in online:
                     pl.MessageFrom("[" + clan + "]", name + " left the clan.")
                 if Player.SteamID in PlayersWhoAreInAClan.keys():
                     PlayersWhoAreInAClan.pop(Player.SteamID)
                 Player.MessageFrom(clan, "You left your clan.")
-        """elif command == "cleave":
-            id = Player.SteamID
-            if not self.HasClan(id):
-                Player.MessageFrom(self.SystemName, "You don't have a clan!")
-                return
-            clan = self.GetClanOfPlayer(id)
-            rank = self.GetClanRank(id)
-            name = Player.Name.replace('[' + clan + ']', '').strip(' ')
-            if rank == 4:
-                self.DeleteClan(clan)
-                return
-            Player.basePlayer.displayName = name
-            self.RemovePlayerFromClan(clan, id)"""
