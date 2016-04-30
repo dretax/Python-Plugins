@@ -132,10 +132,22 @@ BeingRadLegd = []
 
 ParticipateItems = []
 
+GlobalRewarded = {
+
+}
+
+EndItem = {}
+
+RewardsToGive = {}
+
 # Announce Cooldown WhiteList
 WhiteList = ["7656119798204xxxx", "7656119798204yyyy"]
 # Cooldown in minutes
 AnnounceCooldown = 30
+# End Item Blacklist
+EndItemWhiteList = ["Gunpowder", "9mm Ammo"]
+# End Item Max Count
+EndItemCount = 25
 
 
 class HungerGames:
@@ -382,6 +394,9 @@ class HungerGames:
                 else:
                     Player.MessageFrom(sysname, red + "No dictionary found in the for cycle?!")
             Player.MessageFrom(sysname, green + "Your have received your original inventory")
+            for x in EndItem.keys():
+                Player.Inventory.AddItem(x, EndItem[x])
+                Player.MessageFrom(sysname, yellow + "You received the end reward! (" + x + ")")
             DataStore.Remove("HungerGames", id)
         else:
             Player.MessageFrom(sysname, red + "No Items of your last inventory found!")
@@ -400,6 +415,7 @@ class HungerGames:
                 Player.MessageFrom(sysname, green + "/hg stats - View your stats!")
                 Player.MessageFrom(sysname, green + "/hg buy - Buy items for points!")
                 Player.MessageFrom(sysname, green + "/hg slist - List Shop Items!")
+                Player.MessageFrom(sysname, green + "/hg getreward - Gives you your reward")
                 return
             else:
                 arg = args[0]
@@ -417,7 +433,21 @@ class HungerGames:
                             if self.IsActive:
                                 Player.MessageFrom(sysname, "Hunger Games is already active!")
                             else:
-                                DataStore.Add("HungerGamesACD", "Time", System.Environment.TickCount)
+                                if len(args) == 3:
+                                    item = args[1]
+                                    num = args[2]
+                                    if item not in EndItemWhiteList:
+                                        Player.MessageFrom(sysname, "Item is not white listed")
+                                        return
+                                    if num > EndItemCount:
+                                        Player.MessageFrom(sysname, "Maximum quantity: " + str(EndItemCount))
+                                        return
+                                    if num.isnumeric():
+                                        num = int(num)
+                                        EndItem[item] = num
+                                        Server.BroadcastFrom(sysname,
+                                                             yellow + "Everyone will receive "
+                                                             + str(num) + " " + item + "(s) at the end")
                                 Server.BroadcastFrom(sysname, red + "----------------------------"
                                                                     "HUNGERGAMES--------------------------------")
                                 Server.BroadcastFrom(sysname, green +
@@ -769,50 +799,63 @@ class HungerGames:
                     if not self.HasStarted:
                         Player.MessageFrom(sysname, "Only use this if HungerGames has started.")
                         return
+                    fplayerj = Player
+                    if len(args) == 2:
+                        fplayerj = Server.FindPlayer(args[1])
+                        if fplayerj is None:
+                            Player.MessageFrom(sysname, "Couldn't find player!")
+                            return
+                        Player.MessageFrom(sysname, fplayerj.Name + " joined HungerGames!")
+                        Plugin.Log("ForceJoin", Player.Name + "-" + Player.SteamID
+                                   + " made " + fplayerj.Name + "-" + fplayerj.SteamID + " join HG!")
                     ini2 = self.DefaultItems()
                     enum = len(ini2.EnumSection("Rewards"))
-                    if Player.Inventory.FreeSlots < enum:
-                        Player.MessageFrom(sysname, purple + "You need to have atleast " + str(enum)
+                    if fplayerj.Inventory.FreeSlots < enum:
+                        fplayerj.MessageFrom(sysname, purple + "You need to have atleast " + str(enum)
                                            + " free slots in your inventory!")
+                        Plugin.Log("ForceJoin", "Failed to forcejoin " + fplayerj.Name + " | Not enough slots!")
                         return
                     if len(self.Players) == maxp:
-                        Player.MessageFrom(sysname, red + "HungerGames is full!")
+                        fplayerj.MessageFrom(sysname, red + "HungerGames is full!")
+                        Plugin.Log("ForceJoin", "Failed to forcejoin " + fplayerj.Name + " | HG is full!")
                         return
-                    if Player in self.Players:
-                        Player.MessageFrom(sysname, "You are already in the game, nab.")
+                    if fplayerj in self.Players:
+                        fplayerj.MessageFrom(sysname, "You are already in the game, nab.")
+                        Plugin.Log("ForceJoin", "Failed to forcejoin " + fplayerj.Name + " | Is already IG!")
                     else:
-                        if DataStore.ContainsKey("HungerGames", id):
-                            Player.MessageFrom(sysname, green + "First you have to do /hg inventory !")
+                        if DataStore.ContainsKey("HungerGames", fplayerj.SteamID):
+                            Plugin.Log("ForceJoin", "Failed to forcejoin " + fplayerj.Name + " | /hg inv required.")
+                            fplayerj.MessageFrom(sysname, green + "First you have to do /hg inventory !")
                             return
-                        self.Players.append(Player)
+                        self.Players.append(fplayerj)
                         for cmd in self.RestrictedCommands:
-                            Player.RestrictCommand(cmd)
+                            fplayerj.RestrictCommand(cmd)
                         leng = len(self.Players)
                         ini = self.HungerGames()
                         if PlayerSlots.get(leng) is not None:
                             for x in PlayerSlots.keys():
                                 if PlayerSlots[x] is None:
                                     leng = x
-                                    PlayerSlots[x] = Player
+                                    PlayerSlots[x] = fplayerj
                                     break
                         else:
-                            PlayerSlots[leng] = Player
-                        self.Freezer(Player, 1)
-                        DataStore.Add("HLastLoc", Player.SteamID, str(Player.Location))
+                            PlayerSlots[leng] = fplayerj
+                        self.Freezer(fplayerj, 1)
+                        DataStore.Add("HLastLoc", fplayerj.SteamID, str(fplayerj.Location))
                         l = self.Replace(ini.GetSetting("SpawnLocations", str(leng)))
                         loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                        Player.TeleportTo(loc, False)
-                        self.recordInventory(Player)
+                        fplayerj.TeleportTo(loc, False)
+                        self.recordInventory(fplayerj)
                         enum = ini2.EnumSection("DefaultItems")
                         for item in enum:
                             c = int(ini2.GetSetting("DefaultItems", item))
-                            Player.Inventory.AddItem(item, c)
+                            fplayerj.Inventory.AddItem(item, c)
                         if self.GotRustPP:
-                            Server.GetRustPPAPI().RemoveGod(Player.UID)
-                            Server.GetRustPPAPI().RemoveInstaKO(Player.UID)
-                            Server.GetRustPPAPI().GetFriendsCommand.AddTempException(Player.UID)
-                        Player.MessageFrom(sysname, "You joined the game!")
-                        DataStore.Add("HGIG", id, "1")
+                            Server.GetRustPPAPI().RemoveGod(fplayerj.UID)
+                            Server.GetRustPPAPI().RemoveInstaKO(fplayerj.UID)
+                            Server.GetRustPPAPI().GetFriendsCommand.AddTempException(fplayerj.UID)
+                        fplayerj.MessageFrom(sysname, "You joined the game!")
+                        DataStore.Add("HGIG", fplayerj.SteamID, "1")
                 elif arg == "checkwalls":
                     if Player.Admin or Player.Moderator:
                         if self.HasStarted or self.IsStarting:
@@ -880,6 +923,35 @@ class HungerGames:
                     Player.MessageFrom(sysname, purple + "===Shop===")
                     for x in ShopD.keys():
                         Player.MessageFrom(sysname, green + "Item: " + yellow + x + teal + " Price: " + str(ShopD[x]))
+                elif arg == "reward":
+                    if len(args) == 2:
+                        st = args[1]
+                        if st.isnumeric():
+                            st = int(st)
+                            try:
+                                n = list(GlobalRewarded)[st]
+                                d = str.join(', ', GlobalRewarded[n])
+                                Player.MessageFrom(sysname, pink + "---Rewards---")
+                                Player.MessageFrom(sysname, pink + "Rewards " + white + n.Name
+                                                     + pink + " received: " + d)
+                            except:
+                                Player.MessageFrom(sysname, "Number doesn't exist.")
+                        else:
+                            Player.MessageFrom(sysname, "Usage: /hg reward 0-2")
+                    else:
+                        Player.MessageFrom(sysname, "Usage: /hg reward 0-2")
+                elif arg == "getreward":
+                    if Player.UID in RewardsToGive.keys():
+                        itemdict = RewardsToGive[Player.UID]
+                        enum = len(itemdict.keys())
+                        if Player.Inventory.FreeSlots < enum:
+                            Player.MessageFrom(sysname, purple + "You need to have atleast " + str(enum)
+                                               + " free slots in your inventory!")
+                            return
+                        for item in itemdict.keys():
+                            Player.Inventory.AddItem(item, itemdict[item])
+                        RewardsToGive.pop(Player.UID)
+                        Player.MessageFrom(sysname, green + "Rewards received!")
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
         id = Player.SteamID
@@ -956,12 +1028,13 @@ class HungerGames:
                                                 "HUNGERGAMES--------------------------------")
             if ForceStart:
                 Server.BroadcastFrom(sysname, green + "HungerGames force started!")
-            Server.BroadcastFrom(sysname, green + "Loading.........")
+                Server.BroadcastFrom(sysname, green + "Prepairing...")
             try:
                 self.DecayMaxHP()
             except:
                 pass
-            Server.BroadcastFrom(sysname, green + "Prepairing..")
+            Server.BroadcastFrom(sysname, green + "Loading.........")
+            GlobalRewarded.clear()
             ini = self.HungerGames()
             enum2 = ini.EnumSection("ChestLocations")
             enum3 = ini.EnumSection("WallLocations")
@@ -1161,6 +1234,7 @@ class HungerGames:
         self.IsStarting = False
         self.CurrentRadRange = RadStart
         self.RadRunning = False
+        EndItem.clear()
         if Plugin.GetTimer("Force") is not None:
             Plugin.KillTimer("Force")
         if Plugin.GetTimer("StartingIn") is not None:
@@ -1211,12 +1285,16 @@ class HungerGames:
         winsini = self.Wins()
         for y in PointedPeople.keys():
             x = PointedPeople[y]
-            if y == 3:
-                p = 1.0
-            elif y == 2:
-                p = 3.0
-            else:
+            if y == 1:
                 p = 5.0
+            elif y == 2:
+                p = 4.0
+            elif y == 3:
+                p = 3.0
+            elif y == 4:
+                p = 2.0
+            else:
+                p = 1.0
             if winsini.GetSetting("Wins", x.SteamID) is not None:
                 c = float(winsini.GetSetting("Wins", x.SteamID)) + p
                 winsini.SetSetting("Wins", x.SteamID, str(c))
@@ -1236,22 +1314,62 @@ class HungerGames:
             Server.BroadcastFrom(sysname, "3rd: " + PointedPeople[3].Name)
         except:
             Server.BroadcastFrom(sysname, red + "Failed to display stats of the 3rd player...")
-        arr = []
+        try:
+            Server.BroadcastFrom(sysname, "4th: " + PointedPeople[4].Name)
+        except:
+            Server.BroadcastFrom(sysname, red + "Failed to display stats of the 4th player...")
+        try:
+            Server.BroadcastFrom(sysname, "5th: " + PointedPeople[5].Name)
+        except:
+            Server.BroadcastFrom(sysname, red + "Failed to display stats of the 5th player...")
+        dst = {}
+        try:
+            player = PointedPeople[1]
+            if player is not None:
+                if player.IsOnline:
+                    dst[player] = []
+        except:
+            pass
+        try:
+            player = PointedPeople[2]
+            if player is not None:
+                if player.IsOnline:
+                    dst[player] = []
+        except:
+            pass
+        try:
+            player = PointedPeople[3]
+            if player is not None:
+                if player.IsOnline:
+                    dst[player] = []
+        except:
+            pass
         if self.ItemRewards:
-            max = random.randint(self.MinRewards, self.MaxRewards)
-            for x in xrange(0, max):
-                num = random.randint(1, len(Rewards.keys()) - 1)
-                item = sorted(Rewards)[num]
-                c = Rewards.get(item)
-                if c != 1:
-                    c = random.randint(1, c)
-                Player.Inventory.AddItem(item, c)
-                if AnnounceRewards:
-                    arr.append(item)
+            for x in dst.keys():
+                # if x is not None:
+                RItemsG = {}
+                max = random.randint(self.MinRewards, self.MaxRewards)
+                for i in xrange(0, max):
+                    num = random.randint(1, len(Rewards.keys()) - 1)
+                    item = sorted(Rewards)[num]
+                    c = Rewards.get(item)
+                    if c != 1:
+                        c = random.randint(1, c)
+                    # x.Inventory.AddItem(item, c)
+                    RItemsG[item] = c
+                    if AnnounceRewards:
+                        dst[x].append(item)
+                x.MessageFrom(sysname, green + "Issue /hg getreward to get your rewards!")
+                GlobalRewarded[x] = dst[x]
+                RewardsToGive[x.UID] = RItemsG
         if AnnounceRewards:
-            d = str.join(', ', arr)
             Server.BroadcastFrom(sysname, pink + "---Rewards---")
-            Server.BroadcastFrom(sysname, pink + "Rewards he received: " + d)
+            Server.BroadcastFrom(sysname, pink + "To view rewards type /hg reward 0-2 ")
+        try:
+            Server.BroadcastFrom(sysname, pink + PointedPeople[1].Name + " got C4 because he finished first!")
+            PointedPeople[1].Inventory.AddItem("Explosive Charge", 1)
+        except:
+            pass
         if LootStackClean:
             self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
             for x in self.LootableObjects:
@@ -1288,12 +1406,15 @@ class HungerGames:
                     DeathEvent.Victim.UnRestrictCommand(cmd)
                 leng = len(self.Players)
                 try:
-                    if leng <= 2:
-                        if leng == 2:
-                            PointedPeople[3] = DeathEvent.Victim
-                        elif leng == 1:
-                            PointedPeople[2] = DeathEvent.Victim
-                            PointedPeople[1] = self.Players[0]
+                    if leng == 4:
+                        PointedPeople[5] = DeathEvent.Victim
+                    elif leng == 3:
+                        PointedPeople[4] = DeathEvent.Victim
+                    elif leng == 2:
+                        PointedPeople[3] = DeathEvent.Victim
+                    elif leng == 1:
+                        PointedPeople[2] = DeathEvent.Victim
+                        PointedPeople[1] = self.Players[0]
                 except:
                     pass
                 if leng > 1:
@@ -1356,12 +1477,15 @@ class HungerGames:
         for cmd in self.RestrictedCommands:
             Player.UnRestrictCommand(cmd)
         try:
-            if leng <= 2:
-                if leng == 2:
-                    PointedPeople[3] = Player
-                elif leng == 1:
-                    PointedPeople[2] = Player
-                    PointedPeople[1] = self.Players[0]
+            if leng == 4:
+                PointedPeople[5] = Player
+            elif leng == 3:
+                PointedPeople[4] = Player
+            elif leng == 2:
+                PointedPeople[3] = Player
+            elif leng == 1:
+                PointedPeople[2] = Player
+                PointedPeople[1] = self.Players[0]
         except:
             pass
         if leng == 1:
