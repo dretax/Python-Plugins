@@ -413,7 +413,7 @@ class HungerGames:
                         if calc < 0 or math.isnan(calc) or math.isnan(time):
                             DataStore.Add("HungerGamesACD", "Time", 7)
                             time = 7
-                        if calc >= AnnounceCooldown or time == 7 or id in WhiteList:
+                        if calc >= AnnounceCooldown * 60000 or time == 7 or id in WhiteList:
                             if self.IsActive:
                                 Player.MessageFrom(sysname, "Hunger Games is already active!")
                             else:
