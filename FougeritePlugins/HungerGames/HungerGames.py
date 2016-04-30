@@ -144,8 +144,8 @@ RewardsToGive = {}
 WhiteList = ["7656119798204xxxx", "7656119798204yyyy"]
 # Cooldown in minutes
 AnnounceCooldown = 30
-# End Item Blacklist
-EndItemWhiteList = ["Gunpowder", "9mm Ammo"]
+# End Item WhiteList
+EndItemWhiteList = ["Gunpowder", "Revolver", "9mm Pistol"]
 # End Item Max Count
 EndItemCount = 25
 
@@ -433,17 +433,25 @@ class HungerGames:
                             if self.IsActive:
                                 Player.MessageFrom(sysname, "Hunger Games is already active!")
                             else:
-                                if len(args) == 3:
-                                    item = args[1]
-                                    num = args[2]
-                                    if item not in EndItemWhiteList:
-                                        Player.MessageFrom(sysname, "Item is not white listed")
-                                        return
-                                    if num > EndItemCount:
-                                        Player.MessageFrom(sysname, "Maximum quantity: " + str(EndItemCount))
+                                if len(args) >= 3:
+                                    trueargs = []
+                                    for x in args:
+                                        trueargs.append(x)
+                                    trueargs.remove(args[0])
+                                    if len(trueargs) == 2:
+                                        item = trueargs[0]
+                                        num = trueargs[1]
+                                    else:
+                                        item = (trueargs[0] + " " + trueargs[1]).strip(" ")
+                                        num = trueargs[2]
+                                    if item.lower() not in str(EndItemWhiteList).lower():
+                                        Player.MessageFrom(sysname, "Item is not white listed (" + item + ")")
                                         return
                                     if num.isnumeric():
                                         num = int(num)
+                                        if num > EndItemCount:
+                                            Player.MessageFrom(sysname, "Maximum quantity: " + str(EndItemCount))
+                                            return
                                         EndItem[item] = num
                                         Server.BroadcastFrom(sysname,
                                                              yellow + "Everyone will receive "
@@ -952,6 +960,18 @@ class HungerGames:
                             Player.Inventory.AddItem(item, itemdict[item])
                         RewardsToGive.pop(Player.UID)
                         Player.MessageFrom(sysname, green + "Rewards received!")
+                elif arg == "dremove":
+                    if Player.Admin:
+                        if len(args) == 2:
+                            s = args[1]
+                            f = None
+                            for x in self.Players:
+                                if s.lower() in x.Name.lower():
+                                    f = x
+                                    break
+                            if f is not None:
+                                self.Players.remove(f)
+                                Player.MessageFrom(sysname, green + "Done.")
 
     def RemovePlayerDirectly(self, Player, Disconnected=False, Dead=False, Remove=True):
         id = Player.SteamID
@@ -993,7 +1013,7 @@ class HungerGames:
             pass
 
     def FindChest(self, location, name, spawnRot):
-        chest = Util.FindChestAt(location)
+        chest = Util.FindDeployableAt(location)
         if chest is not None:
             loot.append(chest)
             return
