@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.4'
+__version__ = '1.5.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -1391,17 +1391,22 @@ class HungerGames:
         except:
             pass
         if LootStackClean:
-            self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
-            for x in self.LootableObjects:
-                if "lootsack" in x.name.lower():
-                    dist = Util.GetVectorsDistance(self.Middle, x.transform.position)
-                    if dist <= CDist:
-                        x._inventory.Clear()
-                        Util.DestroyObject(x.gameObject)
+            Loom.QueueOnMainThread(lambda:
+                self.LootFinishSafe()
+            )
         self.Reset()
         self.ResetWalls()
         Player.MessageFrom(sysname, green + "You received your rewards!")
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
+
+    def LootFinishSafe(self):
+        self.LootableObjects = UnityEngine.Object.FindObjectsOfType(self.LootableObject)
+        for x in self.LootableObjects:
+            if "lootsack" in x.name.lower():
+                dist = Util.GetVectorsDistance(self.Middle, x.transform.position)
+                if dist <= CDist:
+                    x._inventory.Clear()
+                    Util.DestroyObject(x.gameObject)
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Victim is not None and HurtEvent.Attacker is not None:
