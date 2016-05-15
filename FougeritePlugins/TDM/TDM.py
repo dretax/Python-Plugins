@@ -221,6 +221,7 @@ class TDM:
             ini.AddSetting("Shop", "Equipment:4", "Light Kevlar + Helmet:900")
             ini.AddSetting("Shop", "Equipment:5", "Grenade:300")
             ini.AddSetting("Shop", "Equipment:6", "Flare:250")
+            ini.AddSetting("Shop", "Equipment:7", "DeployableShield(x10):1000")
             ini.AddSetting("Shop", "Guns:1", "Hand Shotgun:450")
             ini.AddSetting("Shop", "Guns:2", "M9:500")
             ini.AddSetting("Shop", "Guns:3", "P250:800")
@@ -249,6 +250,7 @@ class TDM:
             ini.AddSetting("ShopMeaning", "AWP", "Bolt Action Rifle:1")
             ini.AddSetting("ShopMeaning", "Knife", "Hatchet:1")
             ini.AddSetting("ShopMeaning", "Pick Axe", "Pick Axe:1")
+            ini.AddSetting("ShopMeaning", "DeployableShield(x10)", "Wood Barricade:10")
             ini.Save()
         return Plugin.GetIni("TDMData")
 
