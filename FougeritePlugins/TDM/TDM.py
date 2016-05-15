@@ -306,14 +306,14 @@ class TDM:
                 return
             Server.BroadcastFrom(sysname, red + "----------------------------TDM--------------------------------")
             if ForceStart:
-                Server.BroadcastFrom(sysname, green + "HungerGames force started!")
+                Server.BroadcastFrom(sysname, green + "TDM force started!")
                 Server.BroadcastFrom(sysname, green + "Prepairing...")
             try:
                 self.DecayMaxHP()
             except:
                 pass
             Server.BroadcastFrom(sysname, green + "Loading.........")
-            ini = self.HungerGames()
+            ini = self.TDMData()
             enum3 = ini.EnumSection("WallLocations")
             for wall in enum3:
                 l = ini.GetSetting("WallLocations", wall).split(',')
@@ -517,14 +517,14 @@ class TDM:
                             Player.UnRestrictCommand(cmd)
                         leng = len(Players)
                         if self.HasStarted:
-                            Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
+                            Server.BroadcastFrom(sysname, green + Player.Name + red + " has left TDM. "
                                                     + green + str(leng) + red + " Players are still alive.")
                         else:
-                            Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. "
+                            Server.BroadcastFrom(sysname, green + Player.Name + red + " has left TDM. "
                                                      + green + str(leng) + red + " Players are still in-game.")
                         self.returnInventory(Player)
                     else:
-                        Server.BroadcastFrom(sysname, green + Player.Name + red + " has left HungerGames. ")
+                        Server.BroadcastFrom(sysname, green + Player.Name + red + " has left TDM. ")
                         Player.MessageFrom(sysname, teal + "Use /tdm inventory to get your old inventory back.")
                         if self.HasStarted:
                             self.EndGame(Players[0])
