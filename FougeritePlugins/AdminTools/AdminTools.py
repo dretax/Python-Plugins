@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import clr
 
@@ -55,10 +55,13 @@ class AdminTools:
                 d = InventoryModEvent.Player.SteamID
                 loc = str(InventoryModEvent.Player.Location)
                 el = str(InventoryModEvent.Inventory.transform.position)
-                inn = InventoryModEvent.InventoryItem.datablock.name
-                q = str(InventoryModEvent.InventoryItem.uses)
                 Plugin.Log("InventoryRemove", "New: " + n + "|" + d + "|" + en + "| C: " + el + "| P: " + loc)
-                Plugin.Log("InventoryRemove", inn + " " + q)
+                if InventoryModEvent.InventoryItem is not None:
+                    inn = str(InventoryModEvent.ItemName)
+                    q = str(InventoryModEvent.InventoryItem.uses)
+                    Plugin.Log("InventoryRemove", inn + " " + q)
+                else:
+                    Plugin.Log("InventoryRemove", "Inventory item was null?! " + str(InventoryModEvent.InventoryItem))
 
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Attacker is None or HurtEvent.Victim is None:
