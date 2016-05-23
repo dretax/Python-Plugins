@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 import clr
 
@@ -19,6 +19,16 @@ ClanFriendlyFireMemory = {
 PlayersWhoAreInAClan = {
 
 }
+
+#  Colors
+blue = "[color #0099FF]"
+red = "[color #FF0000]"
+pink = "[color #CC66FF]"
+teal = "[color #00FFFF]"
+green = "[color #009900]"
+purple = "[color #6600CC]"
+white = "[color #FFFFFF]"
+yellow = "[color #FFFF00]"
 
 
 class Clans:
@@ -443,7 +453,7 @@ class Clans:
             else:
                 text = str.join(' ', args)
                 if text == "1":
-                    Player.MessageFrom(self.SystemName, "Clans Created by " + __author__ + " V" + __version__)
+                    Player.MessageFrom(self.SystemName, teal + "Clans Created by " + __author__ + " V" + __version__)
                     Player.MessageFrom(self.SystemName, "[PAGE 1/2]")
                     Player.MessageFrom(self.SystemName, "Type the commands in for more info.")
                     Player.MessageFrom(self.SystemName, "/crankpw - Sets Clan Recovery password for owners")
@@ -455,7 +465,7 @@ class Clans:
                     Player.MessageFrom(self.SystemName, "/clist - Lists all the clans")
                     Player.MessageFrom(self.SystemName, "/cinfo - Tells info of the clan (CASE-SENSITIVE)")
                 elif text == "2":
-                    Player.MessageFrom(self.SystemName, "Clans Created by " + __author__ + " V" + __version__)
+                    Player.MessageFrom(self.SystemName, teal + "Clans Created by " + __author__ + " V" + __version__)
                     Player.MessageFrom(self.SystemName, "[PAGE 2/2]")
                     Player.MessageFrom(self.SystemName, "/cmembers - Lists the specified or your clan's members names")
                     Player.MessageFrom(self.SystemName, "/cm - Send a Message to your clan")
@@ -469,8 +479,8 @@ class Clans:
         elif command == "clist":
             Player.MessageFrom(self.SystemName, "---Clan List---")
             sec = claninfo.EnumSection("ClanList")
-            for clanname in sec:
-                Player.MessageFrom(self.SystemName, "[" + clanname + "]")
+            data = str.join(", ", sec)
+            Player.MessageFrom(self.SystemName, data)
         elif command == "cforcedel":
             if Player.Admin:
                 if len(args) == 0:
@@ -499,7 +509,7 @@ class Clans:
                     ff = "Yes"
                 else:
                     ff = "No"
-                Player.MessageFrom(self.SystemName, "Clan: [" + clan + "]")
+                Player.MessageFrom(self.SystemName, green + "Clan: [" + clan + "]")
                 Player.MessageFrom(self.SystemName, "Motd: [" + motd + "]")
                 Player.MessageFrom(self.SystemName, "Owner: " + own)
                 Player.MessageFrom(self.SystemName, "FriendlyFire: " + ff)
@@ -613,7 +623,8 @@ class Clans:
             clan = self.GetClanOfPlayer(id)
             self.MakePending(playerr.SteamID, id)
             playerr.MessageFrom(self.SystemName, "Clan " + clan + " invited you to join their forces!")
-            playerr.MessageFrom(self.SystemName, "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
+            playerr.MessageFrom(self.SystemName,
+                                "Type /cjoin to accept or /cdeny to deny! You have 40 seconds to accept.")
             online = self.GetAllOnlinePlayersOfClan(clan)
             nam = Player.Name.replace('[' + clan + ']', '').strip(' ')
             for player in online:
@@ -866,7 +877,8 @@ class Clans:
             clan = self.GetClanOfPlayer(id)
             if claninfo.ContainsSetting("ClanInfo" + clan, "Password"):
                 if len(args) == 0:
-                    Player.MessageFrom(self.SystemName, "Usage /cdisband ownerpassword - (This means password was set before)")
+                    Player.MessageFrom(self.SystemName,
+                                       "Usage /cdisband ownerpassword - (This means password was set before)")
                     return
                 if rank == 4:
                     pw = claninfo.GetSetting("ClanInfo" + clan, "Password")
