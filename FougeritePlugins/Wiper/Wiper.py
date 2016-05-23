@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.7'
+__version__ = '1.3.8'
 
 import clr
 
@@ -161,7 +161,7 @@ class Wiper:
         enum = ini.EnumSection("Objects")
         today = datetime.date.today()
         for id in enum:
-            if wl.ContainsSetting("WhiteList", id):
+            if wl.GetSetting("WhiteList", id):
                 continue
             v = str(ini.GetSetting("Objects", id)).split('-')
             lastseen = datetime.date(int(v[0]), int(self.Replace(v[1])), int(self.Replace(v[02])))
@@ -306,26 +306,19 @@ class Wiper:
                 Player.MessageFrom("Wiper", "Added!")
         elif cmd == "wipeall":
             if Player.Admin:
-                ini = self.GetIni()
                 wl = self.WhiteList()
-                enum = ini.EnumSection("Objects")
+                enum = wl.EnumSection("WhiteList")
                 Server.Broadcast("Wiping objects.....")
                 Store = []
-                #StoreP = []
                 for id in enum:
-                    if wl.ContainsSetting("WhiteList", id):
-                        continue
                     Store.append(id)
-                self.WipeByIDList(Store)
-                """Server.Broadcast("Disconnecting players.....")
-                for x in Server.Players:
-                    StoreP.append(x)
-                for x in StoreP:
-                    x.Disconnect()"""
-                for x in Store:
-                    pathtodir = path + self.Path + str(x)
-                    if os.path.exists(pathtodir):
-                        idlist = os.listdir(pathtodir)
-                        for file in idlist:
-                            os.remove(path + self.Path + str(x) + "\\" + file)
-                        os.rmdir(path + self.Path + str(x))
+                for e in World.Entities:
+                    x = e.OwnerID
+                    if x not in Store:
+                        e.Destroy()
+                        pathtodir = path + self.Path + str(x)
+                        if os.path.exists(pathtodir):
+                            idlist = os.listdir(pathtodir)
+                            for file in idlist:
+                                os.remove(path + self.Path + str(x) + "\\" + file)
+                            os.rmdir(path + self.Path + str(x))
