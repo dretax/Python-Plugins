@@ -1498,7 +1498,6 @@ class HungerGames:
         leng = len(self.Players)
         Server.BroadcastFrom(sysname, green + Player.Name + red + " has failed to reconnect. "
                              + green + str(leng) + red + "  Players are still alive.")
-        Awaiting.remove(Player.UID)
         for cmd in self.RestrictedCommands:
             Player.UnRestrictCommand(cmd)
         try:
@@ -1543,10 +1542,10 @@ class HungerGames:
             if self.GotRustPP:
                 Server.GetRustPPAPI().GetFriendsCommand.RemoveTempException(Player.UID)
 
-    def On_EntityDeployed(self, Player, Entity):
-        if Player in self.Players:
+    def On_EntityDeployed(self, Player, Entity, ActualPlacer):
+        if ActualPlacer in self.Players:
             if not Building:
-                Player.MessageFrom(sysname, "You can't spawn stuff in HG!")
+                ActualPlacer.MessageFrom(sysname, "You can't spawn stuff in HG!")
                 Entity.Destroy()
                 return
             PlacedEntities.append(Entity)
