@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'Mike, Converted by DreTaX'
-__version__ = '1.4c'
+__version__ = '1.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -13,6 +13,7 @@ JZapDB = 'JZap'
 
 emon = '[color#FFA500]'
 noem = '[color#FFFFFF]'
+
 
 class JZap:
 
@@ -27,7 +28,7 @@ class JZap:
 
     def AllStuff(self, OwnerID):
         arr = World.Entities.ToArray()
-        return [e for e in arr if long(e.OwnerID) == long(OwnerID)]
+        return [e for e in arr if e.UOwnerID == OwnerID]
 
     """
         Events
@@ -38,16 +39,16 @@ class JZap:
         Plugin.CommandList.Add(JZapDB.lower())
 
     def On_Command(self, Player, cmd, args):
-        if cmd.lower() == JZapDB.lower():
+        if cmd == JZapDB.lower():
             if not Player.Admin and not Player.Moderator:
                 Player.Message("You aren't an admin.")
                 return
             get = DataStore.Get(JZapDB, 'Active')
-            if get is not None and get != Player.SteamID:
+            if get is not None and get != Player.UID:
                 Player.MessageFrom('☒ ', 'Wait a moment, someone else is zapping stuff.')
                 return
-            elif get != Player.SteamID:
-                DataStore.Add(JZapDB, 'Active', Player.SteamID)
+            elif get != Player.UID:
+                DataStore.Add(JZapDB, 'Active', Player.UID)
                 Player.InventoryNotice(JZapDB + ' is activated!')
             else:
                 DataStore.Flush(JZapDB)
@@ -67,18 +68,18 @@ class JZap:
             if not Server.HasRustPP:
                 return
             dict = Server.GetRustPPAPI().Cache
-            if not dict.ContainsKey(long(he.Entity.OwnerID)):
+            if not dict.ContainsKey(long(he.Entity.UOwnerID)):
                 name = "UnKnown"
             else:
-                name = dict[long(he.Entity.OwnerID)]
-            if OwnerID is None and long(DataStore.Get(JZapDB, 'Active')) == long(he.Attacker.SteamID):
-                DataStore.Add(JZapDB, 'Target', he.Entity.OwnerID)
+                name = dict[he.Entity.UOwnerID]
+            if OwnerID is None and DataStore.Get(JZapDB, 'Active') == he.Attacker.UID:
+                DataStore.Add(JZapDB, 'Target', he.Entity.UOwnerID)
                 he.Attacker.MessageFrom('☑ ', 'This thing belongs to  ' + emon + str(name) +
                                         noem + ' (' + he.Entity.OwnerID + ').')
                 he.Attacker.MessageFrom('☑ ☑ ', 'Hit it once more to zap  ' + emon + name + '\'s' +
                                         noem + '  stuff completely off the map.')
                 return
-            elif long(OwnerID) == long(he.Entity.OwnerID):
+            elif OwnerID == he.Entity.UOwnerID:
                 DataStore.Flush(JZapDB)
                 stuff = self.AllStuff(OwnerID)
                 for e in stuff:
