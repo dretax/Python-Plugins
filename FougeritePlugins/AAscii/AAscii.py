@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = 'DreTaX'
-__version__ = '1.6.4'
+__version__ = '1.6.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -93,9 +93,9 @@ class AAscii:
         n = len(name)
         if n > self.maxl:
             n = 1
-        if name.lower() in str(Restricted):
+        if name.lower() in str.join(' ', Restricted).lower():
             n = 1
-        if name.lower() in str(Names).lower() and "stranger" not in name.lower():
+        if name.lower() in str.join(' ', Names).lower() and "stranger" not in name.lower():
             n = 1
         if n <= 1:
             name = "Stranger"
