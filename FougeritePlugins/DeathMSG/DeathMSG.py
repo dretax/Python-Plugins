@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.5.9'
+__version__ = '3.6.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -133,7 +133,8 @@ class DeathMSG:
                             if distance >= 1000:
                                 return
                             Server.BroadcastFrom(self.deathmsgname, self.red + z)
-                            self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                            self.Log(killer, weapon, distance, victim, bodyPart, damage, 1,
+                                     str(killerloc), str(location))
                             DataStore.Add("DeathMSGBAN", vid, str(location))
                             Server.BanPlayer(DeathEvent.Attacker, "Console", "Range Ban: " + str(distance) + " Gun: " +
                                              weapon)
@@ -146,7 +147,8 @@ class DeathMSG:
                             DataStore.Remove("tpfriendautoban", id)
                             DataStore.Remove("homesystemautoban", id)
                             if self.kl == 1:
-                                self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                                self.Log(killer, weapon, distance, victim, bodyPart, damage, 1, str(killerloc),
+                                         str(location))
                         return
                 if self.kl == 1:
                     self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
@@ -176,7 +178,8 @@ class DeathMSG:
                                 z = self.banmsg
                                 z = z.replace("killer", killer)
                                 Server.BroadcastFrom(self.deathmsgname, self.red + z)
-                                self.Log(killer, weapon, distance, victim, bodyPart, damage, 1)
+                                self.Log(killer, weapon, distance, victim, bodyPart, damage, 1, str(killerloc),
+                                         str(location))
                                 DataStore.Add("DeathMSGBAN", vid, str(location))
                                 Server.BanPlayer(DeathEvent.Attacker, "Console", "Range Ban: " + str(distance)
                                                  + " Gun: " + weapon)
@@ -185,14 +188,16 @@ class DeathMSG:
                                 t = t.replace("killer", killer)
                                 Server.BroadcastFrom(self.deathmsgname, t)
                                 if self.kl == 1:
-                                    self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, 1)
+                                    self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, 1,
+                                             str(killerloc), str(location))
                             return
                     if self.kl == 1:
-                        self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None)
+                        self.Log(killer, "Hunting Bow", distance, victim, str(bodyPart), damage, None,
+                                 str(killerloc), str(location))
                         if self.dkl == 1:
                             Util.Log("[Kill] " + hn)
                 elif weapon == "Spike Wall":
-                    ownername = DeathEvent.Victim.OwnerName
+                    ownername = DeathEvent.Attacker.OwnerName
                     s = self.spike
                     s = s.replace("victim", victim)
                     s = s.replace("killer", ownername)
@@ -245,13 +250,14 @@ class DeathMSG:
         text = str.join(" ", args)
         return text
 
-    def Log(self, killer, weapon, dist, victim, body, dmg, tp):
+    def Log(self, killer, weapon, dist, victim, body, dmg, tp, loca, locv):
         if tp is None:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
-                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg))
+                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " LocA: " + loca + " LocV: " + locv)
         else:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
-                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " WAS TELEPORTING")
+                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " LocA: " + loca + " LocV: " + locv
+                       + " WAS TELEPORTING")
 
     def WasSuicide(self, killerid, victimid):
         if killerid == victimid:
