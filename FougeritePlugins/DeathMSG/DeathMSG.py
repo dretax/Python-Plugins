@@ -16,6 +16,7 @@ class DeathMSG:
     """
         Methods
     """
+
     red = "[color #FF0000]"
     green = "[color #009900]"
     deathmsgname = None
@@ -124,6 +125,7 @@ class DeathMSG:
                 n = n.replace("number", str(distance))
                 n = n.replace("bodyPart", str(bodyPart))
                 c = 0
+                calc = "Not Available"
                 if str(bodyPart) == "Head":
                     if DataStore.Get("DeathMSGAVG", DeathEvent.Attacker.UID) is None:
                         DataStore.Add("DeathMSGAVG", DeathEvent.Attacker.UID, 1)
@@ -171,10 +173,10 @@ class DeathMSG:
                             DataStore.Remove("homesystemautoban", id)
                             if self.kl == 1:
                                 self.Log(killer, weapon, distance, victim, bodyPart, damage, 1, str(killerloc),
-                                         str(location))
+                                         str(location), str(calc))
                         return
                 if self.kl == 1:
-                    self.Log(killer, weapon, distance, victim, bodyPart, damage, None)
+                    self.Log(killer, weapon, distance, victim, bodyPart, damage, None, str(killerloc), str(location))
                     if self.dkl == 1:
                         Util.Log("[Kill] " + n)
             elif bleed == "Melee":
@@ -273,14 +275,15 @@ class DeathMSG:
         text = str.join(" ", args)
         return text
 
-    def Log(self, killer, weapon, dist, victim, body, dmg, tp, loca, locv):
+    def Log(self, killer, weapon, dist, victim, body, dmg, tp, loca, locv, avg="Not Available"):
         if tp is None:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
-                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " LocA: " + loca + " LocV: " + locv)
+                       victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " LocA: " + loca + " LocV: " + locv
+                       + " " + avg)
         else:
             Plugin.Log("KillLog", " Killer: " + killer + " Gun: " + weapon + " Dist: " + str(dist) + " Victim: " +
                        victim + " BodyP: " + str(body) + " DMG: " + str(dmg) + " LocA: " + loca + " LocV: " + locv
-                       + " WAS TELEPORTING")
+                       + " " + avg + " WAS TELEPORTING")
 
     def WasSuicide(self, killerid, victimid):
         if killerid == victimid:
