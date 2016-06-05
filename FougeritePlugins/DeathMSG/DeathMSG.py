@@ -72,6 +72,11 @@ class DeathMSG:
                     Player.Message("Target: " + pl + " isn't in the database, or you misspelled It!")
                     return
                 Player.MessageFrom(self.deathmsgname, "Player " + pl + " unbanned!")
+        elif cmd == "flushdeathmsg":
+            if Player.Admin:
+                DataStore.Flush("DeathMSGAVG")
+                DataStore.Flush("DeathMSGAVG2")
+                Player.MessageFrom(self.deathmsgname, "Flushed!")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None and \
@@ -118,6 +123,24 @@ class DeathMSG:
                 n = n.replace("damage", str(damage))
                 n = n.replace("number", str(distance))
                 n = n.replace("bodyPart", str(bodyPart))
+                c = 0
+                if str(bodyPart) == "Head":
+                    if DataStore.Get("DeathMSGAVG", DeathEvent.Attacker.UID) is None:
+                        DataStore.Add("DeathMSGAVG", DeathEvent.Attacker.UID, 1)
+                        c = 1
+                    else:
+                        c = DataStore.Get("DeathMSGAVG", DeathEvent.Attacker.UID) + 1
+                        DataStore.Add("DeathMSGAVG", DeathEvent.Attacker.UID, c)
+                else:
+                    if DataStore.Get("DeathMSGAVG2", DeathEvent.Attacker.UID) is None:
+                        DataStore.Add("DeathMSGAVG2", DeathEvent.Attacker.UID, 1)
+                    else:
+                        cd = DataStore.Get("DeathMSGAVG2", DeathEvent.Attacker.UID) + 1
+                        DataStore.Add("DeathMSGAVG2", DeathEvent.Attacker.UID, cd)
+                if c >= 5:
+                    cd = DataStore.Get("DeathMSGAVG2", DeathEvent.Attacker.UID)
+                    calc = round(c / cd, 2)
+                    n = n + " (HAvg: " + str(calc) + "% )"
                 Server.BroadcastFrom(self.deathmsgname, n)
                 if self.autoban == 1:
                     if self.RangeOf(weapon) is None and "Spike" not in weapon:
