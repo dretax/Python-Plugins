@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.6'
+__version__ = '1.7.7'
 
 import clr
 
@@ -36,6 +36,8 @@ class BannedPeople:
     bannedreason = None
     autoban = None
     announce = None
+    CanAllModsCrash = None
+    ModsThatCanCrash = None
 
     def On_PluginInit(self):
         ini = self.BannedPeopleConfig()
@@ -43,6 +45,8 @@ class BannedPeople:
         self.bannedreason = ini.GetSetting("Main", "BannedDrop")
         self.autoban = int(ini.GetSetting("Main", "AutoDropBan"))
         self.announce = int(ini.GetSetting("Main", "AnnounceBan"))
+        self.CanAllModsCrash = int(ini.GetSetting("Main", "CanAllModsCrash"))
+        self.ModsThatCanCrash = ini.GetSetting("Main", "ModsThatCanCrash")
         range = self.BannedPeopleRange()
         enum = range.EnumSection("RangeBan")
         for ip in enum:
@@ -59,6 +63,8 @@ class BannedPeople:
             ini.AddSetting("Main", "BannedDrop", "You were banned from this server.")
             ini.AddSetting("Main", "AutoDropBan", "0")
             ini.AddSetting("Main", "AnnounceBan", "0")
+            ini.AddSetting("Main", "CanAllModsCrash", "1")
+            ini.AddSetting("Main", "ModsThatCanCrash", "7656119798204xxxx,7656119798204yyyy")
             ini.Save()
         return Plugin.GetIni("BannedPeopleConfig")
 
@@ -325,6 +331,16 @@ class BannedPeople:
                         Server.BanPlayer(pl, Player.Name, "Drop Failed", Player, True)
                     else:
                         Server.BanPlayer(pl, Player.Name, "Drop Failed", Player)
+        elif cmd == "quit":
+            if Player.Admin or (Player.Moderator and self.CanAllModsCrash == 1) or \
+                    (Player.Moderator and Player.SteamID in self.ModsThatCanCrash):
+                p = self.CheckV(Player, args)
+                if p.Admin or p.Moderator:
+                    Player.MessageFrom(self.sysname, "User is an admin!")
+                    return
+                if p is not None:
+                    p.SendCommand("quit")
+                    Player.MessageFrom(self.sysname, "Made him crash!")
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
