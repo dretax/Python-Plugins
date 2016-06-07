@@ -177,7 +177,8 @@ class DeathMSG:
                                          str(location), str(calc))
                         return
                 if self.kl == 1:
-                    self.Log(killer, weapon, distance, victim, bodyPart, damage, None, str(killerloc), str(location))
+                    self.Log(killer, weapon, distance, victim, bodyPart, damage, None, str(killerloc), str(location),
+                             str(calc))
                     if self.dkl == 1:
                         Util.Log("[Kill] " + n)
             elif bleed == "Melee":
