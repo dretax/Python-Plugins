@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.6.0'
+__version__ = '3.6.1'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -141,8 +141,9 @@ class DeathMSG:
                         DataStore.Add("DeathMSGAVG2", DeathEvent.Attacker.UID, cd)
                 if c >= 5:
                     cd = DataStore.Get("DeathMSGAVG2", DeathEvent.Attacker.UID)
-                    calc = round(c / cd, 2)
-                    n = n + " (HAvg: " + str(calc) + "% )"
+                    if cd is not None:
+                        calc = round(c / cd, 2)
+                        n = n + " (HAvg: " + str(calc) + "% )"
                 Server.BroadcastFrom(self.deathmsgname, n)
                 if self.autoban == 1:
                     if self.RangeOf(weapon) is None and "Spike" not in weapon:
