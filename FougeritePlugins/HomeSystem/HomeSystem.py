@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.6.1'
+__version__ = '2.6.2'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -18,7 +18,7 @@ sys.path.append(path + "\\Save\\Lib\\")
 try:
     import random
 except ImportError:
-    pass
+    raise ImportError("Failed to import Random!")
 
 red = "[color #FF0000]"
 Pending = []
@@ -38,6 +38,9 @@ class HomeSystem:
     movec = None
     found = None
     doubleteleport = None
+    MaxHomes = None
+    HomeCooldown = None
+    TpDelay = None
 
     def On_PluginInit(self):
         DataStore.Flush("home_joincooldown")
@@ -57,6 +60,9 @@ class HomeSystem:
         self.movec = int(config.GetSetting("Settings", "movecheck"))
         self.doubleteleport = self.bool(config.GetSetting("Settings", "doubleteleport"))
         self.found = self.bool(config.GetSetting("Settings", "foundationhome"))
+        self.MaxHomes = config.GetSetting("Settings", "Maxhomes")
+        self.HomeCooldown = int(config.GetSetting("Settings", "Cooldown"))
+        self.TpDelay = int(config.GetSetting("Settings", "tpdelay"))
         Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     """
@@ -151,18 +157,23 @@ class HomeSystem:
                 return True
         return False
 
-    def DonatorRankCheck(self, id):
-        if DataStore.Get("MaxHomes", id) is not None:
-            maxh = DataStore.Get("MaxHomes", id)
-            return maxh
-        else:
-            if DataStore.Get("DonatorRank", "PlayerHomesMax") is not None:
-                maxh = DataStore.Get("DonatorRank", "PlayerHomesMax")
+    def DonatorRankCheck(self, type, id):
+        if type == "MaxHomes":
+            if DataStore.Get("DonatorRank-MaxHomes", id) is not None:
+                maxh = DataStore.Get("DonatorRank-MaxHomes", id)
                 return maxh
-            else:
-                config = self.HomeConfig()
-                maxh = config.GetSetting("Settings", "Maxhomes")
-                return maxh
+            return self.MaxHomes
+        elif type == "CoolDown":
+            if DataStore.Get("DonatorRank-Cooldown", id) is not None:
+                CoolDown = DataStore.Get("DonatorRank-Cooldown", id)
+                return CoolDown
+            return self.HomeCooldown
+        elif type == "TpDelay":
+            if DataStore.Get("DonatorRank-TpDelay", id) is not None:
+                TpDelay = DataStore.Get("DonatorRank-TpDelay", id)
+                return TpDelay
+            return self.TpDelay
+        return self.MaxHomes
 
     def TrytoGrabID(self, Player):
         try:
@@ -433,12 +444,12 @@ class HomeSystem:
                 if check is None:
                     Player.MessageFrom(self.homesystemname, "You don't have a home called: " + home)
                     return
-                cooldown = int(config.GetSetting("Settings", "Cooldown"))
+                cooldown = int(self.DonatorRankCheck("CoolDown", id))
                 time = DataStore.Get("home_cooldown", id)
                 if time is None:
                     DataStore.Add("home_cooldown", id, 7)
                     time = 7
-                tpdelay = int(config.GetSetting("Settings", "tpdelay"))
+                tpdelay = int(self.DonatorRankCheck("TpDelay", id))
                 calc = System.Environment.TickCount - time
                 if calc < 0 or math.isnan(calc) or math.isnan(time):
                     DataStore.Add("home_cooldown", id, 7)
@@ -474,7 +485,7 @@ class HomeSystem:
             if len(args) != 1:
                 Player.MessageFrom(self.homesystemname, "Usage: /sethome name")
                 return
-            maxh = self.DonatorRankCheck(id)
+            maxh = self.DonatorRankCheck("MaxHomes", id)
             if self.GetHomeNumber(id) == int(maxh):
                 Player.MessageFrom(self.homesystemname, "You reached the max number of homes!")
                 return
