@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.4'
+__version__ = '3.7.5'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -26,6 +26,8 @@ white = "[color #FFFFFF]"
 """
 
 Pending = []
+
+
 class TpFriend:
 
     """
@@ -34,6 +36,14 @@ class TpFriend:
 
     sys = None
     DizzyDist = None
+    Maxuses = None
+    Cooldown = None
+    TimeoutR = None
+    SafeTPCheck = None
+    TpDelay = None
+    CheckIfPlayerIsNearStructure = None
+    CheckIfPlayerIsOnDeployable = None
+    CheckIfPlayerIsInShelter = None
 
     def On_PluginInit(self):
         DataStore.Flush("TpTimer")
@@ -45,6 +55,14 @@ class TpFriend:
         config = self.TpFriendConfig()
         self.sys = config.GetSetting("Settings", "sysname")
         self.DizzyDist = float(config.GetSetting("Settings", "DizzyDist"))
+        self.Maxuses = int(config.GetSetting("Settings", "Maxuses"))
+        self.Cooldown = int(config.GetSetting("Settings", "cooldown"))
+        self.TimeoutR = int(config.GetSetting("Settings", "timeoutr"))
+        self.SafeTPCheck = int(config.GetSetting("Settings", "safetpcheck"))
+        self.TpDelay = int(config.GetSetting("Settings", "tpdelay"))
+        self.CheckIfPlayerIsNearStructure = int(config.GetSetting("Settings", "CheckIfPlayerIsNearStructure"))
+        self.CheckIfPlayerIsOnDeployable = int(config.GetSetting("Settings", "CheckIfPlayerIsOnDeployable"))
+        self.CheckIfPlayerIsInShelter = int(config.GetSetting("Settings", "CheckIfPlayerIsInShelter"))
         Util.ConsoleLog("TpFriend v" + __version__ + " by " + __author__ + " loaded.", True)
 
     def TpFriendConfig(self):
@@ -108,26 +126,17 @@ class TpFriend:
         elif count == 1 and p is not None:
             return p
         else:
-            Player.MessageFrom(self.sys, "Found [color#FF0000]" + str(count) + "[/color] player with similar name. [color#FF0000] Use more correct name!")
+            Player.MessageFrom(self.sys, "Found [color#FF0000]" + str(count)
+                               + "[/color] player with similar name. [color#FF0000] Use more correct name!")
             return None
 
     def getPlayer(self, d):
-        try:
-            pl = Server.FindPlayer(d)
-            return pl
-        except:
-            return None
+        pl = Server.FindPlayer(d)
+        return pl
 
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
         return str.split(',')
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
 
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
@@ -152,10 +161,8 @@ class TpFriend:
         List["Call"] = callback
         Plugin.CreateParallelTimer("TpJobTimer", xtime * 1000, List).Start()
 
-
     def clearTimers(self):
         Plugin.KillParallelTimer("TpJobTimer")
-
 
     def TpJobTimerCallback(self, timer):
         timer.Kill()
@@ -165,7 +172,7 @@ class TpFriend:
         callback = List["Call"]
         id = List["PlayerFID"]
         tid = List["PlayerTID"]
-        if self.TrytoGrabID(PlayerFrom) is None or self.TrytoGrabID(PlayerTo) is None:
+        if not PlayerFrom.IsOnline or not PlayerTo.IsOnline:
             DataStore.Add("tpfriendautoban", id, "none")
             self.KillJob(PlayerFrom)
             self.KillJob(PlayerTo)
@@ -173,6 +180,24 @@ class TpFriend:
         DataStore.Add("tpfriendautoban", id, "using")
         # Normal Teleport Callback
         if callback == 1:
+            if self.CheckIfPlayerIsInShelter == 1:
+                if PlayerTo.IsInShelter:
+                    DataStore.Add("tpfriendcooldown", id, 7)
+                    PlayerFrom.MessageFrom(self.sys, "Your player is in a shelter, can't teleport!")
+                    PlayerTo.MessageFrom(self.sys, "You are in a shelter, can't teleport!")
+                    return
+            if self.CheckIfPlayerIsOnDeployable == 1:
+                if PlayerTo.IsOnDeployable:
+                    DataStore.Add("tpfriendcooldown", id, 7)
+                    PlayerFrom.MessageFrom(self.sys, "Your player is in on a Deployable, can't teleport!")
+                    PlayerTo.MessageFrom(self.sys, "You are on a Deployable, can't teleport!")
+                    return
+            if self.CheckIfPlayerIsNearStructure == 1:
+                if PlayerTo.IsNearStructure:
+                    DataStore.Add("tpfriendcooldown", id, 7)
+                    PlayerFrom.MessageFrom(self.sys, "Your player is near a house, can't teleport!")
+                    PlayerTo.MessageFrom(self.sys, "You are nwear a house, can't teleport!")
+                    return
             PlayerFrom.TeleportTo(PlayerTo.Location, False)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend")
             self.addJob(2, PlayerFrom, PlayerTo, 3, id, tid)
@@ -197,7 +222,7 @@ class TpFriend:
             PlayerFrom.TeleportTo(PlayerTo.Location)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend again.")
             DataStore.Add("tpfriendy", id, str(PlayerTo.Y))
-            #self.addJob(2, PlayerFrom, PlayerTo, 5, id, tid)
+            # self.addJob(2, PlayerFrom, PlayerTo, 5, id, tid)
         elif callback == 4:
             DataStore.Add("tpfriendautoban", id, "none")
         elif callback == 5:
@@ -213,7 +238,7 @@ class TpFriend:
                 loc = Util.CreateVector(float(loc[0]), float(loc[1]), float(loc[2]))
                 PlayerFrom.TeleportTo(loc)
                 DataStore.Remove("tpfriendy", id)
-                #self.addJob(2, PlayerFrom, PlayerTo, 6, id, tid)
+                # self.addJob(2, PlayerFrom, PlayerTo, 6, id, tid)
             self.addJob(2, PlayerFrom, PlayerTo, 4, id, tid)
         """elif callback == 6:
             try:
@@ -223,7 +248,7 @@ class TpFriend:
 
     def On_PlayerDisconnected(self, Player):
         self.KillJob(Player)
-        DataStore.Add("tpfriendautoban", id, "none")
+        DataStore.Add("tpfriendautoban", Player.SteamID, "none")
 
     def On_Command(self, Player, cmd, args):
         id = Player.SteamID
@@ -241,7 +266,6 @@ class TpFriend:
                 Player.MessageFrom(self.sys, "\"/tpcount\" to see how many requests you have remaining.")
                 Player.MessageFrom(self.sys, "\"/tpcancel\" to cancel your own request.")
             else:
-                config = self.TpFriendConfig()
                 playertor = self.CheckV(Player, args)
                 if playertor is None:
                     return
@@ -255,9 +279,6 @@ class TpFriend:
                 id = Player.SteamID
                 idt = playertor.SteamID
                 namet = playertor.Name
-                maxuses = int(config.GetSetting("Settings", "Maxuses"))
-                cooldown = int(config.GetSetting("Settings", "cooldown"))
-                stuff = int(config.GetSetting("Settings", "timeoutr"))
                 time = DataStore.Get("tpfriendcooldown", id)
                 usedtp = DataStore.Get("tpfriendusedtp", id)
                 if time is None:
@@ -267,12 +288,12 @@ class TpFriend:
                 if calc < 0 or math.isnan(calc):
                     DataStore.Add("tpfriendcooldown", id, 7)
                     time = 7
-                if calc >= cooldown or time == 7:
+                if calc >= self.Cooldown or time == 7:
                     if usedtp is None:
                         DataStore.Add("tpfriendusedtp", id, 0)
                         usedtp = 0
-                    if maxuses > 0:
-                        if maxuses >= int(usedtp):
+                    if self.Maxuses > 0:
+                        if self.Maxuses  <= int(usedtp):
                             Player.MessageFrom(self.sys, "Reached max number of teleport requests!")
                             return
                     if DataStore.Get("tpfriendpending2", idt) is not None:
@@ -291,44 +312,59 @@ class TpFriend:
                     self.KillJob(playertor)
                     Pending.append(Player)
                     Pending.append(playertor)
-                    self.addJob(stuff, Player, playertor, 2, id, idt)
+                    self.addJob(self.TimeoutR, Player, playertor, 2, id, idt)
                 else:
                     Player.MessageFrom(self.sys, "You have to wait before teleporting again!")
                     done = round((calc / 1000) / 60, 2)
-                    done2 = round((cooldown / 1000) / 60, 2)
+                    done2 = round((self.Cooldown / 1000) / 60, 2)
                     Player.MessageFrom(self.sys, "Time Remaining: " + str(done) + "/" + str(done2) + " mins")
-
         elif cmd == "tpaccept":
             pending = DataStore.Get("tpfriendpending2", id)
-            config = self.TpFriendConfig()
             if pending is not None:
                 playerfromm = self.getPlayer(pending)
                 if playerfromm is not None:
                     self.KillJob(Player)
                     self.KillJob(playerfromm)
-                    maxtpnumber = int(config.GetSetting("Settings", "Maxuses"))
                     playertpuse = int(DataStore.Get("tpfriendusedtp", pending))
-                    tpdelayy = int(config.GetSetting("Settings", "tpdelay"))
-                    if maxtpnumber > 0:
+
+                    if self.Maxuses > 0:
                         playertpuse = int(playertpuse) + 1
                         DataStore.Add("tpfriendusedtp", pending, playertpuse)
-                        playerfromm.MessageFrom(self.sys, "Teleport requests used " + str(playertpuse) + " / " + str(maxtpnumber))
+                        playerfromm.MessageFrom(self.sys, "Teleport requests used " + str(playertpuse) + " / "
+                                                + str(self.Maxuses))
                     else:
                         playerfromm.MessageFrom(self.sys, "You have unlimited requests remaining!")
 
-                    check = int(config.GetSetting("Settings", "safetpcheck"))
                     idt = playerfromm.SteamID
-                    if tpdelayy > 0:
-                        playerfromm.MessageFrom(self.sys, "Teleporting you in: " + str(tpdelayy) + " second(s)")
-                        self.addJob(tpdelayy, playerfromm, Player, 1, idt, id)
+                    if self.TpDelay > 0:
+                        playerfromm.MessageFrom(self.sys, "Teleporting you in: " + str(self.TpDelay) + " second(s)")
+                        self.addJob(self.TpDelay, playerfromm, Player, 1, idt, id)
 
                     else:
+                        if self.CheckIfPlayerIsInShelter == 1:
+                            if Player.IsInShelter:
+                                DataStore.Add("tpfriendcooldown", id, 7)
+                                playerfromm.MessageFrom(self.sys, "Your player is in a shelter, can't teleport!")
+                                Player.MessageFrom(self.sys, "You are in a shelter, can't teleport!")
+                                return
+                        if self.CheckIfPlayerIsOnDeployable == 1:
+                            if Player.IsOnDeployable:
+                                DataStore.Add("tpfriendcooldown", id, 7)
+                                playerfromm.MessageFrom(self.sys, "Your player is in on a Deployable, can't teleport!")
+                                Player.MessageFrom(self.sys, "You are on a Deployable, can't teleport!")
+                                return
+                        if self.CheckIfPlayerIsNearStructure == 1:
+                            if Player.IsNearStructure:
+                                DataStore.Add("tpfriendcooldown", id, 7)
+                                playerfromm.MessageFrom(self.sys, "Your player is near a house, can't teleport!")
+                                Player.MessageFrom(self.sys, "You are near a house, can't teleport!")
+                                return
                         DataStore.Add("tpfriendautoban", idt, "using")
                         DataStore.Add("tpfriendy", idt, str(Player.Y))
                         playerfromm.TeleportTo(Player.Location)
                         playerfromm.MessageFrom(self.sys, "Teleported!")
                         DataStore.Add("tpfriendautoban", idt, "none")
-                        self.addJob(check, playerfromm, Player, 3, idt, id)
+                        self.addJob(self.SafeTPCheck, playerfromm, Player, 3, idt, id)
 
                     DataStore.Remove("tpfriendpending", idt)
                     DataStore.Remove("tpfriendpending2", id)
@@ -339,7 +375,6 @@ class TpFriend:
                     Player.MessageFrom(self.sys, "Player isn't online!")
             else:
                 Player.MessageFrom(self.sys, "Your request was timed out, or you don't have any.")
-
         elif cmd == "tpdeny":
             pending = DataStore.Get("tpfriendpending2", id)
             if pending is not None:
@@ -354,7 +389,6 @@ class TpFriend:
                 Player.MessageFrom(self.sys, "Request denied!")
             else:
                 Player.MessageFrom(self.sys, "No request to deny.")
-
         elif cmd == "tpcancel":
             pending = DataStore.Get("tpfriendpending", id)
             if pending is not None:
@@ -369,23 +403,18 @@ class TpFriend:
                 Player.MessageFrom(self.sys, "Request Cancelled!")
             else:
                 Player.MessageFrom(self.sys, "There is nothing to cancel.")
-
         elif cmd == "tpcount":
-            config = self.TpFriendConfig()
-            maxuses = int(config.GetSetting("Settings", "Maxuses"))
-            if maxuses > 0:
+            if self.Maxuses > 0:
                 uses = int(DataStore.Get("tpfriendusedtp", id))
                 if uses is None:
                     uses = 0
-                Player.MessageFrom(self.sys, "Teleport requests used " + str(uses) + " / " + str(maxuses))
+                Player.MessageFrom(self.sys, "Teleport requests used " + str(uses) + " / " + str(self.Maxuses))
             else:
                 Player.MessageFrom(self.sys, "You have unlimited requests remaining!")
-
         elif cmd == "tpresettime":
             if Player.Admin or self.isMod(id):
                 DataStore.Add("tpfriendcooldown", id, 7)
                 Player.Message("Reset!")
-
         elif cmd == "clearuses":
             id = Player.SteamID
             if Player.Admin or self.isMod(id):
