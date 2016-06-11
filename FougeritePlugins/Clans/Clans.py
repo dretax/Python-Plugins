@@ -489,7 +489,7 @@ class Clans:
                 sec = claninfo.EnumSection("ClanList")
                 clan = str.Join(" ", args)
                 for clanname in sec:
-                    if clanname.lower == clan.lower():
+                    if clanname.lower() == clan.lower():
                         Player.MessageFrom(self.SystemName, "Clan " + clanname + " deleted!")
                         self.DeleteClan(clanname)
                         return
@@ -587,7 +587,7 @@ class Clans:
                 Player.MessageFrom(self.SystemName, "You already have a clan. Leave first.")
                 return
             text = str.Join(" ", args)
-            if len(text) < 3 or len(text) > 10 or not re.match("[\w]+$", text):
+            if len(text) < 3 or len(text) > 10 or not re.match("[A-Za-z0-9\w]+$", text):
                 Player.MessageFrom(self.SystemName, "Give 3-10 characters without spaces.")
                 return
             self.CreateClan(text, id, str(Player.Name))
