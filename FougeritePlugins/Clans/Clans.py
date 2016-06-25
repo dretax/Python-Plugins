@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 
 import clr
 
@@ -590,6 +590,11 @@ class Clans:
             if len(text) < 3 or len(text) > 10 or not re.match("[A-Za-z0-9\w]+$", text):
                 Player.MessageFrom(self.SystemName, "Give 3-10 characters without spaces.")
                 return
+            sec = claninfo.EnumSection("ClanList")
+            for x in sec:
+                if x.lower() == text.lower():
+                    Player.MessageFrom(self.SystemName, "This clan already exists!")
+                    return
             self.CreateClan(text, id, str(Player.Name))
             if self.Cost > 0:
                 self.TakeMoney(id, self.Cost, Player)
