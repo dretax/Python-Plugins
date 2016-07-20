@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.8'
+__version__ = '1.3.9'
 
 import clr
 
@@ -25,6 +25,7 @@ IdsToWipe = []
 EntityList = {
 
 }
+
 
 class Wiper:
 
@@ -188,6 +189,9 @@ class Wiper:
                 ent.Destroy()
                 mc += 1
         Plugin.Log("WipedIds", "Total Objects: " + str(mc))
+        Plugin.Log("Log", "Wiped Objects: " + str(mc))
+        if self.Broadcast:
+            Server.BroadcastFrom("Wiper", "Wiped " + str(mc) + " unused objects!")
         del IdsToWipe[:]
         return mc
 
@@ -197,6 +201,8 @@ class Wiper:
             if v is None:
                 continue
             Entity.Health -= v
+            if Entity.Health <= 0:
+                Entity.Destroy()
 
     def WipeByID(self, id):
         c = 0
@@ -219,10 +225,9 @@ class Wiper:
         timer.Kill()
         if self.Broadcast:
             Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
-        n = self.LaunchCheck()
-        Plugin.Log("Log", "Wiped Objects: " + str(n))
-        if self.Broadcast:
-            Server.BroadcastFrom("Wiper", "Wiped " + str(n) + " unused objects!")
+        Loom.QueueOnMainThread(lambda:
+            self.LaunchCheck()
+        )
         Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
 
     def DecayCallback(self, timer):
