@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.7'
+__version__ = '1.7.8'
 
 import clr
 
@@ -350,16 +350,9 @@ class BannedPeople:
             Server.BanPlayer(Player, "Console", "Range Ban Connection")
         if not GeoIPSupport:
             return
-        ini = self.TestBan()
-        IPData = geo.GetDataOfIP(ip)
-        if IPData is None:
-            return
-        s = IPData.CityData.Latitude + "," + IPData.CityData.Longitude
-        if ini.GetSetting("TestBan", s) is not None:
-            if not Server.IsBannedID(Player.SteamID) or not Server.IsBannedIP(ip):
-                Server.BanPlayer(Player, "Console", "You got rekt.")
-            else:
-                Player.Disconnect()
+        Loom.ExecuteInBiggerStackThread(lambda:
+            self.ThreadGEO(Player, ip)
+        )
 
     def On_PlayerDisconnected(self, Player):
         if DataStore.ContainsKey("DropTester", Player.SteamID):
@@ -374,6 +367,18 @@ class BannedPeople:
             Player.TeleportTo(float(l[0]), float(l[1]), float(l[2]), False)
             # self.returnInventory(Player)
             Player.MessageFrom(self.sysname, green + "Teleported back to the same position!")
+
+    def ThreadGEO(self, Player, ip):
+        ini = self.TestBan()
+        IPData = geo.GetDataOfIP(ip)
+        if IPData is None:
+            return
+        s = IPData.CityData.Latitude + "," + IPData.CityData.Longitude
+        if ini.GetSetting("TestBan", s) is not None:
+            if not Server.IsBannedID(Player.SteamID) or not Server.IsBannedIP(ip):
+                Server.BanPlayer(Player, "Console", "You got rekt.")
+            else:
+                Player.Disconnect()
 
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
