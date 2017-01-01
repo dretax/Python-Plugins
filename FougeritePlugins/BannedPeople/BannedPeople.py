@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.8'
+__version__ = '1.7.9'
 
 import clr
 
@@ -327,6 +327,9 @@ class BannedPeople:
                 if DataStore.Get("DropTester2", Player.SteamID) is not None:
                     pl = Server.Cache[DataStore.Get("DropTester2", Player.SteamID)]
                     DataStore.Remove("DropTester2", Player.SteamID)
+                    if pl.Admin:
+                        Player.MessageFrom(self.sysname, "Admins cannot be banned.")
+                        return
                     if self.announce == 1:
                         Server.BanPlayer(pl, Player.Name, "Drop Failed", Player, True)
                     else:
@@ -341,6 +344,11 @@ class BannedPeople:
                 if p is not None:
                     p.SendCommand("quit")
                     Player.MessageFrom(self.sysname, "Made him crash!")
+        elif cmd == "unbanall":
+            if Player.Admin:
+                DataStore.Flush("Ips")
+                DataStore.Flush("Ids")
+                Player.MessageFrom(self.sysname, "Unbanned all!")
 
     def On_PlayerConnected(self, Player):
         ip = Player.IP
