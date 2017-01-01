@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.9'
+__version__ = '1.4.0'
 
 import clr
 
@@ -123,6 +123,11 @@ class Wiper:
         return String
 
     def On_PlayerConnected(self, Player):
+        Loom.ExecuteInBiggerStackThread(lambda:
+            self.ProcessPlayer(Player)
+        )
+
+    def ProcessPlayer(self, Player):
         id = Player.SteamID
         today = datetime.date.today()
         ini = self.GetIni()
@@ -225,7 +230,7 @@ class Wiper:
         timer.Kill()
         if self.Broadcast:
             Server.BroadcastFrom("Wiper", "Checking for Wipeable unused objects....")
-        Loom.QueueOnMainThread(lambda:
+        Loom.ExecuteInBiggerStackThread(lambda:
             self.LaunchCheck()
         )
         Plugin.CreateTimer("Wipe", self.WipeTimer).Start()
