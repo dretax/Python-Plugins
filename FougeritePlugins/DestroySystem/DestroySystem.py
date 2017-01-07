@@ -1,10 +1,12 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.5'
+__version__ = '1.7.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
 import System
+from System import TimeSpan
+from System import DateTime
 
 """
     Class
@@ -18,6 +20,10 @@ Timers = {
 
 }
 
+BeingRaided = {
+
+}
+
 
 class DestroySystem:
     """
@@ -27,6 +33,7 @@ class DestroySystem:
     giveback = None
     TurnOfAfterATime = None
     Time = None
+    RaidTimeInSeconds = None
 
     def On_PluginInit(self):
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
@@ -34,6 +41,7 @@ class DestroySystem:
         self.giveback = int(ini.GetSetting("options", "giveback"))
         self.TurnOfAfterATime = int(ini.GetSetting("options", "TurnOfAfterATime"))
         self.Time = int(ini.GetSetting("options", "Time")) * 1000
+        self.Time = int(ini.GetSetting("options", "RaidTimeInSeconds"))
         DataStore.Flush("DestroySystem")
         DataStore.Flush("DestroySystem2")
         EntityList['WoodFoundation'] = "Wood Foundation"
@@ -143,6 +151,7 @@ class DestroySystem:
             ini.AddSetting("options", "giveback", "1")
             ini.AddSetting("options", "TurnOfAfterATime", "1")
             ini.AddSetting("options", "Time", "60")
+            ini.AddSetting("options", "RaidTimeInSeconds", "300")
             ini.Save()
         return Plugin.GetIni("DestroySys")
 
@@ -261,7 +270,20 @@ class DestroySystem:
             if OwnerID is None:
                 return
             id = HurtEvent.Attacker.SteamID
-            if long(id) == long(OwnerID) or self.IsFriend(OwnerID, id):
+            ownerlong = long(OwnerID)
+            if long(id) != ownerlong:
+                if "explosive" in gun.lower() or "grenade" in gun.lower():
+                    Time = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+                    BeingRaided[long(OwnerID)] = Time
+                    return
+            if ownerlong in BeingRaided:
+                Time = BeingRaided[ownerlong]
+                if (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Time) < self.RaidTimeInSeconds:
+                    HurtEvent.Attacker.Message("You can't destroy while having raid cooldown!")
+                    return
+                else:
+                    BeingRaided.pop(ownerlong)
+            if long(id) == ownerlong or self.IsFriend(OwnerID, id):
                 EntityName = HurtEvent.Entity.Name
                 if DataStore.ContainsKey("DestroySystem", id):
                     if self.IsEligible(HurtEvent):
