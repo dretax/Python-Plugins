@@ -41,7 +41,7 @@ class DestroySystem:
         self.giveback = int(ini.GetSetting("options", "giveback"))
         self.TurnOfAfterATime = int(ini.GetSetting("options", "TurnOfAfterATime"))
         self.Time = int(ini.GetSetting("options", "Time")) * 1000
-        self.Time = int(ini.GetSetting("options", "RaidTimeInSeconds"))
+        self.RaidTimeInSeconds = int(ini.GetSetting("options", "RaidTimeInSeconds"))
         DataStore.Flush("DestroySystem")
         DataStore.Flush("DestroySystem2")
         EntityList['WoodFoundation'] = "Wood Foundation"
