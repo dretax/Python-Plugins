@@ -8,6 +8,12 @@ import System
 from System import TimeSpan
 from System import DateTime
 
+try:
+    clr.AddReferenceByPartialName("RustPP")
+    from RustPP.Commands import ShareCommand
+except:
+    pass
+
 """
     Class
 """
@@ -34,9 +40,11 @@ class DestroySystem:
     TurnOfAfterATime = None
     Time = None
     RaidTimeInSeconds = None
+    HasRustPP = None
 
     def On_PluginInit(self):
         Util.ConsoleLog("DestroySystem by " + __author__ + " Version: " + __version__ + " loaded.", False)
+        self.HasRustPP = Server.HasRustPP
         ini = self.DestroySys()
         self.giveback = int(ini.GetSetting("options", "giveback"))
         self.TurnOfAfterATime = int(ini.GetSetting("options", "TurnOfAfterATime"))
@@ -132,7 +140,7 @@ class DestroySystem:
     def IsEligible(self, HurtEvent):
         try:
             Eligible = HurtEvent.Entity.Object._master.ComponentCarryingWeight(HurtEvent.Entity.Object)
-            return not (Eligible)
+            return not Eligible
         except:
             return True
 
@@ -166,9 +174,14 @@ class DestroySystem:
         return text
 
     def IsFriend(self, id, tid):
-        ini = self.Foundation()
-        if ini.GetSetting(str(id), str(tid)) is not None:
-            return True
+        if not self.HasRustPP:
+            ini = self.Foundation()
+            if ini.GetSetting(str(id), str(tid)) is not None:
+                return True
+        else:
+            sharelist = ShareCommand.shared_doors[long(id)]
+            if sharelist is not None:
+                return sharelist.Contains(long(tid))
         return False
 
     def DestroyTimeoutCallback(self, timer):
@@ -230,6 +243,9 @@ class DestroySystem:
                 Player.Message("---DestroySystem---")
                 Player.Message("You quit Destroy ALL mode!")
         elif cmd == "sharefoundation":
+            if self.HasRustPP:
+                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                return
             if len(args) == 0:
                 Player.Message("Usage: /sharefoundation name")
                 return
@@ -240,11 +256,17 @@ class DestroySystem:
             ini.Save()
             Player.Message("Sharing Foundations with: " + playerr.Name)
         elif cmd == "lfoundation":
+            if self.HasRustPP:
+                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                return
             enum = ini.EnumSection(Player.SteamID)
             Player.Message("Foundation List:")
             for id in enum:
                 Player.Message("- " + ini.GetSetting(Player.SteamID, id))
         elif cmd == "delfoundation":
+            if self.HasRustPP:
+                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                return
             if len(args) == 0:
                 Player.Message("Usage: /delfoundation name")
                 return
@@ -281,8 +303,7 @@ class DestroySystem:
                 if (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Time) < self.RaidTimeInSeconds:
                     HurtEvent.Attacker.Message("You can't destroy while having raid cooldown!")
                     return
-                else:
-                    BeingRaided.pop(ownerlong)
+                BeingRaided.pop(ownerlong)
             if long(id) == ownerlong or self.IsFriend(OwnerID, id):
                 EntityName = HurtEvent.Entity.Name
                 if DataStore.ContainsKey("DestroySystem", id):
