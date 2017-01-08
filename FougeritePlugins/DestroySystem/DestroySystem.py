@@ -244,7 +244,7 @@ class DestroySystem:
                 Player.Message("You quit Destroy ALL mode!")
         elif cmd == "sharefoundation":
             if self.HasRustPP:
-                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                Player.Message("No need to. Use /share and /uunshare to share foundations.")
                 return
             if len(args) == 0:
                 Player.Message("Usage: /sharefoundation name")
@@ -257,7 +257,7 @@ class DestroySystem:
             Player.Message("Sharing Foundations with: " + playerr.Name)
         elif cmd == "lfoundation":
             if self.HasRustPP:
-                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                Player.Message("No need to. Use /share and /uunshare to share foundations.")
                 return
             enum = ini.EnumSection(Player.SteamID)
             Player.Message("Foundation List:")
@@ -265,7 +265,7 @@ class DestroySystem:
                 Player.Message("- " + ini.GetSetting(Player.SteamID, id))
         elif cmd == "delfoundation":
             if self.HasRustPP:
-                Player.Message("No need to. Use /share and /uunshare to share foundations too.")
+                Player.Message("No need to. Use /share and /uunshare to share foundations.")
                 return
             if len(args) == 0:
                 Player.Message("Usage: /delfoundation name")
@@ -280,6 +280,10 @@ class DestroySystem:
                     Player.Message("Deleted " + n + " from foundation whitelist.")
                     return
             Player.Message("Couldn't find: " + text)
+
+    def On_PlayerDisconnected(self, Player):
+        if Player.UID in BeingRaided.keys():
+            BeingRaided.pop(Player.UID)
 
     def On_EntityHurt(self, HurtEvent):
         if not HurtEvent.AttackerIsPlayer:
@@ -302,8 +306,8 @@ class DestroySystem:
                 Time = BeingRaided[ownerlong]
                 diff = (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Time)
                 if diff < self.RaidTimeInSeconds:
-                    HurtEvent.Attacker.Message("You can't destroy while having raid cooldown! (" + str(diff)
-                                               + "/" + str(self.RaidTimeInSeconds))
+                    HurtEvent.Attacker.Message("You can't destroy while having raid cooldown! (" + str(round(diff, 2))
+                                               + "/" + str(self.RaidTimeInSeconds) + ")")
                     return
                 BeingRaided.pop(ownerlong)
             if Data.ToUlong(id) == ownerlong or self.IsFriend(OwnerID, id):
