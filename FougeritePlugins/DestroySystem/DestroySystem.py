@@ -147,9 +147,9 @@ class DestroySystem:
     def GetIt(self, Entity):
         try:
             if Entity.IsDeployableObject():
-                return Entity.Object.ownerID
+                return str(Entity.Object.ownerID)
             if Entity.IsStructure():
-                return Entity.Object._master.ownerID
+                return str(Entity.Object._master.ownerID)
         except:
             return None
 
@@ -179,9 +179,9 @@ class DestroySystem:
             if ini.GetSetting(str(id), str(tid)) is not None:
                 return True
         else:
-            sharelist = ShareCommand.shared_doors[long(id)]
+            sharelist = ShareCommand.shared_doors[Data.ToUlong(id)]
             if sharelist is not None:
-                return sharelist.Contains(long(tid))
+                return sharelist.Contains(Data.ToUlong(tid))
         return False
 
     def DestroyTimeoutCallback(self, timer):
@@ -292,19 +292,21 @@ class DestroySystem:
             if OwnerID is None:
                 return
             id = HurtEvent.Attacker.SteamID
-            ownerlong = long(OwnerID)
-            if long(id) != ownerlong:
+            ownerlong = Data.ToUlong(OwnerID)
+            if Data.ToUlong(id) != ownerlong:
                 if "explosive" in gun.lower() or "grenade" in gun.lower():
                     Time = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
-                    BeingRaided[long(OwnerID)] = Time
+                    BeingRaided[Data.ToUlong(OwnerID)] = Time
                     return
-            if ownerlong in BeingRaided:
+            if ownerlong in BeingRaided.keys():
                 Time = BeingRaided[ownerlong]
-                if (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Time) < self.RaidTimeInSeconds:
-                    HurtEvent.Attacker.Message("You can't destroy while having raid cooldown!")
+                diff = (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Time)
+                if diff < self.RaidTimeInSeconds:
+                    HurtEvent.Attacker.Message("You can't destroy while having raid cooldown! (" + str(diff)
+                                               + "/" + str(self.RaidTimeInSeconds))
                     return
                 BeingRaided.pop(ownerlong)
-            if long(id) == ownerlong or self.IsFriend(OwnerID, id):
+            if Data.ToUlong(id) == ownerlong or self.IsFriend(OwnerID, id):
                 EntityName = HurtEvent.Entity.Name
                 if DataStore.ContainsKey("DestroySystem", id):
                     if self.IsEligible(HurtEvent):
