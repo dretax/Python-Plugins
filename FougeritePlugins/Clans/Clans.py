@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.8'
+__version__ = '1.1.9'
 
 import clr
 
@@ -416,6 +416,9 @@ class Clans:
     """
 
     def On_PlayerConnected(self, Player):
+        self.ProcessPlayer(Player)
+
+    def ProcessPlayer(self, Player):
         if self.HasClan(Player.SteamID):
             clan = self.GetClanOfPlayer(Player.SteamID)
             PlayersWhoAreInAClan[Player.SteamID] = clan
@@ -763,7 +766,7 @@ class Clans:
                     return
                 self.RemovePlayerFromClan(clan, playerr.SteamID)
                 online = self.GetAllOnlinePlayersOfClan(clan)
-                name = Player.Name.replace('[' + clan + ']', '').strip(' ')
+                name = playerr.Name.replace('[' + clan + ']', '').strip(' ')
                 playerr.Name = name
                 if playerr.SteamID in PlayersWhoAreInAClan.keys():
                     PlayersWhoAreInAClan.pop(playerr.SteamID)
