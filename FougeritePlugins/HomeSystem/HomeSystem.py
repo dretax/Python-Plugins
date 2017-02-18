@@ -175,13 +175,6 @@ class HomeSystem:
             return self.TpDelay
         return self.MaxHomes
 
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
-
     def isMod(self, id):
         if DataStore.ContainsKey("Moderators", id):
             return True
@@ -636,22 +629,25 @@ class HomeSystem:
                     inventory.AddItem("Metal Fragments", 100)
 
     def On_PlayerHurt(self, HurtEvent):
-        if HurtEvent.Attacker is not None and HurtEvent.Victim is not None:
-            if self.checkdamage == 0:
-                return
-            id = self.TrytoGrabID(HurtEvent.Attacker)
-            vid = self.TrytoGrabID(HurtEvent.Victim)
-            if id is not None and vid is not None:
-                if HurtEvent.Victim in Pending:
-                    Pending.remove(HurtEvent.Victim)
-                    if self.movec == 1:
-                        self.Freezer(HurtEvent.Victim, 2)
-                    HurtEvent.Victim.MessageFrom(self.homesystemname, "Teleportation Cancelled. You received damage.")
-                    DataStore.Remove("home_cooldown", vid)
+        if self.checkdamage == 0:
+            return
+        if HurtEvent.Attacker is not None and HurtEvent.Victim is not None \
+            and HurtEvent.VictimIsPlayer and HurtEvent.AttackerIsPlayer:
+                id = HurtEvent.Attacker.SteamID
+                vid = HurtEvent.Victim.SteamID
+                if id is not None and vid is not None:
+                    if HurtEvent.Victim in Pending:
+                        if self.movec == 1:
+                            self.Freezer(HurtEvent.Victim, 2)
+                        Pending.remove(HurtEvent.Victim)
+                        HurtEvent.Victim.MessageFrom(self.homesystemname,
+                                                     "Teleportation Cancelled. You received damage.")
+                        DataStore.Remove("home_cooldown", vid)
 
     def On_PlayerKilled(self, DeathEvent):
-        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            vid = self.TrytoGrabID(DeathEvent.Victim.SteamID)
+        if DeathEvent.DamageType is not None and DeathEvent.Victim is not None and DeathEvent.Attacker is not None \
+                and DeathEvent.VictimIsPlayer:
+            vid = DeathEvent.Victim.SteamID
             if vid is None:
                 return
             if self.antiroof == 1:
@@ -687,10 +683,9 @@ class HomeSystem:
                     Player.MessageFrom(self.homesystemname, "Spawned at home!")
 
     def On_EntityHurt(self, HurtEvent):
-        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay:
-            id = self.TrytoGrabID(HurtEvent.Attacker)
-            if id is None:
-                return
+        if HurtEvent.Attacker is not None and HurtEvent.Entity is not None and not HurtEvent.IsDecay \
+                and HurtEvent.AttackerIsPlayer:
+            id = HurtEvent.Attacker.SteamID
             if DataStore.ContainsKey("HomeHit", id):
                 HurtEvent.DamageAmount = 0
                 name = DataStore.Get("HomeHit", id)
