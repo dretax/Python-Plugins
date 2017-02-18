@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.5'
+__version__ = '1.5.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -190,6 +190,7 @@ class HungerGames:
         self.st = Util.TryFindReturnType("StructureComponent")
         self.Metabolism = Util.TryFindReturnType("Metabolism")
         self.LootableObject = Util.TryFindReturnType("LootableObject")
+        DataStore.Flush("HGIG")
         DataStore.Flush("HDoorMode")
         DataStore.Flush("HungerGamesACD")
         ini = self.HungerGames()
@@ -362,6 +363,21 @@ class HungerGames:
     def Replace(self, String):
         str = re.sub('[(\)]', '', String)
         return str.split(',')
+
+    def DoubleTeleport(self, Player, xtime, location):
+        List = Plugin.CreateDict()
+        List["Player"] = Player
+        List["Pos"] = location
+        Plugin.CreateParallelTimer("DoubleTeleport", xtime * 1000, List).Start()
+
+    def DoubleTeleportCallback(self, timer):
+        timer.Kill()
+        List = timer.Args
+        Player = List["Player"]
+        if not Player.IsOnline:
+            return
+        loc = List["Pos"]
+        Player.TeleportTo(loc, False)
 
     def recordInventory(self, Player):
         Inventory = []
@@ -536,6 +552,7 @@ class HungerGames:
                                                  "HUNGERGAMES--------------------------------")
                             self.Reset()
                             self.ResetWalls()
+                        Server.BroadcastFrom(sysname, yellow + "Type /hg inventory <- To Get your items back")
                     else:
                         Player.Message("You aren't admin!")
                         return
@@ -658,6 +675,7 @@ class HungerGames:
                         l = self.Replace(ini.GetSetting("SpawnLocations", str(leng)))
                         loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
                         Player.TeleportTo(loc, False)
+                        self.DoubleTeleport(Player, 2, loc)
                         self.recordInventory(Player)
                         enum = ini2.EnumSection("DefaultItems")
                         for item in enum:
@@ -992,8 +1010,11 @@ class HungerGames:
                 Player.AddAntiRad(Player.RadLevel)
                 l = self.Replace(DataStore.Get("HLastLoc", id))
                 loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
-                Player.TeleportTo(loc)
+                Player.TeleportTo(loc, False)
+                self.DoubleTeleport(Player, 2, loc)
                 DataStore.Remove("HLastLoc", id)
+        else:
+            DataStore.Add("HGBypass", Player.UID, 1)
 
     def FindWalls(self, location, name, spawnRot):
         wall = Util.FindStructuresAround(location, float(1.5))
@@ -1517,6 +1538,8 @@ class HungerGames:
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         if Player.UID in Awaiting:
+            if Awaiting[Player.UID].DisconnectLocation is not None:
+                Player.TeleportTo(Awaiting[Player.UID].DisconnectLocation, False)
             Awaiting.remove(Player.UID)
             f = None
             for x in self.Players:
@@ -1541,6 +1564,11 @@ class HungerGames:
             Player.AddAntiRad(Player.RadLevel)
             if self.GotRustPP:
                 Server.GetRustPPAPI().GetFriendsCommand.RemoveTempException(Player.UID)
+        if DataStore.Get("HGBypass", Player.UID) is not None:
+            Player.Inventory.Clear()
+            Player.MessageFrom(sysname, yellow +
+                               "Your inventory was cleared, since you disconnected during HG and failed to reconnect")
+            DataStore.Remove("HGBypass", Player.UID)
 
     def On_EntityDeployed(self, Player, Entity, ActualPlacer):
         if ActualPlacer in self.Players:
