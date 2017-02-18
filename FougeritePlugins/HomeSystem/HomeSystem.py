@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.6.2'
+__version__ = '2.6.3'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -166,8 +166,8 @@ class HomeSystem:
         elif type == "CoolDown":
             if DataStore.Get("DonatorRank-Cooldown", id) is not None:
                 CoolDown = DataStore.Get("DonatorRank-Cooldown", id)
-                return CoolDown
-            return self.HomeCooldown
+                return (CoolDown / 60000) * 60
+            return (self.HomeCooldown / 60000) * 60
         elif type == "TpDelay":
             if DataStore.Get("DonatorRank-TpDelay", id) is not None:
                 TpDelay = DataStore.Get("DonatorRank-TpDelay", id)
@@ -300,7 +300,7 @@ class HomeSystem:
         # Join Callback, this should handle the delay
         if callback == 1:
             Player.TeleportTo(loc, True)
-            Player.MessageFrom(self.homesystemname, "You have been teleported to your home again.")
+            Player.MessageFrom(self.homesystemname, "You have been teleported to your home.")
             Pending.remove(Player)
         # Home Teleport Callback
         elif callback == 2:
@@ -308,16 +308,14 @@ class HomeSystem:
                 fr = self.Freezer(Player, 2)
                 if not fr:
                     return
-                Player.TeleportTo(loc, False)
-                Player.MessageFrom(self.homesystemname, "You have been teleported home.")
+                Player.TeleportToTheClosestSpawnpoint(loc, False)
+                Player.MessageFrom(self.homesystemname, "You have been teleported near home.")
                 DataStore.Add("homey", id, loc.y)
-                if self.doubleteleport:
-                    self.addJob(Player, 3, 1, loc)
+                self.addJob(Player, 3, 1, loc)
             else:
-                Player.TeleportTo(loc)
-                if self.doubleteleport:
-                    self.addJob(Player, 3, 1, loc)
-                Player.MessageFrom(self.homesystemname, "You have been teleported home.")
+                Player.TeleportToTheClosestSpawnpoint(loc)
+                self.addJob(Player, 3, 1, loc)
+                Player.MessageFrom(self.homesystemname, "You have been teleported near home.")
         # Random Teleportation Delay
         elif callback == 3:
             Player.TeleportTo(loc)
@@ -445,24 +443,23 @@ class HomeSystem:
                     Player.MessageFrom(self.homesystemname, "You don't have a home called: " + home)
                     return
                 cooldown = int(self.DonatorRankCheck("CoolDown", id))
+                # cooldown = int(self.DonatorRankCheck("CoolDown", id))
                 time = DataStore.Get("home_cooldown", id)
                 if time is None:
-                    DataStore.Add("home_cooldown", id, 7)
                     time = 7
                 tpdelay = int(self.DonatorRankCheck("TpDelay", id))
-                calc = System.Environment.TickCount - time
-                if calc < 0 or math.isnan(calc) or math.isnan(time):
-                    DataStore.Add("home_cooldown", id, 7)
-                    time = 7
+                calc = (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - time)
                 if calc >= cooldown or time == 7:
                     loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
+                    TimeP = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
                     if tpdelay == 0:
-                        Player.TeleportTo(loc)
-                        self.addJob(Player, 2, 2, loc)
-                        DataStore.Add("home_cooldown", id, System.Environment.TickCount)
-                        Player.MessageFrom(self.homesystemname, "Teleported to home!")
+                        Player.TeleportToTheClosestSpawnpoint(loc)
+                        Pending.append(Player)
+                        self.addJob(Player, 2, 1, loc)
+                        DataStore.Add("home_cooldown", id, TimeP)
+                        Player.MessageFrom(self.homesystemname, "Teleported near home!")
                     else:
-                        DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                        DataStore.Add("home_cooldown", id, TimeP)
                         Pending.append(Player)
                         self.addJob(Player, tpdelay, 2, loc)
                         Player.MessageFrom(self.homesystemname, "Teleporting you to home in: " + str(tpdelay)
@@ -478,9 +475,9 @@ class HomeSystem:
                             Player.MessageFrom(self.homesystemname, red + "You can't take damage while teleporting.")
                 else:
                     Player.Notice("You have to wait before teleporting again!")
-                    done = round((calc / 1000) / 60, 2)
-                    done2 = round((cooldown / 1000) / 60, 2)
-                    Player.MessageFrom(self.homesystemname, "Time: " + str(done) + "/" + str(done2))
+                    done = round(calc, 2)
+                    done2 = round(cooldown, 2)
+                    Player.MessageFrom(self.homesystemname, "Time: " + str(done) + " / " + str(done2))
         elif cmd == "sethome":
             if len(args) != 1:
                 Player.MessageFrom(self.homesystemname, "Usage: /sethome name")
