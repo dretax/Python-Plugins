@@ -368,7 +368,7 @@ class HungerGames:
         List = Plugin.CreateDict()
         List["Player"] = Player
         List["Pos"] = location
-        Plugin.CreateParallelTimer("DoubleTeleport", xtime * 1000, List).Start()
+        Plugin.CreateParallelTimer("DoubleTeleport", xtime * 2000, List).Start()
 
     def DoubleTeleportCallback(self, timer):
         timer.Kill()
