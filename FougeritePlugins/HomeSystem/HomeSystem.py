@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.6.3'
+__version__ = '2.6.4'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -41,6 +41,7 @@ class HomeSystem:
     MaxHomes = None
     HomeCooldown = None
     TpDelay = None
+    TestTeleport = None
 
     def On_PluginInit(self):
         DataStore.Flush("home_joincooldown")
@@ -63,6 +64,7 @@ class HomeSystem:
         self.MaxHomes = config.GetSetting("Settings", "Maxhomes")
         self.HomeCooldown = int(config.GetSetting("Settings", "Cooldown"))
         self.TpDelay = int(config.GetSetting("Settings", "tpdelay"))
+        self.TestTeleport = int(config.GetSetting("Settings", "TestTeleport"))
         Util.ConsoleLog("HomeSystem" + " v" + __version__ + " by " + __author__ + " loaded.", True)
 
     """
@@ -301,12 +303,18 @@ class HomeSystem:
                 fr = self.Freezer(Player, 2)
                 if not fr:
                     return
-                Player.TeleportToTheClosestSpawnpoint(loc, False)
+                if self.TestTeleport == 1:
+                    Player.TeleportToTheClosestSpawnpoint(loc, False)
+                else:
+                    Player.TeleportTo(loc, False)
                 Player.MessageFrom(self.homesystemname, "You have been teleported near home.")
                 DataStore.Add("homey", id, loc.y)
                 self.addJob(Player, 3, 1, loc)
             else:
-                Player.TeleportToTheClosestSpawnpoint(loc)
+                if self.TestTeleport == 1:
+                    Player.TeleportToTheClosestSpawnpoint(loc, False)
+                else:
+                    Player.TeleportTo(loc, False)
                 self.addJob(Player, 3, 1, loc)
                 Player.MessageFrom(self.homesystemname, "You have been teleported near home.")
         # Random Teleportation Delay
@@ -446,7 +454,10 @@ class HomeSystem:
                     loc = Util.CreateVector(float(check[0]), float(check[1]), float(check[2]))
                     TimeP = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
                     if tpdelay == 0:
-                        Player.TeleportToTheClosestSpawnpoint(loc)
+                        if self.TestTeleport == 1:
+                            Player.TeleportToTheClosestSpawnpoint(loc, False)
+                        else:
+                            Player.TeleportTo(loc, False)
                         Pending.append(Player)
                         self.addJob(Player, 2, 1, loc)
                         DataStore.Add("home_cooldown", id, TimeP)
