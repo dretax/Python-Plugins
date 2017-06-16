@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.6'
+__version__ = '1.5.7'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -642,6 +642,11 @@ class HungerGames:
                     if self.HasStarted:
                         Player.MessageFrom(sysname, "There is a game in progress.")
                         return
+                    objects = Physics.OverlapSphere(Player.Location, 6)
+                    for x in objects:
+                        if "meshbatch" in x.name.lower():
+                            Player.MessageFrom(sysname, red + "You can't join the game if you are near buildings.")
+                            return
                     ini2 = self.DefaultItems()
                     enum = len(ini2.EnumSection("Rewards"))
                     if Player.Inventory.FreeSlots < enum:
