@@ -34,12 +34,12 @@ class KillingSpree:
 
         if LastSeen is not None:
             if int(CurrentSpree) > 0 and (TimeStamp - int(LastSeen)) >= 900:
-                self.SetKillingSpree(Player.SteamID, 0)
+                self.SetKillingSpree(Player.UID, 0)
                 Player.Message("Your killing spree has been reset.")
 
     def On_PlayerDisconnected(self, Player):
         TimeStamp = int(round(time.time()))
-        self.SetLastSeen(Player.SteamID, TimeStamp)
+        self.SetLastSeen(Player.UID, TimeStamp)
 
     def GetLastSeen(self, SteamID):
         return DataStore.Get("Peak_KS_LastSeen", SteamID)
