@@ -1,5 +1,6 @@
-__author__ = 'Converted By DreTaX'
-__version__ = '1.1'
+__title__ = 'KillingSpree'
+__author__ = 'DreTaX'
+__version__ = '1.2'
 
 import clr
 
@@ -12,45 +13,21 @@ import time
 """
 
 
-
 class KillingSpree:
 
-    def IsAnimal(self, killer):
-        if killer == 'Wolf' or killer == 'Bear' or killer == 'MutantWolf' or killer == 'MutantBear':
-            return True
-        return False
-
-    def TrytoGrabID(self, Player):
-        try:
-            id = Player.SteamID
-            return id
-        except:
-            return None
+    def On_PluginInit(self):
+        DataStore.Flush("Peak_KS_LastSeen")
 
     def On_PlayerKilled(self, DeathEvent):
         if DeathEvent.Victim is not None and DeathEvent.Attacker is not None:
-            id = self.TrytoGrabID(DeathEvent.Attacker)
-            vid = self.TrytoGrabID(DeathEvent.Victim)
-            try:
-                killer = str(DeathEvent.Attacker.Name)
-            except:
-                return
-            if self.IsAnimal(killer) and id is None:
-                return
-            if long(id) != long(vid):
-                CurrentSpree = int(self.GetCurrentKillingSpree(id)) + 1
-                self.SetKillingSpree(vid, 0)
-                self.SetKillingSpree(id, CurrentSpree)
-                self.ShowKillingSpreeNotification(killer, CurrentSpree)
+            if DeathEvent.VictimIsPlayer and DeathEvent.AttackerIsPlayer and DeathEvent.Victim.UID != DeathEvent.Attacker.UID:
+                CurrentSpree = int(self.GetCurrentKillingSpree(DeathEvent.Attacker.UID)) + 1
+                self.SetKillingSpree(DeathEvent.Victim.UID, 0)
+                self.SetKillingSpree(DeathEvent.Attacker.UID, CurrentSpree)
+                self.ShowKillingSpreeNotification(DeathEvent.Attacker, CurrentSpree)
 
     def On_PlayerConnected(self, Player):
-        id = self.TrytoGrabID(Player)
-        if id is None:
-            try:
-                Player.Disconnect()
-            except:
-                pass
-            return
+        id = Player.UID
         LastSeen = self.GetLastSeen(id)
         TimeStamp = round(time.time())
         CurrentSpree = self.GetCurrentKillingSpree(id)
