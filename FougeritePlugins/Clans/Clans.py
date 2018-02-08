@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1.9'
+__version__ = '1.2.0'
 
 import clr
 
@@ -36,12 +36,14 @@ class Clans:
     SystemName = None
     Cost = None
     AllowSelfDamage = None
+    ClanMemberLimit = None
 
     def On_PluginInit(self):
         cfg = self.ClansConfig()
         self.SystemName = cfg.GetSetting("Settings", "Sys")
         self.Cost = int(cfg.GetSetting("Settings", "Cost"))
         self.AllowSelfDamage = cfg.GetBoolSetting("Settings", "AllowSelfDamage")
+        self.ClanMemberLimit = int(cfg.GetSetting("Settings", "ClanMemberLimit"))
         claninfo = self.ClanInfo()
         sec = claninfo.EnumSection("ClanList")
         for clan in sec:
@@ -62,6 +64,7 @@ class Clans:
             ini.AddSetting("Settings", "Sys", "[Clans]")
             ini.AddSetting("Settings", "Cost", "0")
             ini.AddSetting("Settings", "AllowSelfDamage", "True")
+            ini.AddSetting("Settings", "ClanMemberLimit", "0")
             ini.Save()
         return Plugin.GetIni("ClansConfig")
 
@@ -84,8 +87,7 @@ class Clans:
         elif ini.ContainsSetting("ClanMembers", ID) or ini.ContainsSetting("ClanOfficers", ID) or \
                 ini.ContainsSetting("ClanOwners", ID) or ini.ContainsSetting("ClanCoOwners", ID):
             return True
-        else:
-            return False
+        return False
 
     def GetClanMember(self, Clan, ID):
         ini = self.Clans()
@@ -108,10 +110,8 @@ class Clans:
             elif ini.GetSetting("ClanCoOwners", ID) is not None:
                 PlayersWhoAreInAClan[ID] = ini.GetSetting("ClanCoOwners", ID)
                 return ini.GetSetting("ClanCoOwners", ID)
-            else:
-                return None
-        else:
-            return PlayersWhoAreInAClan[ID]
+            return None
+        return PlayersWhoAreInAClan[ID]
 
     def GetAllOnlinePlayersOfClan(self, Clan):
         ini = self.Clans()
@@ -398,12 +398,17 @@ class Clans:
 
     def GetMoney(self, id):
         m = DataStore.Get("iConomy", id)
+        if not m:
+            m = 0
         return float(m)
 
     def TakeMoney(self, id, amount, Player=None):
         sys = DataStore.Get("iConomy", "SysName")
         mark = DataStore.Get("iConomy", "MoneyMark")
-        m = float(DataStore.Get("iConomy", id))
+        m = DataStore.Get("iConomy", id)
+        if not m:
+            m = 0
+        m = float(m)
         c = m - float(amount)
         if c < 0.0:
             return 12
@@ -477,6 +482,7 @@ class Clans:
                     Player.MessageFrom(self.SystemName, "/cleave - Leave clan")
                     Player.MessageFrom(self.SystemName, "/cdisband - Disbands clan, If ownerpw was set, It will need It")
                     Player.MessageFrom(self.SystemName, "/cforcedel clanname - Deletes a clan")
+                    Player.MessageFrom(self.SystemName, "/cff (1 - 0) - Sets FriendlyFire on/off")
                 else:
                     Player.MessageFrom(self.SystemName, "Usage /chelp pagenumber (1 or 2)")
         elif command == "clist":
@@ -599,8 +605,11 @@ class Clans:
                     Player.MessageFrom(self.SystemName, "This clan already exists!")
                     return
             self.CreateClan(text, id, str(Player.Name))
-            if self.Cost > 0:
+            if self.Cost > 0 and self.GetMoney(Player.SteamID) > self.Cost:
                 self.TakeMoney(id, self.Cost, Player)
+            else:
+                Player.MessageFrom(self.SystemName, "You need money for this! (" + str(self.Cost) + ")")
+                return
             Server.BroadcastFrom(self.SystemName, text + " got created by " + Player.Name)
             ClanFriendlyFireMemory[text] = False
             Player.MessageFrom(self.SystemName, "You created your first clan! /cinvite playername to invite!")
@@ -616,6 +625,9 @@ class Clans:
             if self.GetClanRank(id) == 1:
                 Player.MessageFrom(self.SystemName, "You must be an officer/co-owner/owner to do this.")
                 return
+            if not self.HasClan(id):
+                Player.MessageFrom(self.SystemName, "You don't have a clan!")
+                return
             playerr = self.CheckV(Player, args)
             if playerr is None:
                 return
@@ -629,6 +641,10 @@ class Clans:
                 Player.MessageFrom(self.SystemName, "Gosh, this is yourself....")
                 return
             clan = self.GetClanOfPlayer(id)
+            sizeofclan = len(self.GetClanMembersList(clan)) + 1
+            if sizeofclan >= self.ClanMemberLimit and self.ClanMemberLimit != 0:
+                Player.MessageFrom(self.SystemName, "Clan is full! Maximum Size: " + str(self.ClanMemberLimit))
+                return
             self.MakePending(playerr.SteamID, id)
             playerr.MessageFrom(self.SystemName, "Clan " + clan + " invited you to join their forces!")
             playerr.MessageFrom(self.SystemName,
