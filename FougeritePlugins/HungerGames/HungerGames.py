@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.7'
+__version__ = '1.5.8'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -1022,10 +1022,10 @@ class HungerGames:
             DataStore.Add("HGBypass", Player.UID, 1)
 
     def FindWalls(self, location, name, spawnRot):
-        wall = Util.FindStructuresAround(location, float(1.5))
-        if len(wall) >= 1:
-            for x in wall:
-                walls.append(x)
+        wall = Util.FindClosestEntity(location, float(1.5))
+        if wall is not None:
+            if wall.IsStructure():
+                walls.append(wall)
             return
         try:
             sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
@@ -1039,7 +1039,7 @@ class HungerGames:
             pass
 
     def FindChest(self, location, name, spawnRot):
-        chest = Util.FindDeployableAt(location)
+        chest = Util.FindClosestEntity(location, 2)
         if chest is not None:
             loot.append(chest)
             return
