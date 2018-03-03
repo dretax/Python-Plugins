@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -123,14 +123,12 @@ class Kits:
                     return
                 get = self.GetStringFromArray(array, str(args[0]))
                 get = re.sub('[[\]\']+', '', get).split(':')
-                cooldown = int(get[1])
+                cooldown = int(get[1]) / 60000 * 60
                 if cooldown > 0:
-                    systick = System.Environment.TickCount
-                    if DataStore.Get("startercooldown" + str(args[0]), Player.SteamID) is None:
-                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, 7)
-                    time = DataStore.Get("startercooldown" + str(args[0]), Player.SteamID)
-                    if (systick - time) < 0 or math.isnan(systick - time):
-                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, 7)
+                    systick = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+                    time = DataStore.Get("startercooldown" + str(args[0]), Player.UID)
+                    if time is None:
+                        DataStore.Add("startercooldown" + str(args[0]), Player.UID, 7)
                         time = 7
                     calc = systick - time
                     if calc >= cooldown or time == 7:
@@ -138,14 +136,22 @@ class Kits:
                         for x in data.ItemsDict.keys():
                             inv.AddItem(x, data.ItemsDict[x])
                         Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
-                        DataStore.Add("startercooldown" + str(args[0]), Player.SteamID, System.Environment.TickCount)
+                        DataStore.Add("startercooldown" + str(args[0]), Player.UID, TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                     else:
                         Player.MessageFrom("Kits", "You have to wait before using this again!")
-                        done = round((calc / 1000) / 60, 2)
-                        done2 = round((cooldown / 1000) / 60, 2)
-                        Player.MessageFrom("Kits", "Time Remaining: " + str(done) + "/" + str(done2) + " minutes")
+                        done = round(calc)
+                        done2 = round(cooldown, 2)
+                        Player.MessageFrom("Kits", "Time Remaining: " + str(done) + " / " + str(done2) + " seconds")
                 else:
                     inv = Player.Inventory
                     for x in data.ItemsDict.keys():
                         inv.AddItem(x, data.ItemsDict[x])
                     Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
+        elif cmd == "flushkit":
+            if Player.Admin:
+                if len(args) == 0:
+                    Player.MessageFrom("Kits", "/flushkit kitname")
+                    return
+                text = str.join("", args)
+                DataStore.Flush("startercooldown" + text)
+                Player.MessageFrom("Kits", "Flushed!")
