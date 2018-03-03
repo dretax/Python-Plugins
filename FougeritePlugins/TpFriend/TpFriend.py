@@ -1,10 +1,9 @@
 __author__ = 'DreTaX'
-__version__ = '3.7.5'
+__version__ = '3.7.6'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
 import Fougerite
-import math
 import System
 from System import *
 import re
@@ -56,7 +55,7 @@ class TpFriend:
         self.sys = config.GetSetting("Settings", "sysname")
         self.DizzyDist = float(config.GetSetting("Settings", "DizzyDist"))
         self.Maxuses = int(config.GetSetting("Settings", "Maxuses"))
-        self.Cooldown = int(config.GetSetting("Settings", "cooldown"))
+        self.Cooldown = int(config.GetSetting("Settings", "cooldown")) / 60000 * 60
         self.TimeoutR = int(config.GetSetting("Settings", "timeoutr"))
         self.SafeTPCheck = int(config.GetSetting("Settings", "safetpcheck"))
         self.TpDelay = int(config.GetSetting("Settings", "tpdelay"))
@@ -196,7 +195,7 @@ class TpFriend:
                 if PlayerTo.IsNearStructure:
                     DataStore.Add("tpfriendcooldown", id, 7)
                     PlayerFrom.MessageFrom(self.sys, "Your player is near a house, can't teleport!")
-                    PlayerTo.MessageFrom(self.sys, "You are nwear a house, can't teleport!")
+                    PlayerTo.MessageFrom(self.sys, "You are near a house, can't teleport!")
                     return
             PlayerFrom.TeleportTo(PlayerTo.Location, False)
             PlayerFrom.MessageFrom(self.sys, "You have been teleported to your friend")
@@ -229,8 +228,10 @@ class TpFriend:
             y = float(PlayerFrom.Y)
             oy = float(DataStore.Get("tpfriendy", id))
             if oy - y > self.DizzyDist:
-                Server.BroadcastFrom(self.sys, PlayerFrom.Name + red + " tried to fall through a house via tpa. Kicked.")
-                Plugin.Log("DizzyHackBypass", PlayerFrom.Name + " - " + PlayerFrom.SteamID + " - " + PlayerFrom.IP + " - " + str(PlayerFrom.Location))
+                Server.BroadcastFrom(self.sys, PlayerFrom.Name + red
+                                     + " tried to fall through a house via tpa. Kicked.")
+                Plugin.Log("DizzyHackBypass", PlayerFrom.Name + " - " + PlayerFrom.SteamID + " - " + PlayerFrom.IP
+                           + " - " + str(PlayerFrom.Location))
                 rand = self.DefaultLoc()
                 num = random.randrange(1, 8155)
                 loc = rand.GetSetting("DefaultLoc", str(num))
@@ -284,16 +285,13 @@ class TpFriend:
                 if time is None:
                     DataStore.Add("tpfriendcooldown", id, 7)
                     time = 7
-                calc = System.Environment.TickCount - time
-                if calc < 0 or math.isnan(calc):
-                    DataStore.Add("tpfriendcooldown", id, 7)
-                    time = 7
+                calc = (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - time)
                 if calc >= self.Cooldown or time == 7:
                     if usedtp is None:
                         DataStore.Add("tpfriendusedtp", id, 0)
                         usedtp = 0
                     if self.Maxuses > 0:
-                        if self.Maxuses  <= int(usedtp):
+                        if self.Maxuses <= int(usedtp):
                             Player.MessageFrom(self.sys, "Reached max number of teleport requests!")
                             return
                     if DataStore.Get("tpfriendpending2", idt) is not None:
@@ -303,7 +301,7 @@ class TpFriend:
                         Player.MessageFrom(self.sys, "You are pending a request. Wait a bit or cancel It")
                         return
 
-                    DataStore.Add("tpfriendcooldown", id, System.Environment.TickCount)
+                    DataStore.Add("tpfriendcooldown", id, TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                     playertor.MessageFrom(self.sys, "Teleport request from " + name + " to accept write /tpaccept")
                     Player.MessageFrom(self.sys, "Teleport request sent to " + namet)
                     DataStore.Add("tpfriendpending", id, idt)
@@ -315,9 +313,9 @@ class TpFriend:
                     self.addJob(self.TimeoutR, Player, playertor, 2, id, idt)
                 else:
                     Player.MessageFrom(self.sys, "You have to wait before teleporting again!")
-                    done = round((calc / 1000) / 60, 2)
-                    done2 = round((self.Cooldown / 1000) / 60, 2)
-                    Player.MessageFrom(self.sys, "Time Remaining: " + str(done) + "/" + str(done2) + " mins")
+                    done = round(calc)
+                    done2 = round(self.Cooldown, 2)
+                    Player.MessageFrom(self.sys, "Time Remaining: " + str(done) + " / " + str(done2) + " seconds")
         elif cmd == "tpaccept":
             pending = DataStore.Get("tpfriendpending2", id)
             if pending is not None:
