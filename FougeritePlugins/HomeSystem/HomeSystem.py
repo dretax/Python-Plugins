@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '2.6.4'
+__version__ = '2.6.5'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -677,14 +677,14 @@ class HomeSystem:
             time = DataStore.Get("home_cooldown", id)
             if time is None:
                 time = 7
-            calc = System.Environment.TickCount - time
+            calc = (TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - time)
             if calc < 0 or math.isnan(calc):
-                DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                DataStore.Add("home_cooldown", id, TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
             if calc >= cooldown or time == 7:
                 ini = self.Homes()
                 check = ini.GetSetting("DefaultHome", id)
                 if check is not None:
-                    DataStore.Add("home_cooldown", id, System.Environment.TickCount)
+                    DataStore.Add("home_cooldown", id, TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                     home = self.HomeOf(Player, check)
                     home = Util.CreateVector(float(home[0]), float(home[1]), float(home[2]))
                     Player.TeleportTo(home)
@@ -720,20 +720,20 @@ class HomeSystem:
             if jtime is None:
                 self.addJob(Player, self.jointpdelay, 5, None)
                 return
-            if int(System.Environment.TickCount - jtime) < 0 or math.isnan(int(System.Environment.TickCount - jtime)):
+            if int((TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - jtime)) < 0 or math.isnan(int((TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - jtime))):
                 DataStore.Remove("home_joincooldown", id)
                 self.addJob(Player, self.jointpdelay, 5, None)
                 return
         if self.ecooldown == 1:
-            calc = int(System.Environment.TickCount - (jtime + (self.cooldown * 1000)))
-            if System.Environment.TickCount <= jtime + self.cooldown * 1000:
+            calc = int(TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - (jtime + (self.cooldown * 1000)))
+            if TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds <= jtime + self.cooldown * 1000:
                 calc2 = self.cooldown * 1000
                 calc2 = round((calc2 - calc) / 1000 - self.cooldown, 2)
                 Player.MessageFrom(self.homesystemname, red + str(self.cooldown)
                                    + " seconds cooldown at join. You can't join till: " + str(calc2) + " more seconds.")
                 Player.Disconnect()
                 return
-            elif System.Environment.TickCount > jtime + (self.cooldown * 1000):
+            elif TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds > jtime + (self.cooldown * 1000):
                 DataStore.Remove("home_joincooldown", id)
                 if self.sendhome == 1:
                     self.addJob(Player, self.jointpdelay, 5, None)
@@ -748,7 +748,7 @@ class HomeSystem:
                 DataStore.Add("homey", id, y)
         if self.ecooldown == 1:
             if not Player.Admin and not self.isMod(id):
-                DataStore.Add("home_joincooldown", id, System.Environment.TickCount)
+                DataStore.Add("home_joincooldown", id, TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
         if Player in Pending:
             Pending.remove(Player)
         DataStore.Add("homesystemautoban", id, "none")
