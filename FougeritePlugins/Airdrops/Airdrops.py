@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -31,12 +31,15 @@ MinPlayers = 20
 Mods = True
 # Whitelisted SteamIDs
 WLS = ["SteamIDHere", "SteamID2Here", "SteamID3Here"]
-# Cooldown time? 0 to disable | 300000 = 5 minutes
+# Cooldown time to use the command? 0 to disable | 300000 = 5 minutes
 Cooldown = 1800000
+Cooldown = Cooldown / 60000 * 60  # DO NOT EDIT THIS LINE.
 # Chance for a drop? 0 to disable (1-100)
 Chance = 47
 # Can Moderator call airdrop to his pos?
 ModCalltoPos = False
+# Tell player how many meters away is he from the airdrop?
+TellDistance = True
 
 #  Colors
 blue = "[color #0099FF]"
@@ -113,6 +116,7 @@ class Airdrops:
 
     def On_PluginInit(self):
         DataStore.Flush("AirdropCD")
+        Server.RunServerCommand("airdrop.min_players 9999")  # Disable default Rust Airdrop.
         for x in self.d.keys():
             v = self.d[x].split(',')
             self.Vector2s[Util.CreateVector2(float(v[0]), float(v[1]))] = x
@@ -126,7 +130,9 @@ class Airdrops:
         if len(Server.Players) >= MinPlayers:
             r = random.randint(1, 100)
             if r <= Chance or Chance == 0:
-                World.Airdrop()
+                Loom.QueueOnMainThread(lambda:
+                    World.Airdrop()
+                )
             else:
                 Server.BroadcastFrom("Military", red + "We failed to drop the Airdrop at a location!")
         else:
@@ -156,6 +162,10 @@ class Airdrops:
         Server.BroadcastFrom("Military", green + "==========================")
         Server.BroadcastFrom("Military", green + "Airdrop is headed to: " + teal + pos)
         Server.BroadcastFrom("Military", green + "==========================")
+        if TellDistance:
+            for x in Server.Players:
+                dist = Util.GetVectorsDistance(x.Location, Vector3)
+                x.MessageFrom("Military", yellow + "Distance from you: " + str(dist))
 
     def On_Command(self, Player, cmd, args):
         if cmd == "airdrop":
@@ -167,21 +177,22 @@ class Airdrops:
                 if time is None:
                     DataStore.Add("AirdropCD", "CD", 0)
                     time = 0
-                calc = System.Environment.TickCount - time
-                if calc < 0 or math.isnan(calc) or math.isnan(time):
+                systick = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+                calc = systick - time
+                if calc < 0:
                     DataStore.Add("AirdropCD", "CD", 0)
                     time = 0
                 if calc >= Cooldown or time == 0 or Cooldown == 0:
                     if args[0] == "here":
                         if Player.Admin or (Player.Moderator and ModCalltoPos):
-                            World.AirdropAtPlayer(Player)
+                            World.AirdropAt(Player.X, 700, Player.Z)
                             Player.Notice(u"\u2708", "Airdrop has been spawned!", 3)
-                            DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
+                            DataStore.Add("AirdropCD", "CD", TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                     elif args[0] == "random":
                         World.Airdrop()
                         Player.Notice(u"\u2708", "Airdrop has been spawned!", 3)
-                        DataStore.Add("AirdropCD", "CD", System.Environment.TickCount)
+                        DataStore.Add("AirdropCD", "CD", TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                 else:
-                    done = round((calc / 1000) / 60, 2)
-                    done2 = round((Cooldown / 1000) / 60, 2)
-                    Player.Notice(u"\u2708", "Cooldown: " + str(done) + "/" + str(done2))
+                    done = round(calc)
+                    done2 = round(Cooldown, 2)
+                    Player.Notice(u"\u2708", "Cooldown: " + str(done) + "/" + str(done2) + " seconds.")
