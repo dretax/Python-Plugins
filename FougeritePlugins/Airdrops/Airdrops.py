@@ -116,13 +116,13 @@ class Airdrops:
 
     def On_PluginInit(self):
         DataStore.Flush("AirdropCD")
-        Server.RunServerCommand("airdrop.min_players 9999")  # Disable default Rust Airdrop.
         for x in self.d.keys():
             v = self.d[x].split(',')
             self.Vector2s[Util.CreateVector2(float(v[0]), float(v[1]))] = x
         self.d.clear()
 
         if TimedAirdrop:
+            Server.RunServerCommand("airdrop.min_players 9999")  # Disable default Rust Airdrop.
             Plugin.CreateTimer("AirdropTimer", AirdropTime).Start()
 
     def AirdropTimerCallback(self, timer):
