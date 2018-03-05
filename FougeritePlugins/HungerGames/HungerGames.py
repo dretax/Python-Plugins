@@ -1022,11 +1022,12 @@ class HungerGames:
             DataStore.Add("HGBypass", Player.UID, 1)
 
     def FindWalls(self, location, name, spawnRot):
-        wall = Util.FindClosestEntity(location, float(1.5))
-        if wall is not None:
-            if wall.IsStructure():
-                walls.append(wall)
-            return
+        tempwalls = Util.FindEntitysAroundFast(location, float(2))
+        if len(tempwalls) > 0:
+            for x in tempwalls:
+                if x.IsStructure() and "wall" in x.Name.lower():
+                    walls.append(x)
+                    return
         try:
             sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
             if WallsSpawn == 2:
@@ -1039,10 +1040,12 @@ class HungerGames:
             pass
 
     def FindChest(self, location, name, spawnRot):
-        chest = Util.FindClosestEntity(location, 2)
-        if chest is not None:
-            loot.append(chest)
-            return
+        tempchests = Util.FindEntitysAroundFast(location, float(2))
+        if len(tempchests) > 0:
+            for x in tempchests:
+                if "storage" in x.Name.lower() or "stash" in x.Name.lower():
+                    loot.append(x)
+                    return
         n = EntityList[name]
         try:
             ent = Entity(World.Spawn(n, location.x, location.y, location.z, spawnRot))
