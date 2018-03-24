@@ -111,7 +111,7 @@ class LevelSystem:
                 self.DataBase.AddSetting("Experience", str(x), str(self.Players[x].Experience))
         self.DataBase.Save()
 
-    def On_ServerShutdown(self):
+    """def On_ServerShutdown(self):
         for x in self.Players.keys():
             if self.DataBase.GetSetting("Level", str(x)) is not None:
                 self.DataBase.SetSetting("Level", str(x), str(self.Players[x].Level))
@@ -119,7 +119,7 @@ class LevelSystem:
             else:
                 self.DataBase.AddSetting("Level", str(x), str(self.Players[x].Level))
                 self.DataBase.AddSetting("Experience", str(x), str(self.Players[x].Experience))
-        self.DataBase.Save()
+        self.DataBase.Save()"""
 
     def On_PlayerConnected(self, Player):
         if Player.UID not in self.Players.keys():
