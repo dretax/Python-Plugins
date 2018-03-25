@@ -1,4 +1,4 @@
-__author___ = 'BogdanWDK, tuneup by DreTaX'
+__author__ = 'BogdanWDK, tuneup by DreTaX'
 __version__ = '1.1'
 
 import clr
@@ -72,8 +72,6 @@ class LevelSystem:
         if not Plugin.IniExists("Database"):
             Plugin.CreateIni("Database")
             ini2 = Plugin.GetIni("Database")
-            ini2.AddSetting("Level", "124929429429492", "15")
-            ini2.AddSetting("Experience", "124929429429492", "2450")
             ini2.Save()
 
         self.DataBase = Plugin.GetIni("Database")
@@ -121,6 +119,12 @@ class LevelSystem:
                 self.DataBase.AddSetting("Experience", str(x), str(self.Players[x].Experience))
         self.DataBase.Save()"""
 
+    def On_PlayerDisconnected(self, Player):
+        if Player.UID in self.Players.keys():
+            self.DataBase.SetSetting("Level", Player.SteamID, str(self.Players[Player.UID].Level))
+            self.DataBase.SetSetting("Experience", Player.SteamID, str(self.Players[Player.UID].Experience))
+            self.Players.pop(Player.UID)
+
     def On_PlayerConnected(self, Player):
         if Player.UID not in self.Players.keys():
             self.Players[Player.UID] = PlayerData(1, 0)
@@ -131,22 +135,21 @@ class LevelSystem:
         rate = self.Players[Player.UID].Level
         if Player.Inventory.FreeSlots > 0:
             # gathered = (GatherEvent.Quantity) + 2 * int(rate) # original one
-            gathered = (GatherEvent.Quantity) * int(rate) # this is by level
-            Player.Inventory.AddItem(GatherEvent.Item, gathered)
-            Player.InventoryNotice((str(gathered)) + " x " + GatherEvent.Item)
+            gathered = (GatherEvent.Quantity) * rate  # this is by level
+            GatherEvent.Quantity = gathered
         else:
             Player.InventoryNotice("0 x " + GatherEvent.Item)
 
         currentxp = self.Players[Player.UID].Experience
-        totalxp = int(currentxp) + int(self.XpRate)
+        totalxp = currentxp + self.XpRate
         self.Players[Player.UID].Experience = totalxp
         self.DataBase.SetSetting("Experience", Player.SteamID, str(totalxp))
 
     def On_Command(self, Player, cmd, args):
         if cmd == "level":
-            if args.Length == 0:
+            if len(args) == 0:
                 Player.MessageFrom("[LevelSystem]", "" + blue + "==============================================")
-                Player.MessageFrom("[LevelSystem]", "" + orange + "Level System v1.0")
+                Player.MessageFrom("[LevelSystem]", "" + orange + "Level System v" + __version__)
                 Player.MessageFrom("[LevelSystem]", "" + yellow + "More functions coming soon!")
                 Player.MessageFrom("[LevelSystem]", "" + blue + "==============================================")
                 Player.MessageFrom("[LevelSystem]",
@@ -154,17 +157,17 @@ class LevelSystem:
                 Player.MessageFrom("[LevelSystem]",
                                    "" + orange + "/level rankup" + teal + "|" + yellow + " Check if you have enough XP to rank up")
                 Player.MessageFrom("[LevelSystem]", "" + blue + "==============================================")
-            elif args.Length == 1:
+            elif len(args) == 1:
                 if args[0] == "stats":
                     experience = self.Players[Player.UID].Experience
                     level = self.Players[Player.UID].Level
 
                     nextlevel = "Maximum level reached."
+                    xptolevelup = 0
                     if level + 1 in self.Levels.keys():
                         nextlevel = self.Levels[level + 1]
-                    xptolevelup = 0
-                    if str(nextlevel).isdigit():
-                        xptolevelup = self.Levels[nextlevel] - experience
+                        if str(nextlevel).isdigit():
+                            xptolevelup = nextlevel - experience
 
                     # gatherrate = 2 * int(level)
                     gatherrate = level
