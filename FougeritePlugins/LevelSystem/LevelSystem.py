@@ -90,23 +90,9 @@ class LevelSystem:
         self.MaxWoodLevel = int(ini.GetSetting("Config", "MaxWoodLevel"))
 
     def On_PluginShutdown(self):
-        for x in self.Players.keys():
-            if self.DataBase.GetSetting("Level", str(x)) is not None:
-                self.DataBase.SetSetting("Level", str(x), str(self.Players[x].Level))
-                self.DataBase.SetSetting("Experience", str(x), str(self.Players[x].Experience))
-            else:
-                self.DataBase.AddSetting("Level", str(x), str(self.Players[x].Level))
-                self.DataBase.AddSetting("Experience", str(x), str(self.Players[x].Experience))
         self.DataBase.Save()
 
     def On_ServerSaved(self):
-        for x in self.Players.keys():
-            if self.DataBase.GetSetting("Level", str(x)) is not None:
-                self.DataBase.SetSetting("Level", str(x), str(self.Players[x].Level))
-                self.DataBase.SetSetting("Experience", str(x), str(self.Players[x].Experience))
-            else:
-                self.DataBase.AddSetting("Level", str(x), str(self.Players[x].Level))
-                self.DataBase.AddSetting("Experience", str(x), str(self.Players[x].Experience))
         self.DataBase.Save()
 
     """def On_ServerShutdown(self):
@@ -127,9 +113,13 @@ class LevelSystem:
 
     def On_PlayerConnected(self, Player):
         if Player.UID not in self.Players.keys():
-            self.Players[Player.UID] = PlayerData(1, 0)
-            self.DataBase.AddSetting("Level", Player.SteamID, "1")
-            self.DataBase.AddSetting("Experience", Player.SteamID, "0")
+            if self.DataBase.GetSetting("Level", Player.SteamID) is not None:
+                self.Players[Player.UID] = PlayerData(int(self.DataBase.GetSetting("Level", Player.SteamID)),
+                                                      int(self.DataBase.GetSetting("Experience", Player.SteamID)))
+            else:
+                self.Players[Player.UID] = PlayerData(1, 0)
+                self.DataBase.AddSetting("Level", Player.SteamID, "1")
+                self.DataBase.AddSetting("Experience", Player.SteamID, "0")
 
     def On_PlayerGathering(self, Player, GatherEvent):
         rate = self.Players[Player.UID].Level
