@@ -106,7 +106,7 @@ class Kits:
         return None
 
     def GetKitDataWithPath(self, path):
-        name = System.IO.GetFileName(path)
+        name = System.IO.Path.GetFileNameWithoutExtension(path)
         if name in KitStore.keys():
             return KitStore[name]
         kit = Plugin.GetIni(path)
