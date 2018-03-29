@@ -129,6 +129,12 @@ class Kits:
         for name, x in KitStore.iteritems():
             if x.AutoGiveOnSpawn:
                 if x.Cooldown > 0:
+                    if (Player.Admin and x.AdminCanBypassCooldown) or (Player.Moderator and x.ModeratorCanBypassCooldown):
+                        inv = Player.Inventory
+                        if x.ClearInvOnUse:
+                            inv.Clear()
+                        self.GiveKit(x, inv)
+                        continue
                     cooldown = x.Cooldown / 60000 * 60
                     systick = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
                     time = DataStore.Get("KitCooldown" + name, Player.UID)
