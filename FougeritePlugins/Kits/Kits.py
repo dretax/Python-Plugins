@@ -125,6 +125,14 @@ class Kits:
         for x in data.ItemsDict.keys():
             inventory.AddItem(x, data.ItemsDict[x])
 
+    def On_PlayerSpawned(self, Player, SpawnEvent):
+        for x in KitStore.values():
+            if x.AutoGiveOnSpawn:
+                inv = Player.Inventory
+                if x.ClearInvOnUse:
+                    inv.Clear()
+                self.GiveKit(x, inv)
+
     def On_Command(self, Player, cmd, args):
         if cmd == "kit" or cmd == "kits":
             if len(args) == 0 or len(args) > 1:
@@ -229,3 +237,11 @@ class Kits:
                 text = str.join("", args)
                 DataStore.Flush("KitCooldown" + text)
                 Player.MessageFrom("Kits", "Flushed all cooldowns for " + text + "!")
+        elif cmd == "reloadkits":
+            if Player.Admin:
+                KitStore.clear()
+                Files = System.IO.Directory.GetFiles(path + "\\Save\\PyPlugins\\Kits\\\LoadOuts\\", "*.ini",
+                                                     System.IO.SearchOption.AllDirectories)
+                for x in Files:
+                    self.GetKitDataWithPath(x)
+                Player.MessageFrom("Kits", "Reloaded all kits!")
