@@ -126,8 +126,22 @@ class Kits:
             inventory.AddItem(x, data.ItemsDict[x])
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
-        for x in KitStore.values():
+        for name, x in KitStore.iteritems():
             if x.AutoGiveOnSpawn:
+                if x.Cooldown > 0:
+                    cooldown = x.Cooldown / 60000 * 60
+                    systick = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+                    time = DataStore.Get("KitCooldown" + name, Player.UID)
+                    if time is None:
+                        DataStore.Add("KitCooldown" + name, Player.UID, 7)
+                        time = 7
+                    calc = systick - time
+                    if calc < cooldown and time != 7:
+                        done = round(calc)
+                        done2 = round(cooldown, 2)
+                        Player.MessageFrom("Kits", "Time Remaining for " + name + " : "
+                                           + str(done) + " / " + str(done2) + " seconds")
+                        continue
                 inv = Player.Inventory
                 if x.ClearInvOnUse:
                     inv.Clear()
