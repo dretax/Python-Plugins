@@ -100,7 +100,7 @@ class Kits:
                 l = int(kit.GetSetting("Items", x))
                 dictt[x] = l
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses)
             KitStore[name] = c
             return c
         return None
@@ -120,6 +120,8 @@ class Kits:
             AdminCanBypassCooldown = self.bool(kit.GetSetting("Kit", "AdminCanBypassCooldown"))
             ModeratorCanBypassCooldown = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassCooldown"))
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
+            AdminCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "AdminCanBypassMaxUses"))
+            ModeratorCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
             MaxUses = int(kit.GetSetting("Kit", "MaxUses"))
             Items = kit.EnumSection("Items")
             dictt = {}
@@ -127,7 +129,7 @@ class Kits:
                 l = int(kit.GetSetting("Items", x))
                 dictt[x] = l
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses)
             KitStore[name] = c
             return c
         return
