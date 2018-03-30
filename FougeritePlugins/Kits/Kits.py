@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3'
+__version__ = '1.3.1'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -30,12 +30,13 @@ class GivenKit:
     ClearInvOnUse = False
     AdminCanBypassMaxUses = False
     ModeratorCanBypassMaxUses = False
+    OnlyGiveOnSpawnIfHavingDefaultItems = True
     MaxUses = 0
     ItemsDict = None
 
     def __init__(self, Enabled, Cooldown, AdminCanUse, ModeratorCanUse, NormalCanUse, ItemsDict, AutoGiveOnSpawn,
                  AdminCanBypassCooldown, ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses,
-                 ModeratorCanBypassMaxUses):
+                 ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems):
         self.Enabled = Enabled
         self.Cooldown = Cooldown
         self.AdminCanUse = AdminCanUse
@@ -47,6 +48,7 @@ class GivenKit:
         self.ClearInvOnUse = ClearInvOnUse
         self.AdminCanBypassMaxUses = AdminCanBypassMaxUses
         self.ModeratorCanBypassMaxUses = ModeratorCanBypassMaxUses
+        self.OnlyGiveOnSpawnIfHavingDefaultItems = OnlyGiveOnSpawnIfHavingDefaultItems
         self.MaxUses = MaxUses
         self.ItemsDict = ItemsDict
 
@@ -88,6 +90,7 @@ class Kits:
             Moderator = self.bool(kit.GetSetting("Kit", "ModeratorCanUse"))
             Normal = self.bool(kit.GetSetting("Kit", "NormalCanUse"))
             AutoGiveOnSpawn = self.bool(kit.GetSetting("Kit", "AutoGiveOnSpawn"))
+            OnlyGiveOnSpawnIfHavingDefaultItems = self.bool(kit.GetSetting("Kit", "OnlyGiveOnSpawnIfHavingDefaultItems"))
             AdminCanBypassCooldown = self.bool(kit.GetSetting("Kit", "AdminCanBypassCooldown"))
             ModeratorCanBypassCooldown = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassCooldown"))
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
@@ -100,7 +103,7 @@ class Kits:
                 l = int(kit.GetSetting("Items", x))
                 dictt[x] = l
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems)
             KitStore[name] = c
             return c
         return None
@@ -117,6 +120,7 @@ class Kits:
             Moderator = self.bool(kit.GetSetting("Kit", "ModeratorCanUse"))
             Normal = self.bool(kit.GetSetting("Kit", "NormalCanUse"))
             AutoGiveOnSpawn = self.bool(kit.GetSetting("Kit", "AutoGiveOnSpawn"))
+            OnlyGiveOnSpawnIfHavingDefaultItems = self.bool(kit.GetSetting("Kit", "OnlyGiveOnSpawnIfHavingDefaultItems"))
             AdminCanBypassCooldown = self.bool(kit.GetSetting("Kit", "AdminCanBypassCooldown"))
             ModeratorCanBypassCooldown = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassCooldown"))
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
@@ -129,7 +133,7 @@ class Kits:
                 l = int(kit.GetSetting("Items", x))
                 dictt[x] = l
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems)
             KitStore[name] = c
             return c
         return
@@ -141,6 +145,10 @@ class Kits:
     def On_PlayerSpawned(self, Player, SpawnEvent):
         for name, x in KitStore.iteritems():
             if x.AutoGiveOnSpawn:
+                if x.OnlyGiveOnSpawnIfHavingDefaultItems:
+                    if "Rock" not in Player.Inventory.BarItems or "Torch" not in Player.Inventory.BarItems or \
+                                    "Bandage" not in Player.Inventory.BarItems:
+                        continue
                 if x.Cooldown > 0:
                     if (Player.Admin and x.AdminCanBypassCooldown) or (Player.Moderator and x.ModeratorCanBypassCooldown):
                         inv = Player.Inventory
@@ -230,6 +238,9 @@ class Kits:
                         if data.ClearInvOnUse:
                             inv.Clear()
                         if data.MaxUses > 0 and CurrentUses:
+                            if CurrentUses >= data.MaxUses:
+                                Player.MessageFrom("Kits", "You have reached the maximum uses of this kit!")
+                                return
                             DataStore.Add("KitMaxUses" + args[0], Player.UID, CurrentUses + 1)
                         self.GiveKit(data, inv)
                         Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
@@ -279,6 +290,9 @@ class Kits:
                         Player.MessageFrom("Kits", "Time Remaining: " + str(done) + " / " + str(done2) + " seconds")
                 else:
                     if data.MaxUses > 0 and CurrentUses:
+                        if CurrentUses >= data.MaxUses:
+                            Player.MessageFrom("Kits", "You have reached the maximum uses of this kit!")
+                            return
                         DataStore.Add("KitMaxUses" + args[0], Player.UID, CurrentUses + 1)
                     self.GiveKit(data, inv)
                     Player.MessageFrom("Kits", "Kit " + args[0] + " received!")
