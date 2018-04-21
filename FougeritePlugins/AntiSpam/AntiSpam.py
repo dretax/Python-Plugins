@@ -20,6 +20,7 @@ class AntiSpam:
         else:
             calc = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Cooldown[Player.UID]
             if calc < FloodSeconds:
+                ChatEvent.NewText = "    "
                 Player.Message("WAIT A BIT BEFORE SENDING ANOTHER MESSAGE...")
             else:
                 Cooldown[Player.UID] = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
