@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.9'
+__version__ = '1.5.9B'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -7,7 +7,6 @@ clr.AddReferenceByPartialName("UnityEngine")
 import UnityEngine
 from UnityEngine import *
 import Fougerite
-from Fougerite import Entity
 import re
 import sys
 import math
@@ -1031,9 +1030,9 @@ class HungerGames:
         try:
             sm = World.CreateSM(self.RandomAdmin, location.x, location.y, location.z, spawnRot)
             if WallsSpawn == 2:
-                ent = Entity(World.Spawn(';struct_wood_wall', location.x, location.y, location.z, spawnRot))
+                ent = World.SpawnEntity(';struct_wood_wall', location, spawnRot)
             else:
-                ent = Entity(World.Spawn(';struct_metal_wall', location.x, location.y, location.z, spawnRot))
+                ent = World.SpawnEntity(';struct_wood_wall', location, spawnRot)
             sm.AddStructureComponent(ent.Object.gameObject.GetComponent[self.st]())
             walls.append(ent)
         except:
@@ -1048,7 +1047,7 @@ class HungerGames:
                     return
         n = EntityList[name]
         try:
-            ent = Entity(World.Spawn(n, location.x, location.y, location.z, spawnRot))
+            ent = World.SpawnEntity(n, location, spawnRot)
             ent.ChangeOwner(self.RandomAdmin)
             loot.append(ent)
         except:
