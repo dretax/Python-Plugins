@@ -1022,7 +1022,7 @@ class HungerGames:
             DataStore.Add("HGBypass", Player.UID, 1)
 
     def FindWalls(self, location, name, spawnRot):
-        tempwalls = Util.FindEntitysAroundFast(location, float(2))
+        tempwalls = Util.FindEntitysAroundFast(location, float(1.5))
         if len(tempwalls) > 0:
             for x in tempwalls:
                 if x.IsStructure() and "wall" in x.Name.lower():
@@ -1043,7 +1043,7 @@ class HungerGames:
         tempchests = Util.FindEntitysAroundFast(location, float(2))
         if len(tempchests) > 0:
             for x in tempchests:
-                if "storage" in x.Name.lower() or "stash" in x.Name.lower():
+                if "box" in x.Name.lower() or "stash" in x.Name.lower():
                     loot.append(x)
                     return
         n = EntityList[name]
