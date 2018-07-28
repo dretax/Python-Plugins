@@ -1,10 +1,8 @@
 __author__ = "DreTaX"
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
-import Fougerite
-from Fougerite import Entity
 import sys
 path = Util.GetRootFolder()
 sys.path.append(path + "\\Save\\Lib\\")
@@ -56,11 +54,13 @@ prefabs = {
 class Recorder:
 
     st = None
+    dp = None
 
     def On_PluginInit(self):
         DataStore.Flush("Recorder")
         DataStore.Flush("RecorderInit")
         self.st = Util.TryFindReturnType("StructureComponent")
+        self.dp = Util.TryFindReturnType("DeployableObject")
 
 
     def On_Command(self, Player, cmd, args):
@@ -100,7 +100,8 @@ class Recorder:
             DataStore.Remove("RecorderSMs", id)
 
             playerFront = Util.Infront(Player, float(args[1]))
-            playerFront.y = World.GetGround(playerFront.x, playerFront.z)
+            groundposition = World.GetGround(playerFront.x, playerFront.z)
+            # playerFront.y = World.GetGround(playerFront.x, playerFront.z)
             a = []
             array = file.Sections
             for x in array:
@@ -111,7 +112,7 @@ class Recorder:
                 entPos = Util.CreateVector(float(file.GetSetting("Part" + str(i), "PosX")),
                                            float(file.GetSetting("Part" + str(i), "PosY")),
                                            float(file.GetSetting("Part" + str(i), "PosZ")))
-                spawnPos = Util.CreateVector(entPos.x + playerFront.x, entPos.y + playerFront.y,
+                spawnPos = Util.CreateVector(entPos.x + playerFront.x, entPos.y + groundposition,
                                              entPos.z + playerFront.z)
                 spawnRot = Util.CreateQuat(float(file.GetSetting("Part" + str(i), "RotX")),
                                            float(file.GetSetting("Part" + str(i), "RotY")),
@@ -121,20 +122,21 @@ class Recorder:
                 if sm is None:
                     sm = World.CreateSM(Player, spawnPos.x, spawnPos.y, spawnPos.z, spawnRot)
                     DataStore.Add("RecorderSMs", id, sm)
+                go = None
                 try:
-                    go = Entity(World.Spawn(file.GetSetting("Part" + str(i), "Prefab"), spawnPos.x,
-                                            spawnPos.y, spawnPos.z, spawnRot))
+                    go = World.SpawnEntity(file.GetSetting("Part" + str(i), "Prefab"), spawnPos, spawnRot)
                 except:
-                    pass
+                    continue
                 if go.IsDeployableObject():
                     go.ChangeOwner(Player)
                     DataStore.Add("SpawnedData" + id, "Part" + str(i), go.Object.gameObject)
-                elif go.IsStructure():
-                    sm.AddStructureComponent(go.Object.gameObject.GetComponent[self.st]())
-                    DataStore.Add("SpawnedData" + id, "Part" + str(i), go.Object.gameObject)
-                    Player.Message("Added!")
                 else:
-                    DataStore.Add("SpawnedData" + id, "Part" + str(i), go)
+                    if "door" in file.GetSetting("Part" + str(i), "Prefab"):
+                        go.ChangeOwner(Player)
+                        DataStore.Add('SpawnedData' + id, 'Part' + str(i), go)
+                    else:
+                        sm.AddStructureComponent(go.Object.gameObject.GetComponent[self.st]())
+                        DataStore.Add("SpawnedData" + id, "Part" + str(i), go.Object.gameObject)
             Player.Message(args[0] + " was spawned !")
         elif cmd == "cancel":
             if not Player.Admin:
@@ -169,14 +171,15 @@ class Recorder:
                 file = Plugin.CreateIni("Buildings\\" + name)
                 rfile = Plugin.GetIni("Buildings\\" + name)
             loc = DataStore.Get("RecorderInit", id)
-            loc.y = World.GetGround(loc.x, loc.z)
+            groundposition = World.GetGround(loc.x, loc.z)
+            # loc.y = World.GetGround(loc.x, loc.z)
             cpt = DataStore.Count("RecordedData" + id)
             if cpt is None:
                 DataStore.Flush("RecordedData" + id)
                 return
             for i in xrange(0, cpt):
                 ent = DataStore.Get("RecordedData" + id, "Part" + str(i))
-                entPos = Util.CreateVector((ent.X - loc.x), (ent.Y - loc.y), (ent.Z - loc.z))
+                entPos = Util.CreateVector((ent.X - loc.x), (ent.Y - groundposition), (ent.Z - loc.z))
                 spawnRot = ent.Object.transform.rotation
                 rfile.AddSetting("Part" + str(i), "Prefab", self.GetPrefabName(ent.Name))
                 rfile.AddSetting("Part" + str(i), "PosX", str(entPos.x))
@@ -196,13 +199,13 @@ class Recorder:
             rfile.Save()
             Player.Message(name + ".ini was saved !")
 
-    def On_EntityDeployed(self, Player, Entity):
-        state = DataStore.Get("Recorder", Player.SteamID)
+    def On_EntityDeployed(self, Player, Entity, ActualPlacer):
+        state = DataStore.Get("Recorder", ActualPlacer.SteamID)
         if state is not None:
-            cpt = DataStore.Count("RecordedData" + Player.SteamID)
+            cpt = DataStore.Count("RecordedData" + ActualPlacer.SteamID)
             if cpt == 0:
-                DataStore.Add("RecorderInit", Player.SteamID, Util.CreateVector(Entity.X, Entity.Y, Entity.Z))
-            DataStore.Add("RecordedData" + Player.SteamID, "Part" + str(cpt), Entity)
+                DataStore.Add("RecorderInit", ActualPlacer.SteamID, Util.CreateVector(Entity.X, Entity.Y, Entity.Z))
+            DataStore.Add("RecordedData" + ActualPlacer.SteamID, "Part" + str(cpt), Entity)
 
     def GetPrefabName(self, name):
         prefab = prefabs.get(name)
