@@ -92,7 +92,7 @@ class LevelSystem:
     def On_PluginShutdown(self):
         self.DataBase.Save()
 
-    def On_ServerSaved(self):
+    def On_ServerSaved(self, Objects, Seconds):
         self.DataBase.Save()
 
     """def On_ServerShutdown(self):
