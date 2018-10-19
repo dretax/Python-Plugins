@@ -115,7 +115,7 @@ class Kits:
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
             AdminCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "AdminCanBypassMaxUses"))
             ModeratorCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
-            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
+            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "HowCanOneGetTheKit"))
             MaxUses = int(kit.GetSetting("Kit", "MaxUses"))
             Items = kit.EnumSection("Items")
             dictt = {}
@@ -155,7 +155,7 @@ class Kits:
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
             AdminCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "AdminCanBypassMaxUses"))
             ModeratorCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
-            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
+            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "HowCanOneGetTheKit"))
             MaxUses = int(kit.GetSetting("Kit", "MaxUses"))
             Items = kit.EnumSection("Items")
             dictt = {}
