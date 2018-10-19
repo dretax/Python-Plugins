@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -31,12 +31,13 @@ class GivenKit:
     AdminCanBypassMaxUses = False
     ModeratorCanBypassMaxUses = False
     OnlyGiveOnSpawnIfHavingDefaultItems = True
+    HowCanOneGetTheKit = 0
     MaxUses = 0
     ItemsDict = None
 
     def __init__(self, Enabled, Cooldown, AdminCanUse, ModeratorCanUse, NormalCanUse, ItemsDict, AutoGiveOnSpawn,
                  AdminCanBypassCooldown, ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses,
-                 ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems):
+                 ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems, HowCanOneGetTheKit):
         self.Enabled = Enabled
         self.Cooldown = Cooldown
         self.AdminCanUse = AdminCanUse
@@ -49,8 +50,24 @@ class GivenKit:
         self.AdminCanBypassMaxUses = AdminCanBypassMaxUses
         self.ModeratorCanBypassMaxUses = ModeratorCanBypassMaxUses
         self.OnlyGiveOnSpawnIfHavingDefaultItems = OnlyGiveOnSpawnIfHavingDefaultItems
+        self.HowCanOneGetTheKit = HowCanOneGetTheKit
         self.MaxUses = MaxUses
         self.ItemsDict = ItemsDict
+
+
+"""
+    Storing Item Data
+"""
+
+
+class ItemData:
+
+    Amount = 1
+    Slot = None
+
+    def __init__(self, Amount, Slot):
+        self.Amount = Amount
+        self.Slot = Slot
 
 
 KitStore = {
@@ -98,14 +115,23 @@ class Kits:
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
             AdminCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "AdminCanBypassMaxUses"))
             ModeratorCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
+            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
             MaxUses = int(kit.GetSetting("Kit", "MaxUses"))
             Items = kit.EnumSection("Items")
             dictt = {}
             for x in Items:
-                l = int(kit.GetSetting("Items", x))
-                dictt[x] = l
+                itemdata = kit.GetSetting("Items", x)
+                SlotToPlace = None
+                if "," in itemdata:
+                    itemdata = itemdata.split(",")
+                    l = int(itemdata[0])
+                    SlotToPlace = int(itemdata[1])
+                else:
+                    l = int(itemdata)
+                dictt[x] = ItemData(l, SlotToPlace)
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses,
+                         ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems, HowCanOneGetTheKit)
             KitStore[name] = c
             return c
         return None
@@ -129,28 +155,46 @@ class Kits:
             ClearInvOnUse = self.bool(kit.GetSetting("Kit", "ClearInvOnUse"))
             AdminCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "AdminCanBypassMaxUses"))
             ModeratorCanBypassMaxUses = self.bool(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
+            HowCanOneGetTheKit = int(kit.GetSetting("Kit", "ModeratorCanBypassMaxUses"))
             MaxUses = int(kit.GetSetting("Kit", "MaxUses"))
             Items = kit.EnumSection("Items")
             dictt = {}
             for x in Items:
-                l = int(kit.GetSetting("Items", x))
-                dictt[x] = l
+                itemdata = kit.GetSetting("Items", x)
+                SlotToPlace = None
+                if "," in itemdata:
+                    itemdata = itemdata.split(",")
+                    l = int(itemdata[0])
+                    SlotToPlace = int(itemdata[1])
+                else:
+                    l = int(itemdata)
+                dictt[x] = ItemData(l, SlotToPlace)
             c = GivenKit(Enabled, Cooldown, Admin, Moderator, Normal, dictt, AutoGiveOnSpawn, AdminCanBypassCooldown,
-                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses, ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems)
+                         ModeratorCanBypassCooldown, ClearInvOnUse, MaxUses, AdminCanBypassMaxUses,
+                         ModeratorCanBypassMaxUses, OnlyGiveOnSpawnIfHavingDefaultItems, HowCanOneGetTheKit)
             KitStore[name.lower()] = c
             return c
         return None
 
     def GiveKit(self, data, inventory):
         for x in data.ItemsDict.keys():
-            inventory.AddItem(x, data.ItemsDict[x])
+            itemdata = data.ItemsDict[x]
+            if itemdata.Slot is not None:
+                inventory.AddItemTo(x, itemdata.Slot, itemdata.Amount)
+            else:
+                inventory.AddItem(x, itemdata.Amount)
 
     def On_PlayerSpawned(self, Player, SpawnEvent):
         for name, x in KitStore.iteritems():
+            if not x.Enabled:
+                continue
+            if x.HowCanOneGetTheKit == 1:
+                continue
             if x.AutoGiveOnSpawn:
                 if x.OnlyGiveOnSpawnIfHavingDefaultItems:
-                    if "Rock" not in Player.Inventory.BarItems or "Torch" not in Player.Inventory.BarItems or \
-                                    "Bandage" not in Player.Inventory.BarItems:
+                    string = str.join(", ", Player.Inventory.BarItems)
+                    if "Rock" not in string or "Torch" not in string or \
+                                    "Bandage" not in string:
                         continue
                 if x.Cooldown > 0:
                     if (Player.Admin and x.AdminCanBypassCooldown) or (Player.Moderator and x.ModeratorCanBypassCooldown):
@@ -193,6 +237,9 @@ class Kits:
                 if data is not None:
                     if not data.Enabled:
                         Player.MessageFrom("Kits", "This kit has been disabled.")
+                        return
+                    if data.HowCanOneGetTheKit == 2:
+                        Player.MessageFrom("Kits", "This kit can only be received by spawning.")
                         return
                     CurrentUses = DataStore.Get("KitMaxUses" + kitname, Player.UID) or 0
                     if CurrentUses:
