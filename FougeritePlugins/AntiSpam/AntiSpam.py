@@ -18,9 +18,9 @@ class AntiSpam:
 
     def On_Chat(self, Player, ChatEvent):
         if Player.UID not in Cooldown:
-            Cooldown[Player.UID] = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+            Cooldown[Player.UID] = float(TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
         else:
-            calc = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds - Cooldown[Player.UID]
+            calc = float(TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds) - Cooldown[Player.UID]
             if calc < FloodSeconds:
                 ChatEvent.NewText = "    "
                 Player.Message("[color red]PLEASE DON'T SPAM")
@@ -31,7 +31,7 @@ class AntiSpam:
                     Player.Disconnect()
                     Server.BroadcastNotice(Player.Name + " Has been auto kicked for spamming")
             else:
-                Cooldown[Player.UID] = TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds
+                Cooldown[Player.UID] = float(TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
                 if Player.UID in Detection.keys():
                     Detection.pop(Player.UID)
 
