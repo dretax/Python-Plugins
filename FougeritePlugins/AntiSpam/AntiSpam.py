@@ -12,6 +12,8 @@ Cooldown = {}
 Detection = {}
 # Seconds that must pass after a player's message before he can send another one.
 FloodSeconds = 3
+# Amount of flood messages the player will be kicked after. -1 to disable
+KickAfter = 3
 
 
 class AntiSpam:
@@ -27,7 +29,7 @@ class AntiSpam:
                 if Player.UID not in Detection.keys():
                     Detection[Player.UID] = 0
                 Detection[Player.UID] = Detection[Player.UID] + 1
-                if Detection[Player.UID] == 3:
+                if Detection[Player.UID] == KickAfter and Detection[Player.UID] != -1:
                     Player.Disconnect()
                     Server.BroadcastNotice(Player.Name + " Has been auto kicked for spamming")
             else:
