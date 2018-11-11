@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.0'
+__version__ = '1.1'
 
 import clr
 clr.AddReferenceByPartialName("Fougerite")
@@ -19,6 +19,8 @@ KickAfter = 3
 class AntiSpam:
 
     def On_Chat(self, Player, ChatEvent):
+        if Player.Admin or Player.Moderator:
+            return
         if Player.UID not in Cooldown:
             Cooldown[Player.UID] = float(TimeSpan.FromTicks(DateTime.Now.Ticks).TotalSeconds)
         else:
