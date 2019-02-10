@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.5.9B'
+__version__ = '1.6.0'
 import clr
 
 clr.AddReferenceByPartialName("Fougerite")
@@ -307,6 +307,16 @@ class HungerGames:
             ini = Plugin.CreateIni("Kills")
             ini.Save()
         return Plugin.GetIni("Kills")
+
+    def SaveHandlerTimerCallback(self, ATimedEvent):
+        ATimedEvent.Kill()
+        SaveData = ATimedEvent.Args
+        if SaveData["Function"] == "StartGame":
+            self.StartGame(SaveData["Param"])
+        elif SaveData["Function"] == "ResetWalls":
+            self.ResetWalls()
+        elif SaveData["Function"] == "CleanMess":
+            self.CleanMess()
 
     def DecayMaxHP(self):
         c = 0
@@ -1056,6 +1066,13 @@ class HungerGames:
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
             return
+        if ServerSaveHandler.ServerIsSaving:
+            SaveData = Plugin.CreateDict()
+            SaveData["Function"] = "StartGame"
+            SaveData["Param"] = ForceStart
+            Plugin.CreateParallelTimer("SaveHandlerTimer", 5000, SaveData).Start()
+            Server.BroadcastFrom(sysname, red + "Server is saving... Starting in 5 seconds. Do NOT start HG manually.")
+            return
         if Plugin.GetTimer("StartingIn") is not None:
             Server.BroadcastFrom(sysname, red + "A player has joined while hungergames loaded. (Free Slot)")
             Server.BroadcastFrom(sysname, red + "Current Players: " + str(len(self.Players)))
@@ -1272,6 +1289,11 @@ class HungerGames:
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
+        if ServerSaveHandler.ServerIsSaving:
+            SaveData = Plugin.CreateDict()
+            SaveData["Function"] = "CleanMess"
+            Plugin.CreateParallelTimer("SaveHandlerTimer", 5000, SaveData).Start()
+            return
         for x in PlacedEntities:
             if x.Health > 0:
                 x.Destroy()
@@ -1315,6 +1337,12 @@ class HungerGames:
         del PlacedEntities[:]
 
     def ResetWalls(self):
+        if ServerSaveHandler.ServerIsSaving:
+            SaveData = Plugin.CreateDict()
+            SaveData["Function"] = "ResetWalls"
+            Plugin.CreateParallelTimer("SaveHandlerTimer", 5000, SaveData).Start()
+            Server.BroadcastFrom(sysname, red + "Server is saving... Resetting walls in 5 seconds, please wait, and do not start HG if you see this message.")
+            return
         ini = self.HungerGames()
         enum3 = ini.EnumSection("WallLocations")
         for wall in enum3:
@@ -1323,6 +1351,7 @@ class HungerGames:
             loc = Util.CreateVector(float(l[0]), float(l[1]), float(l[2]))
             quat = Util.CreateQuat(float(l[3]), float(l[4]), float(l[5]), float(l[6]))
             self.FindWalls(loc, name[0], quat)
+        Server.BroadcastFrom(sysname, green + "Walls reset!")
 
     def EndGame(self, Player):
         Server.BroadcastFrom(sysname, red + "----------------------------HUNGERGAMES--------------------------------")
