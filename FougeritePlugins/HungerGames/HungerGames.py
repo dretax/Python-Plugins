@@ -1066,7 +1066,7 @@ class HungerGames:
     def StartGame(self, ForceStart=False):
         if self.HasStarted or not self.IsActive:
             return
-        if ServerSaveHandler.ServerIsSaving:
+        if Fougerite.ServerSaveHandler.ServerIsSaving:
             SaveData = Plugin.CreateDict()
             SaveData["Function"] = "StartGame"
             SaveData["Param"] = ForceStart
@@ -1289,7 +1289,7 @@ class HungerGames:
         Plugin.CreateTimer("Radiation", RadS * 1000).Start()
 
     def CleanMess(self):
-        if ServerSaveHandler.ServerIsSaving:
+        if Fougerite.ServerSaveHandler.ServerIsSaving:
             SaveData = Plugin.CreateDict()
             SaveData["Function"] = "CleanMess"
             Plugin.CreateParallelTimer("SaveHandlerTimer", 5000, SaveData).Start()
@@ -1337,7 +1337,7 @@ class HungerGames:
         del PlacedEntities[:]
 
     def ResetWalls(self):
-        if ServerSaveHandler.ServerIsSaving:
+        if Fougerite.ServerSaveHandler.ServerIsSaving:
             SaveData = Plugin.CreateDict()
             SaveData["Function"] = "ResetWalls"
             Plugin.CreateParallelTimer("SaveHandlerTimer", 5000, SaveData).Start()
