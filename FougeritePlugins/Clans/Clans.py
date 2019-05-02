@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 import clr
 
@@ -448,9 +448,10 @@ class Clans:
                     ca = self.GetClanOfPlayer(aid)
                     cv = self.GetClanOfPlayer(vid)
                     if ca == cv:
-                        ff = ClanFriendlyFireMemory[ca]
-                        if ff or (self.AllowSelfDamage and HurtEvent.Attacker.UID == HurtEvent.Victim.UID):
-                            return
+                        if ca in ClanFriendlyFireMemory.keys():
+                            ff = ClanFriendlyFireMemory[ca]
+                            if ff or (self.AllowSelfDamage and HurtEvent.Attacker.UID == HurtEvent.Victim.UID):
+                                return
                         HurtEvent.DamageAmount = float(0)
 
     def On_Command(self, Player, command, args):
