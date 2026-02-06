@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.4'
+__version__ = '1.4.1'
 
 import clr
 
@@ -20,15 +20,6 @@ class AdminTools:
         DataStore.Flush("OwnerMode")
         DataStore.Flush("DecayOff")
         Util.ConsoleLog("AdminTools by " + __author__ + " Version: " + __version__ + " loaded.", False)
-
-    def GetIt(self, Entity):
-        try:
-            if Entity.IsDeployableObject():
-                return Entity.Object.ownerID
-            if Entity.IsStructure():
-                return Entity.Object._master.ownerID
-        except:
-            return None
 
     def IsAnimal(self, Entity):
         if "NPC" in str(Entity):
@@ -66,18 +57,17 @@ class AdminTools:
     def On_PlayerHurt(self, HurtEvent):
         if HurtEvent.Attacker is None or HurtEvent.Victim is None:
             return
-        if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.Sleeper:
-            if not Server.HasRustPP:
-                return
-            dict = Server.GetRustPPAPI().Cache
-            if long(HurtEvent.Attacker.SteamID) in dict.Keys:
-                n = dict[long(HurtEvent.Attacker.SteamID)]
-            else:
-                n = "Unknown"
-            if long(HurtEvent.Victim.SteamID) in dict.Keys:
-                n2 = dict[long(HurtEvent.Victim.SteamID)]
-            else:
-                n2 = "Unknown"
+        if not HurtEvent.AttackerIsPlayer:
+            return
+
+        if not self.IsAnimal(HurtEvent.Attacker) and HurtEvent.VictimIsSleeper:
+            n = HurtEvent.Attacker.Name
+
+            victim_cp = PlayerCache.GetPlayerBySteamId(HurtEvent.Victim.UID)
+            n2 = "Unknown"
+            if victim_cp is not None:
+                n2 = victim_cp.Name
+
             if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
                 HurtEvent.DamageAmount = 0
                 HurtEvent.Attacker.Notice("Owner: " + n2)
@@ -128,20 +118,19 @@ class AdminTools:
             if not HurtEvent.AttackerIsPlayer:
                 return
             id = HurtEvent.Attacker.SteamID
-            OwnerID = HurtEvent.Entity.OwnerID
+            OwnerID = HurtEvent.Entity.UOwnerID
             if DataStore.ContainsKey("OwnerMode", HurtEvent.Attacker.SteamID):
                 gun = HurtEvent.WeaponName
                 if gun == "Shotgun":
                     return
                 HurtEvent.DamageAmount = 0
-                if not Server.HasRustPP:
-                    return
-                dict = Server.GetRustPPAPI().Cache
-                if dict.ContainsKey(long(OwnerID)):
-                    name = dict[long(OwnerID)]
+
+                cached_owner = PlayerCache.GetPlayerBySteamId(OwnerID)
+                if cached_owner:
+                    name = cached_owner.Name
                     HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + name + ".")
                 else:
-                    HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + OwnerID + ".")
+                    HurtEvent.Attacker.Notice(HurtEvent.Entity.Name + " is owned by " + str(OwnerID) + ".")
             elif DataStore.ContainsKey("DecayOff", id):
                 gun = HurtEvent.WeaponName
                 if gun == "Shotgun":
@@ -156,7 +145,7 @@ class AdminTools:
                 if HurtEvent.Entity.IsStructure() or HurtEvent.Entity.IsDeployableObject():
                     if HurtEvent.DamageType == "Explosion":
                         entityloc = str(Util.CreateVector(HurtEvent.Entity.X, HurtEvent.Entity.Y, HurtEvent.Entity.Z))
-                        entityid = str(self.GetIt(HurtEvent.Entity))
+                        entityid = HurtEvent.Entity.OwnerID
                         if HurtEvent.WeaponName == "Explosive Charge":
                             Plugin.Log("C4", str(HurtEvent.Attacker.Location) + " | " + HurtEvent.Attacker.Name
                                        + " | " + id + " | Entity: " + HurtEvent.Entity.Name + " | "
@@ -169,7 +158,7 @@ class AdminTools:
                             or HurtEvent.Entity.Name == "SmallStash":
                         name = HurtEvent.Attacker.Name
                         loc = str(HurtEvent.Attacker.Location)
-                        entityid = str(self.GetIt(HurtEvent.Entity))
+                        entityid = HurtEvent.Entity.OwnerID
                         entityloc = Util.CreateVector(HurtEvent.Entity.X, HurtEvent.Entity.Y, HurtEvent.Entity.Z)
                         Plugin.Log("ChestLog", str(entityloc) + " | " + HurtEvent.Entity.Name + " | " + entityid
                                    + " | PlayerDatas: " + id + "|" + name + "|" + loc)
