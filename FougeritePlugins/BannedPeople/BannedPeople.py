@@ -1,5 +1,5 @@
 __author__ = 'DreTaX'
-__version__ = '1.7.9'
+__version__ = '1.8.0'
 
 import clr
 
@@ -195,6 +195,11 @@ class BannedPeople:
                             ConsoleEvent.ReplyWith("You cannot ban admins!")
                             return
                         Server.BanPlayer(pl, "Console", self.bannedreason)
+            elif "clearlist" in ConsoleEvent.Function:
+                DataStore.Flush("Ips")
+                DataStore.Flush("Ids")
+                DataStore.Save()
+                ConsoleEvent.ReplyWith("All Players Should be Unbanned!")
 
     def argsToText(self, args):
         text = str.join(" ", args)
