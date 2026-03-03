@@ -326,6 +326,8 @@ class DestroySystem:
                     for ent in structs:
                         if self.giveback == 1:
                             namef = ent.Name
+                            if namef == "Wood Barricade" or namef == "WoodSpikeWall" or namef == "LargeWoodSpikeWall" or namef == "Wood_Shelter" or namef == "WoodBox" or namef == "WoodBoxLarge" or namef == "Furnace" or namef == "RepairBench" or namef == "Workbench":
+                                continue
                             if namef in EntityList.keys():
                                 HurtEvent.Attacker.Inventory.AddItem(EntityList[namef])
                         ent.Destroy()
